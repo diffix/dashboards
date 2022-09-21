@@ -1,0 +1,41 @@
+@import '~antd/dist/antd.css';
+
+body {
+  background: #ffffff;
+  overflow: hidden;
+}
+
+#root,
+.App,
+.App .ant-tabs,
+.App .ant-tabs .ant-tabs-content {
+  height: 100%;
+}
+
+.App {
+  min-width: 400px;
+}
+
+@media screen and (max-width: 400px) {
+  body {
+    overflow-x: auto;
+  }
+}
+
+.App .ant-tabs .ant-tabs-nav {
+  margin: 0;
+}
+
+.App-empty {
+  margin-top: 64px;
+}
+
+/* Helpers */
+
+.mb-1 {
+  margin-bottom: 8px;
+}
+
+.text-center {
+  text-align: center;
+}

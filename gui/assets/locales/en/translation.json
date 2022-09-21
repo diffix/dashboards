@@ -1,0 +1,91 @@
+{
+  "App": {
+    "Menu": {
+      "AppMenu": {
+        "BI Diffix": "BI Diffix",
+        "About BI Diffix": "About BI Diffix",
+        "Services": "Services",
+        "Hide BI Diffix": "Hide BI Diffix",
+        "Hide Others": "Hide Others",
+        "Show All": "Show All",
+        "Quit BI Diffix": "Quit BI Diffix"
+      },
+      "View": {
+        "&View": "&View",
+        "Copy": "Copy",
+        "Select All": "Select All",
+        "Actual Size": "Actual Size",
+        "Zoom In": "Zoom In",
+        "Zoom Out": "Zoom Out",
+        "Toggle Full Screen": "Toggle Full Screen"
+      },
+      "Settings": {
+        "&Settings": "&Settings",
+        "Language": "Language"
+      },
+      "Help": {
+        "&Help": "&Help",
+        "Documentation": "Documentation",
+        "Changelog": "Changelog",
+        "License": "License",
+        "Learn More": "Learn More",
+        "Community Discussions": "Community Discussions",
+        "Search Issues": "Search Issues",
+        "Latest Releases": "Latest Releases"
+      }
+    },
+    "Documentation": "Documentation",
+    "New Notebook": "New Notebook",
+    "BI Diffix": "BI Diffix",
+    "No open notebooks": "No open notebooks",
+    "Create New": "Create New"
+  },
+  "check-updates": {
+    "Update Available": "Update Available",
+    "A more recent version ({{version}}) is available.<br/>Click <6><0>here</0></6> to open the release page.": "A more recent version ({{version}}) is available.<br/>Click <6><0>here</0></6> to open the release page."
+  },
+  "Docs": {
+    "Documentation": "Documentation",
+    "Anonymization": "Anonymization",
+    "Changelog": "Changelog"
+  },
+  "Sidebar": {
+    "NotebookNavSteps": {
+      "CSV Import": "CSV Import",
+      "Load data from CSV": "Load data from CSV",
+      "Data Preview": "Data Preview",
+      "Preview contents of file": "Preview contents of file",
+      "ID Selection": "ID Selection",
+      "Select the entity identifier column": "Select the entity identifier column"
+    },
+    "CsvImportHelp": {
+      "CSV Import": "CSV Import",
+      "<strong>BI Diffix</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>": "<strong>BI Diffix</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>"
+    },
+    "DataPreviewHelp": {
+      "Data Preview": "Data Preview",
+      "Use the data preview to confirm that the data was imported correctly.": "Use the data preview to confirm that the data was imported correctly."
+    }
+  },
+  "FileLoadStep": {
+    "Import data to anonymize": "Import data to anonymize",
+    "Import data from CSV file": "Import data from CSV file",
+    "Click or drag file to this area to import": "Click or drag file to this area to import"
+  },
+  "SchemaLoadStep": {
+    "Loading schema": "Loading schema",
+    "Loaded {{fileName}}": "Loaded {{fileName}}",
+    "Successfully imported {{fileName}}": "Successfully imported {{fileName}}",
+    "Here is what the data looks like:": "Here is what the data looks like:",
+    "(only the first 1000 rows are shown)": "(only the first 1000 rows are shown)",
+    "Schema discovery failed": "Schema discovery failed",
+    "Something went wrong while loading the schema.": "Something went wrong while loading the schema."
+  },
+  "AidSelectionStep": {
+    "Select the protected entity identifier column": "Select the protected entity identifier column",
+    "CAUTION:": "CAUTION:",
+    "When no identifier column is present in the data, you must ensure that each individual row from the input file represents a unique entity.": "When no identifier column is present in the data, you must ensure that each individual row from the input file represents a unique entity.",
+    "Select a column or 'None'": "Select a column or 'None'",
+    "[None]": "[None]"
+  }
+}

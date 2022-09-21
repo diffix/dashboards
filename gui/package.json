@@ -1,0 +1,148 @@
+{
+  "name": "BI Diffix",
+  "productName": "BI Diffix",
+  "author": "Max Planck Gesellschaft (MPG)",
+  "version": "0.0.1",
+  "description": "",
+  "main": ".webpack/main",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "eslint --max-warnings 0 --ext .ts,.tsx .",
+    "check-format": "prettier --check src",
+    "format": "prettier --write src",
+    "preversion": "node version.js check",
+    "version": "node version.js update && git add CHANGELOG.md",
+    "postversion": "git push --follow-tags && echo Release commit created, tagged and pushed!"
+  },
+  "keywords": [],
+  "license": "BUSL-1.1",
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "extraResource": [
+          "bin",
+          "assets",
+          "docs"
+        ],
+        "name": "bi_diffix",
+        "icon": "assets/icon"
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "frameworkVersion": "net5.0",
+            "setupIcon": "assets/icon.ico"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ],
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-github",
+          "config": {
+            "repository": {
+              "owner": "diffix",
+              "name": "bi_diffix"
+            },
+            "draft": true
+          }
+        }
+      ],
+      "hooks": "require:forge.hooks.js",
+      "plugins": [
+        [
+          "@electron-forge/plugin-webpack",
+          {
+            "mainConfig": "./webpack.main.config.js",
+            "renderer": {
+              "config": "./webpack.renderer.config.js",
+              "entryPoints": [
+                {
+                  "html": "./src/index.html",
+                  "js": "./src/renderer.ts",
+                  "preload": {
+                    "js": "./src/preload.ts"
+                  },
+                  "name": "main_window"
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "6.0.0-beta.59",
+    "@electron-forge/maker-deb": "6.0.0-beta.59",
+    "@electron-forge/maker-rpm": "6.0.0-beta.59",
+    "@electron-forge/maker-squirrel": "6.0.0-beta.59",
+    "@electron-forge/maker-zip": "6.0.0-beta.59",
+    "@electron-forge/plugin-webpack": "6.0.0-beta.59",
+    "@electron-forge/publisher-github": "^6.0.0-beta.59",
+    "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
+    "@types/i18next-fs-backend": "^1.1.2",
+    "@types/lodash": "^4.14.172",
+    "@types/mdast": "^3.0.10",
+    "@types/node": "^16.4.6",
+    "@types/react": "^17.0.15",
+    "@types/react-dom": "^17.0.9",
+    "@types/semver": "^7.3.9",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "css-loader": "^6.2.0",
+    "electron": "15.0.0-alpha.2",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-react": "^7.24.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "fork-ts-checker-webpack-plugin": "^6.2.13",
+    "node-loader": "^2.0.0",
+    "prettier": "^2.3.2",
+    "style-loader": "^3.2.1",
+    "ts-loader": "^9.2.4",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "@rehooks/component-size": "^1.0.3",
+    "antd": "^4.16.9",
+    "classnames": "^2.3.1",
+    "electron-fetch": "^1.7.4",
+    "electron-squirrel-startup": "^1.0.0",
+    "i18next": "^21.8.14",
+    "i18next-fs-backend": "^1.1.4",
+    "immer": "^9.0.5",
+    "lodash": "^4.17.21",
+    "mdast-util-to-string": "^3.1.0",
+    "mdast-util-toc": "^6.1.0",
+    "node-polyfill-webpack-plugin": "^1.1.4",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-i18next": "^11.18.1",
+    "react-in-viewport": "^1.0.0-alpha.19",
+    "react-markdown": "^7.0.1",
+    "remark-gfm": "^2.0.0",
+    "remark-slug": "^7.0.0",
+    "semver": "^7.3.5",
+    "tiny-invariant": "^1.1.0",
+    "use-immer": "^0.6.0"
+  }
+}

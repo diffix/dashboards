@@ -1,0 +1,12 @@
+.AidSelectionStep-reserved-space {
+  min-height: 400px;
+}
+
+.AidSelectionStep-select {
+  width: 400px;
+}
+
+.AidSelectionStep .AidSelectionStep-notice {
+  margin-bottom: 16px;
+  max-width: 1000px;
+}
