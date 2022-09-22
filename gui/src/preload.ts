@@ -6,6 +6,7 @@ import { i18nConfig } from './shared/config';
 
 import de from '../assets/locales/de/translation.json';
 import en from '../assets/locales/en/translation.json';
+import { TableColumn } from './types';
 
 const args = window.process.argv;
 let initialLanguage = 'en';
@@ -62,6 +63,22 @@ window.callService = (request: unknown, signal: AbortSignal) =>
   newTask(signal, async (taskId) => {
     const json: string | null = await ipcRenderer.invoke('call_service', taskId, JSON.stringify(request));
     return json ? JSON.parse(json) : null;
+  });
+
+window.readCSV = (fileName: string, signal: AbortSignal) =>
+  newTask(signal, (taskId) => {
+    return ipcRenderer.invoke('read_csv', taskId, fileName);
+  });
+
+window.importCSV = (
+  fileName: string,
+  tableName: string,
+  columns: TableColumn[],
+  aidColumn: string,
+  signal: AbortSignal,
+) =>
+  newTask(signal, (taskId) => {
+    return ipcRenderer.invoke('import_csv', taskId, fileName, tableName, columns, aidColumn);
   });
 
 window.onOpenDocs = (_page) => {};

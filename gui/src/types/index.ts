@@ -75,6 +75,7 @@ export type Value = boolean | number | string | null;
 
 export type Importer = {
   loadSchema(file: File): Task<TableSchema>;
+  importCSV(file: File, columns: TableColumn[], aidColumn: string): Task<void>;
 };
 
 export type Task<T> = {
@@ -88,6 +89,14 @@ declare global {
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
     callService(request: unknown, signal: AbortSignal): Promise<Response>;
+    readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;
+    importCSV(
+      fileName: string,
+      tableName: string,
+      columns: TableColumn[],
+      aidColumn: string,
+      signal: AbortSignal,
+    ): Promise<void>;
     onOpenDocs: (page: PageId) => void;
     setMainWindowTitle: (title: string) => void;
     checkForUpdates: () => Promise<string | null>;

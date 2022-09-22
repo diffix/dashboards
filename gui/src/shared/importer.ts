@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { ColumnType, File, Importer, LoadResponse, TableSchema, Task } from '../types';
+import { ColumnType, File, Importer, TableColumn, TableSchema, Task } from '../types';
 import { runTask } from './utils';
 
 class DiffixImporter implements Importer {
@@ -37,17 +37,18 @@ class DiffixImporter implements Importer {
 
   loadSchema(file: File): Task<TableSchema> {
     return runTask(async (signal) => {
-      const request = { type: 'Load', inputPath: file.path, rows: 10000 };
-      const result = (await window.callService(request, signal)) as LoadResponse;
+      const result = await window.readCSV(file.path, signal);
 
-      // Drop row index column from schema.
-      const columns = result.columns.slice(1);
-      const rowsPreview = result.rows.map((row) => row.slice(1)).slice(0, 1000);
+      const types = this.detectColumnTypes(result.columns.length, result.rows as string[][]);
+      for (let index = 0; index < result.columns.length; index++) result.columns[index].type = types[index];
 
-      const types = this.detectColumnTypes(columns.length, rowsPreview as string[][]);
-      for (let index = 0; index < columns.length; index++) columns[index].type = types[index];
+      return { file, columns: result.columns, rowsPreview: result.rows };
+    });
+  }
 
-      return { file, columns, rowsPreview };
+  importCSV(file: File, columns: TableColumn[], aidColumn: string): Task<void> {
+    return runTask(async (signal) => {
+      await window.importCSV(file.path, file.name, columns, aidColumn, signal);
     });
   }
 }

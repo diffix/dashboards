@@ -1,9 +1,10 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Alert, Select, Typography } from 'antd';
+import { Alert, Button, message, Select, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { NotebookNavAnchor, NotebookNavStep } from '../Notebook';
-import { useT } from '../shared';
-import { TableSchema } from '../types';
+import { importer, TFunc, useT } from '../shared';
+import { rowIndexColumn } from '../shared/config';
+import { File, TableSchema } from '../types';
 
 import './AidSelectionStep.css';
 
@@ -12,11 +13,40 @@ const { Option } = Select;
 
 type AidSelectionProps = {
   schema: TableSchema;
+  file: File;
 };
 
-export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema }) => {
+async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: TFunc) {
+  const fileName = file.name;
+  message.loading({
+    content: t('Importing CSV from {{fileName}}...', { fileName }),
+    key: file.path,
+    duration: 0,
+  });
+
+  try {
+    const task = importer.importCSV(file, schema.columns, aidColumn);
+    await task.result;
+    message.success({
+      content: t('Data from {{fileName}} imported successfully!', { fileName }),
+      key: file.path,
+      duration: 10,
+    });
+    return true;
+  } catch (e) {
+    console.error(e);
+    message.error({ content: t('Data import failed!'), key: file.path, duration: 10 });
+    return false;
+  }
+}
+
+export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema, file }) => {
   const t = useT('AidSelectionStep');
   const [aidColumn, setAidColumn] = useState('');
+  const [buttonState, setButtonState] = useState({
+    title: `Import into ${file.name} (destructive operation!)`,
+    enabled: true,
+  });
   return (
     <>
       <div className="AidSelectionStep notebook-step">
@@ -45,7 +75,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema 
           onChange={(column: string) => setAidColumn(column)}
           filterOption={true}
         >
-          <Option key={-1} value="RowIndex">
+          <Option key={-1} value={rowIndexColumn}>
             {t('[None]')}
           </Option>
           {schema.columns.map((column, index) => (
@@ -55,6 +85,19 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema 
           ))}
         </Select>
       </div>
+      {aidColumn ? (
+        <div>
+          <Button
+            disabled={!buttonState.enabled}
+            onClick={async () => {
+              const success = await importCSV(file, schema, aidColumn, t);
+              if (success) setButtonState({ title: 'Imported!', enabled: false });
+            }}
+          >
+            {buttonState.title}
+          </Button>
+        </div>
+      ) : null}
     </>
   );
 };
