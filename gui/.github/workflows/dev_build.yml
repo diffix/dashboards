@@ -18,11 +18,5 @@ jobs:
         run: npm run check-format
       - name: Run linter
         run: npm run lint
-      - name: Build Service
-        run: npm run build
-      - name: Generate test data
-        run: npm run test-init
-      - name: Test Service
-        run: npm run test
       - name: Build App
         run: npm run package
