@@ -1,2 +1,2 @@
 # bi_diffix
-Business Inteligence app for Open Diffix
+Business Intelligence app for Open Diffix

@@ -1,0 +1,22 @@
+name: dev_build
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@master
+        with:
+          node-version: 16
+      - name: Install GUI dependencies
+        run: npm install
+      - name: Check files format
+        run: npm run check-format
+      - name: Run linter
+        run: npm run lint
+      - name: Build App
+        run: npm run package
