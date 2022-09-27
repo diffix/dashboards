@@ -1,4 +1,4 @@
-import { Button, ConfigProvider, Empty, Tabs } from 'antd';
+import { ConfigProvider, Tabs } from 'antd';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
 import { find, findIndex } from 'lodash';
@@ -40,8 +40,8 @@ type AppState = {
 
 let nextTabId = 1;
 
-function newNotebookTab(t: TFunc): TabInfo {
-  return { id: (nextTabId++).toString(), title: t('New Notebook'), type: 'notebook' };
+function openAdminPanelTab(t: TFunc): TabInfo {
+  return { id: (nextTabId++).toString(), title: t('Admin Panel'), type: 'notebook' };
 }
 
 function newDocsTab(page: PageId, section: string | null, t: TFunc): TabInfo {
@@ -68,10 +68,10 @@ function setWindowTitle(state: AppState) {
 export const App: FunctionComponent = () => {
   const t = useT('App');
   const [state, updateState] = useImmer(() => {
-    const initialNotebook = newNotebookTab(t);
+    const initialTab = openAdminPanelTab(t);
     return {
-      tabs: [initialNotebook],
-      activeTab: initialNotebook.id,
+      tabs: [initialTab],
+      activeTab: initialTab.id,
     };
   });
 
@@ -80,12 +80,13 @@ export const App: FunctionComponent = () => {
   function onEdit(targetKey: unknown, action: 'add' | 'remove'): void {
     switch (action) {
       case 'add':
-        updateState((state) => {
+        // TODO: open query tab
+        /*updateState((state) => {
           const addedNotebook = newNotebookTab(t);
           state.tabs.push(addedNotebook);
           state.activeTab = addedNotebook.id;
           setWindowTitle(state);
-        });
+        });*/
         return;
 
       case 'remove':
@@ -150,38 +151,30 @@ export const App: FunctionComponent = () => {
       <ImporterContext.Provider value={importer}>
         <DocsFunctionsContext.Provider value={docsFunctions}>
           <div className="App">
-            {tabs.length !== 0 ? (
-              <Tabs type="editable-card" activeKey={activeTab} onChange={setActiveTab} onEdit={onEdit}>
-                {tabs.map((tab) => (
-                  <TabPane tab={tab.title} key={tab.id}>
-                    {tab.type === 'notebook' ? (
-                      <Notebook isActive={activeTab === tab.id} onTitleChange={(title) => setTitle(tab.id, title)} />
-                    ) : (
-                      <Docs
-                        onTitleChange={(title) => setTitle(tab.id, title)}
-                        page={tab.page}
-                        onPageChange={(page) =>
-                          updateState((state) => {
-                            const docsTab = find(state.tabs, { id: tab.id }) as DocsTab;
-                            docsTab.page = page;
-                            docsTab.section = null;
-                            docsTab.scrollInvalidator++;
-                          })
-                        }
-                        section={tab.section}
-                        scrollInvalidator={tab.scrollInvalidator}
-                      />
-                    )}
-                  </TabPane>
-                ))}
-              </Tabs>
-            ) : (
-              <Empty className="App-empty" description={t('No open notebooks')}>
-                <Button type="primary" onClick={() => onEdit(null, 'add')}>
-                  {t('Create New')}
-                </Button>
-              </Empty>
-            )}
+            <Tabs type="editable-card" activeKey={activeTab} onChange={setActiveTab} onEdit={onEdit}>
+              {tabs.map((tab) => (
+                <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'notebook'}>
+                  {tab.type === 'notebook' ? (
+                    <Notebook isActive={activeTab === tab.id} onTitleChange={(title) => setTitle(tab.id, title)} />
+                  ) : (
+                    <Docs
+                      onTitleChange={(title) => setTitle(tab.id, title)}
+                      page={tab.page}
+                      onPageChange={(page) =>
+                        updateState((state) => {
+                          const docsTab = find(state.tabs, { id: tab.id }) as DocsTab;
+                          docsTab.page = page;
+                          docsTab.section = null;
+                          docsTab.scrollInvalidator++;
+                        })
+                      }
+                      section={tab.section}
+                      scrollInvalidator={tab.scrollInvalidator}
+                    />
+                  )}
+                </TabPane>
+              ))}
+            </Tabs>
           </div>
         </DocsFunctionsContext.Provider>
       </ImporterContext.Provider>

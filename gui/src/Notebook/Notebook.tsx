@@ -3,7 +3,7 @@ import React, { FunctionComponent } from 'react';
 import { AidSelectionStep } from '../AidSelectionStep';
 import { FileLoadStep } from '../FileLoadStep';
 import { SchemaLoadStep } from '../SchemaLoadStep';
-import { Layout } from '../shared';
+import { useT, Layout } from '../shared';
 import { NotebookHelp } from './notebook-help';
 import { NotebookNav, NotebookNavProvider } from './notebook-nav';
 
@@ -15,6 +15,7 @@ export type NotebookProps = {
 };
 
 export const Notebook: FunctionComponent<NotebookProps> = ({ isActive, onTitleChange }) => {
+  const t = useT('Notebook');
   return (
     <NotebookNavProvider isActive={isActive}>
       <Layout className="Notebook">
@@ -24,7 +25,7 @@ export const Notebook: FunctionComponent<NotebookProps> = ({ isActive, onTitleCh
           <NotebookHelp />
         </Layout.Sidebar>
         <Layout.Content className="Notebook-content">
-          <FileLoadStep onLoad={(file) => onTitleChange(file.name)}>
+          <FileLoadStep onLoad={(file) => onTitleChange(t('Importing') + ' ' + file.name)}>
             {({ file }) => (
               <SchemaLoadStep file={file}>{({ schema }) => <AidSelectionStep schema={schema} />}</SchemaLoadStep>
             )}
