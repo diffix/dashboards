@@ -47,6 +47,9 @@
     "Anonymization": "Anonymization",
     "Changelog": "Changelog"
   },
+  "Notebook": {
+    "Importing": "Importing"
+  },
   "Sidebar": {
     "NotebookNavSteps": {
       "CSV Import": "CSV Import",
