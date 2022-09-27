@@ -25,13 +25,16 @@ jobs:
       - uses: actions/setup-node@master
         with:
           node-version: 16
-      - name: Install dependencies
+      - name: Install GUI dependencies
         run: npm install
-      - name: Make
+        working-directory: ./gui
+      - name: Make GUI
         run: npm run make
-      - name: Upload ${{ matrix.build-target }} build
+        working-directory: ./gui
+      - name: Upload GUI ${{ matrix.build-target }} build
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.build-target }}
           path: out/make
           retention-days: 10
+        working-directory: ./gui
