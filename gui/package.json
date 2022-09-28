@@ -1,9 +1,9 @@
 {
-  "name": "BI Diffix",
+  "name": "bi_diffix",
   "productName": "BI Diffix",
   "author": "Max Planck Gesellschaft (MPG)",
   "version": "0.0.1",
-  "description": "",
+  "description": "Desktop application for managing the backend of `pg_diffix` Business Intelligence tools.",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",

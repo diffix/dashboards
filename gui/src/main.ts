@@ -201,34 +201,6 @@ function createWindow() {
 
 // IPC
 
-app.on('ready', () => {
-  // Feeding the locale to `changeLanguage` or extracting the language cause problems.
-  if (['de', 'de-AT', 'de-CH', 'de-DE', 'de-LI', 'de-LU'].includes(app.getLocale())) {
-    i18n.changeLanguage('de');
-  }
-  setupMenu();
-  registerProtocols();
-  createWindow();
-});
-
-app.on('window-all-closed', () => {
-  if (!isMac) {
-    app.quit();
-  }
-});
-
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-i18n.on('languageChanged', (lng) => {
-  setupMenu();
-  const mainWindow = BrowserWindow.getAllWindows()[0];
-  mainWindow?.webContents.send('language_changed', lng);
-});
-
 const activeTasks = new Map<string, AbortController>();
 
 async function runTask<T>(taskId: string, runner: (signal: AbortSignal) => Promise<T>): Promise<T> {
@@ -268,121 +240,172 @@ function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tab
   });
 }
 
-ipcMain.on('cancel_task', async (_event, taskId: string) => {
-  console.info(`Cancelling task ${taskId}.`);
-  const controller = activeTasks.get(taskId);
-  if (controller) {
-    controller.abort();
-    activeTasks.delete(taskId);
-  } else {
-    console.info(`Task ${taskId} not found.`);
-  }
-});
-
-ipcMain.handle('call_service', (_event, taskId: string, request: string) =>
-  runTask(taskId, async (signal) => {
-    console.info(`(${taskId}) Calling service: ${request}.`);
-
-    const promise = asyncExecFile('TODO, whatever we need', null, {
-      maxBuffer: 100 * 1024 * 1024,
-      windowsHide: true,
-      signal,
-    });
-
-    promise.child.stdin?.write(request);
-    promise.child.stdin?.end();
-
-    try {
-      const { stdout, stderr } = await promise;
-      console.log(stderr.trimEnd());
-      return stdout;
-    } catch (err) {
-      if ((err as Error)?.name === 'AbortError') {
-        throw 'Service call aborted.';
-      }
-
-      const stderr = (err as { stderr?: string })?.stderr;
-      if (stderr) {
-        console.log(stderr.trimEnd());
-      }
-
-      throw 'Service call failed.';
+function setupApp() {
+  app.on('second-instance', (_event, _commandLine, _workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
     }
-  }),
-);
+  });
 
-ipcMain.handle(
-  'import_csv',
-  async (_event, taskId: string, fileName: string, tableName: string, columns: TableColumn[], aidColumn: string) => {
-    const client = new Client(connectionConfig);
-    await client.connect();
-    return runTask(taskId, async (signal) => {
-      console.info(`(${taskId}) copying CSV ${fileName}.`);
+  app.on('ready', () => {
+    // Feeding the locale to `changeLanguage` or extracting the language cause problems.
+    if (['de', 'de-AT', 'de-CH', 'de-DE', 'de-LI', 'de-LU'].includes(app.getLocale())) {
+      i18n.changeLanguage('de');
+    }
+    setupMenu();
+    registerProtocols();
+    createWindow();
+  });
 
-      const columnsSQL = columns.map((column) => `${column.name} ${column.type}`).join(',');
+  app.on('window-all-closed', () => {
+    if (!isMac) {
+      app.quit();
+    }
+  });
 
-      try {
-        // TODO: should we worry about (accidental) SQL-injection here?
-        await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
-        await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
-        await copyFromFile(client, signal, fileName, tableName);
-        if (aidColumn == rowIndexColumn) {
-          await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${aidColumn}" SERIAL`);
-        }
-        await client.query(`CALL diffix.mark_personal('"${tableName}"', '"${aidColumn}"');`);
-      } finally {
-        client.end();
-      }
-    });
-  },
-);
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+}
 
-ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
-  runTask(taskId, async (signal) => {
-    console.info(`(${taskId}) reading CSV ${fileName}.`);
+function setupI18n() {
+  i18n.on('languageChanged', (lng) => {
+    setupMenu();
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    mainWindow?.webContents.send('language_changed', lng);
+  });
 
-    const promise = () =>
-      new Promise<string[][]>((resolve, reject) => {
-        const records: string[][] = [];
+  ipcMain.on('cancel_task', async (_event, taskId: string) => {
+    console.info(`Cancelling task ${taskId}.`);
+    const controller = activeTasks.get(taskId);
+    if (controller) {
+      controller.abort();
+      activeTasks.delete(taskId);
+    } else {
+      console.info(`Task ${taskId} not found.`);
+    }
+  });
+}
 
-        stream
-          .addAbortSignal(signal, fs.createReadStream(fileName))
-          .pipe(parse({ to_line: 1001 }))
-          .on('data', function (record) {
-            records.push(record);
-          })
-          .on('end', function () {
-            resolve(records);
-          })
-          .on('error', function (err) {
-            reject(err);
-          });
+function setupIPC() {
+  ipcMain.handle('call_service', (_event, taskId: string, request: string) =>
+    runTask(taskId, async (signal) => {
+      console.info(`(${taskId}) Calling service: ${request}.`);
+
+      const promise = asyncExecFile('TODO, whatever we need', null, {
+        maxBuffer: 100 * 1024 * 1024,
+        windowsHide: true,
+        signal,
       });
 
-    const records = await promise();
+      promise.child.stdin?.write(request);
+      promise.child.stdin?.end();
 
-    const columns = records[0].map((name: string) => ({ name: name, type: 'text' } as TableColumn));
-    const rowsPreview = records.slice(1, 101);
+      try {
+        const { stdout, stderr } = await promise;
+        console.log(stderr.trimEnd());
+        return stdout;
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') {
+          throw 'Service call aborted.';
+        }
 
-    return { columns: columns, rows: rowsPreview };
-  }),
-);
+        const stderr = (err as { stderr?: string })?.stderr;
+        if (stderr) {
+          console.log(stderr.trimEnd());
+        }
 
-ipcMain.handle('set_main_window_title', (_event, title: string) => {
-  const mainWindow = BrowserWindow.getAllWindows()[0];
-  mainWindow?.setTitle(title);
-});
+        throw 'Service call failed.';
+      }
+    }),
+  );
 
-ipcMain.handle('check_for_updates', async (_event) => {
-  const response = await fetch('https://api.github.com/repos/diffix/bi_diffix/releases/latest');
+  ipcMain.handle(
+    'import_csv',
+    async (_event, taskId: string, fileName: string, tableName: string, columns: TableColumn[], aidColumn: string) => {
+      const client = new Client(connectionConfig);
+      await client.connect();
+      return runTask(taskId, async (signal) => {
+        console.info(`(${taskId}) copying CSV ${fileName}.`);
 
-  // 404 here means there hasn't yet been a full release yet, just prerelases or drafts
-  if (response.status == 404) return null;
+        const columnsSQL = columns.map((column) => `${column.name} ${column.type}`).join(',');
 
-  const data = await response.json();
-  const newestTagName = data['tag_name'];
-  const newestSemVer = semver.coerce(newestTagName);
-  const currentSemVer = semver.coerce(app.getVersion());
+        try {
+          // TODO: should we worry about (accidental) SQL-injection here?
+          await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
+          await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
+          await copyFromFile(client, signal, fileName, tableName);
+          if (aidColumn == rowIndexColumn) {
+            await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${aidColumn}" SERIAL`);
+          }
+          await client.query(`CALL diffix.mark_personal('"${tableName}"', '"${aidColumn}"');`);
+        } finally {
+          client.end();
+        }
+      });
+    },
+  );
 
-  return newestSemVer && currentSemVer && semver.gt(newestSemVer, currentSemVer) ? newestTagName : null;
-});
+  ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
+    runTask(taskId, async (signal) => {
+      console.info(`(${taskId}) reading CSV ${fileName}.`);
+
+      const promise = () =>
+        new Promise<string[][]>((resolve, reject) => {
+          const records: string[][] = [];
+
+          stream
+            .addAbortSignal(signal, fs.createReadStream(fileName))
+            .pipe(parse({ to_line: 1001 }))
+            .on('data', function (record) {
+              records.push(record);
+            })
+            .on('end', function () {
+              resolve(records);
+            })
+            .on('error', function (err) {
+              reject(err);
+            });
+        });
+
+      const records = await promise();
+
+      const columns = records[0].map((name: string) => ({ name: name, type: 'text' } as TableColumn));
+      const rowsPreview = records.slice(1, 101);
+
+      return { columns: columns, rows: rowsPreview };
+    }),
+  );
+
+  ipcMain.handle('set_main_window_title', (_event, title: string) => {
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    mainWindow?.setTitle(title);
+  });
+
+  ipcMain.handle('check_for_updates', async (_event) => {
+    const response = await fetch('https://api.github.com/repos/diffix/bi_diffix/releases/latest');
+
+    // 404 here means there hasn't yet been a full release yet, just prerelases or drafts
+    if (response.status == 404) return null;
+
+    const data = await response.json();
+    const newestTagName = data['tag_name'];
+    const newestSemVer = semver.coerce(newestTagName);
+    const currentSemVer = semver.coerce(app.getVersion());
+
+    return newestSemVer && currentSemVer && semver.gt(newestSemVer, currentSemVer) ? newestTagName : null;
+  });
+}
+
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  setupApp();
+  setupI18n();
+  setupIPC();
+}
