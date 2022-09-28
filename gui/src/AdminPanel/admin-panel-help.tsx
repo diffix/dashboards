@@ -3,7 +3,7 @@ import React, { FunctionComponent } from 'react';
 import { Trans } from 'react-i18next';
 import { DocsLink } from '../Docs';
 import { TFunc, useT as useBaseT } from '../shared';
-import { NotebookNavStep, useNavState } from './notebook-nav';
+import { AdminPanelNavStep, useNavState } from './admin-panel-nav';
 
 const { Paragraph: ParagraphBase, Title } = Typography;
 
@@ -60,20 +60,20 @@ function AidSelectionHelp() {
   );
 }
 
-const NotebookStepHelp = React.memo<{ step: NotebookNavStep }>(({ step }) => {
+const AdminPanelStepHelp = React.memo<{ step: AdminPanelNavStep }>(({ step }) => {
   switch (step) {
-    case NotebookNavStep.CsvImport:
+    case AdminPanelNavStep.CsvImport:
       return <CsvImportHelp />;
-    case NotebookNavStep.DataPreview:
+    case AdminPanelNavStep.DataPreview:
       return <DataPreviewHelp />;
-    case NotebookNavStep.AidSelection:
+    case AdminPanelNavStep.AidSelection:
       return <AidSelectionHelp />;
     default:
       return null;
   }
 });
 
-export const NotebookHelp: React.FunctionComponent = () => {
+export const AdminPanelHelp: React.FunctionComponent = () => {
   const { focusedStep } = useNavState();
-  return <NotebookStepHelp step={focusedStep} />;
+  return <AdminPanelStepHelp step={focusedStep} />;
 };

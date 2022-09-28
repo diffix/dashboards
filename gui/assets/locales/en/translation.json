@@ -47,11 +47,11 @@
     "Anonymization": "Anonymization",
     "Changelog": "Changelog"
   },
-  "Notebook": {
+  "AdminPanel": {
     "Importing": "Importing"
   },
   "Sidebar": {
-    "NotebookNavSteps": {
+    "AdminPanelNavSteps": {
       "CSV Import": "CSV Import",
       "Load data from CSV": "Load data from CSV",
       "Data Preview": "Data Preview",
