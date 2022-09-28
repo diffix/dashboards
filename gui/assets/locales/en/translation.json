@@ -35,10 +35,8 @@
       }
     },
     "Documentation": "Documentation",
-    "New Notebook": "New Notebook",
     "BI Diffix": "BI Diffix",
-    "No open notebooks": "No open notebooks",
-    "Create New": "Create New"
+    "Admin Panel": "Admin Panel"
   },
   "check-updates": {
     "Update Available": "Update Available",
@@ -48,6 +46,9 @@
     "Documentation": "Documentation",
     "Anonymization": "Anonymization",
     "Changelog": "Changelog"
+  },
+  "Notebook": {
+    "Importing": "Importing"
   },
   "Sidebar": {
     "NotebookNavSteps": {
