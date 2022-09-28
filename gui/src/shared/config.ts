@@ -10,3 +10,5 @@ export const i18nConfig = {
   nsSeparator: ':::',
   supportedLngs: ['en', 'de'],
 } as const;
+
+export const rowIndexColumn = 'RowIndex';

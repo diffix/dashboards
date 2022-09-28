@@ -27,7 +27,9 @@ export const Notebook: FunctionComponent<NotebookProps> = ({ isActive, onTitleCh
         <Layout.Content className="Notebook-content">
           <FileLoadStep onLoad={(file) => onTitleChange(t('Importing') + ' ' + file.name)}>
             {({ file }) => (
-              <SchemaLoadStep file={file}>{({ schema }) => <AidSelectionStep schema={schema} />}</SchemaLoadStep>
+              <SchemaLoadStep file={file}>
+                {({ schema }) => <AidSelectionStep schema={schema} file={file} />}
+              </SchemaLoadStep>
             )}
           </FileLoadStep>
         </Layout.Content>

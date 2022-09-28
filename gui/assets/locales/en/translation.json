@@ -66,6 +66,11 @@
     "DataPreviewHelp": {
       "Data Preview": "Data Preview",
       "Use the data preview to confirm that the data was imported correctly.": "Use the data preview to confirm that the data was imported correctly."
+    },
+    "AidSelectionHelp": {
+      "ID Selection": "ID Selection",
+      "<strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.": "<strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.",
+      "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. <4>Click here for details on how to set.</4>": "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. <4>Click here for details on how to set.</4>"
     }
   },
   "FileLoadStep": {
@@ -87,6 +92,9 @@
     "CAUTION:": "CAUTION:",
     "When no identifier column is present in the data, you must ensure that each individual row from the input file represents a unique entity.": "When no identifier column is present in the data, you must ensure that each individual row from the input file represents a unique entity.",
     "Select a column or 'None'": "Select a column or 'None'",
-    "[None]": "[None]"
+    "[None]": "[None]",
+    "Importing CSV from {{fileName}}...": "Importing CSV from {{fileName}}...",
+    "Data from {{fileName}} imported successfully!": "Data from {{fileName}} imported successfully!",
+    "Data import failed!": "Data import failed!"
   }
 }
