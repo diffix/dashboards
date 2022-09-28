@@ -1,13 +1,27 @@
 import { execFile } from 'child_process';
 import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
+import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
 import semver from 'semver';
+import stream from 'stream';
 import util from 'util';
 import { PageId } from './Docs';
-import { i18nConfig } from './shared/config';
+import { i18nConfig, rowIndexColumn } from './shared/config';
+import { parse } from 'csv-parse';
+import { TableColumn } from './types';
+import { Client } from 'pg';
+import { from } from 'pg-copy-streams';
+
+const connectionConfig = {
+  port: 10432,
+  database: 'prop_test',
+  user: 'prop_test',
+  password: 'prop_test',
+  connectionTimeoutMillis: 1000,
+};
 
 const asyncExecFile = util.promisify(execFile);
 
@@ -234,6 +248,26 @@ async function runTask<T>(taskId: string, runner: (signal: AbortSignal) => Promi
   }
 }
 
+function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tableName: string) {
+  return new Promise<void>((resolve, reject) => {
+    const pgStream = stream.addAbortSignal(
+      signal,
+      client.query(from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER true)`)),
+    );
+    const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
+    fileStream.on('error', (err) => {
+      reject(err);
+    });
+    pgStream.on('error', (err) => {
+      reject(err);
+    });
+    pgStream.on('finish', (res) => {
+      resolve(res);
+    });
+    fileStream.pipe(pgStream);
+  });
+}
+
 ipcMain.on('cancel_task', async (_event, taskId: string) => {
   console.info(`Cancelling task ${taskId}.`);
   const controller = activeTasks.get(taskId);
@@ -274,6 +308,63 @@ ipcMain.handle('call_service', (_event, taskId: string, request: string) =>
 
       throw 'Service call failed.';
     }
+  }),
+);
+
+ipcMain.handle(
+  'import_csv',
+  async (_event, taskId: string, fileName: string, tableName: string, columns: TableColumn[], aidColumn: string) => {
+    const client = new Client(connectionConfig);
+    await client.connect();
+    return runTask(taskId, async (signal) => {
+      console.info(`(${taskId}) copying CSV ${fileName}.`);
+
+      const columnsSQL = columns.map((column) => `${column.name} ${column.type}`).join(',');
+
+      try {
+        // TODO: should we worry about (accidental) SQL-injection here?
+        await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
+        await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
+        await copyFromFile(client, signal, fileName, tableName);
+        if (aidColumn == rowIndexColumn) {
+          await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${aidColumn}" SERIAL`);
+        }
+        await client.query(`CALL diffix.mark_personal('"${tableName}"', '"${aidColumn}"');`);
+      } finally {
+        client.end();
+      }
+    });
+  },
+);
+
+ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
+  runTask(taskId, async (signal) => {
+    console.info(`(${taskId}) reading CSV ${fileName}.`);
+
+    const promise = () =>
+      new Promise<string[][]>((resolve, reject) => {
+        const records: string[][] = [];
+
+        stream
+          .addAbortSignal(signal, fs.createReadStream(fileName))
+          .pipe(parse({ to_line: 1001 }))
+          .on('data', function (record) {
+            records.push(record);
+          })
+          .on('end', function () {
+            resolve(records);
+          })
+          .on('error', function (err) {
+            reject(err);
+          });
+      });
+
+    const records = await promise();
+
+    const columns = records[0].map((name: string) => ({ name: name, type: 'text' } as TableColumn));
+    const rowsPreview = records.slice(1, 101);
+
+    return { columns: columns, rows: rowsPreview };
   }),
 );
 
