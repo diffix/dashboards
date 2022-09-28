@@ -39,7 +39,7 @@ function DataPreviewHelp() {
   return (
     <div>
       <Title level={4}>{t('Data Preview')}</Title>
-      <Paragraph t={t}>Use the data preview to confirm that the data was imported correctly.</Paragraph>
+      <Paragraph t={t}>Use the data preview to confirm that the data was loaded correctly.</Paragraph>
     </div>
   );
 }

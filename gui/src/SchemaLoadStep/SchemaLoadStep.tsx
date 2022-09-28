@@ -33,7 +33,7 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
         <>
           <div className="SchemaLoadStep admin-panel-step completed">
             <AdminPanelNavAnchor step={AdminPanelNavStep.DataPreview} status="done" />
-            <Title level={3}>{t('Successfully imported {{fileName}}', { fileName: schema.value.file.name })}</Title>
+            <Title level={3}>{t('Successfully loaded {{fileName}}', { fileName: schema.value.file.name })}</Title>
             <div className="mb-1">
               <Text>{t('Here is what the data looks like:')}</Text>
               {schema.value.rowsPreview.length === 1000 && (
