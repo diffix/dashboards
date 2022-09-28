@@ -240,9 +240,7 @@ function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tab
   });
 }
 
-if (!app.requestSingleInstanceLock()) {
-  app.quit();
-} else {
+function setupApp() {
   app.on('second-instance', (_event, _commandLine, _workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
     const mainWindow = BrowserWindow.getAllWindows()[0];
@@ -273,12 +271,15 @@ if (!app.requestSingleInstanceLock()) {
       createWindow();
     }
   });
+}
 
+function setupI18n() {
   i18n.on('languageChanged', (lng) => {
     setupMenu();
     const mainWindow = BrowserWindow.getAllWindows()[0];
     mainWindow?.webContents.send('language_changed', lng);
   });
+
   ipcMain.on('cancel_task', async (_event, taskId: string) => {
     console.info(`Cancelling task ${taskId}.`);
     const controller = activeTasks.get(taskId);
@@ -289,7 +290,9 @@ if (!app.requestSingleInstanceLock()) {
       console.info(`Task ${taskId} not found.`);
     }
   });
+}
 
+function setupIPC() {
   ipcMain.handle('call_service', (_event, taskId: string, request: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) Calling service: ${request}.`);
@@ -397,4 +400,12 @@ if (!app.requestSingleInstanceLock()) {
 
     return newestSemVer && currentSemVer && semver.gt(newestSemVer, currentSemVer) ? newestTagName : null;
   });
+}
+
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  setupApp();
+  setupI18n();
+  setupIPC();
 }
