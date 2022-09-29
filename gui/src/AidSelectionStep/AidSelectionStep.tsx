@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Alert, Button, message, Select, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
-import { NotebookNavAnchor, NotebookNavStep } from '../Notebook';
+import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
 import { importer, TFunc, useT } from '../shared';
 import { rowIndexColumn } from '../shared/config';
 import { File, TableSchema } from '../types';
@@ -49,8 +49,8 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
   });
   return (
     <>
-      <div className="AidSelectionStep notebook-step">
-        <NotebookNavAnchor step={NotebookNavStep.AidSelection} status={aidColumn ? 'done' : 'active'} />
+      <div className="AidSelectionStep admin-panel-step">
+        <AdminPanelNavAnchor step={AdminPanelNavStep.AidSelection} status={aidColumn ? 'done' : 'active'} />
         <Title level={3}>{t('Select the protected entity identifier column')}</Title>
         <Alert
           className="AidSelectionStep-notice"

@@ -1,6 +1,6 @@
 import { Divider, message, Result, Space, Spin, Typography } from 'antd';
 import React, { FunctionComponent, useEffect } from 'react';
-import { NotebookNavAnchor, NotebookNavStep } from '../Notebook';
+import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
 import { getT, useT } from '../shared';
 import { File, TableSchema } from '../types';
 import { DataPreviewTable } from './DataPreviewTable';
@@ -31,9 +31,9 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
     case 'completed':
       return (
         <>
-          <div className="SchemaLoadStep notebook-step completed">
-            <NotebookNavAnchor step={NotebookNavStep.DataPreview} status="done" />
-            <Title level={3}>{t('Successfully imported {{fileName}}', { fileName: schema.value.file.name })}</Title>
+          <div className="SchemaLoadStep admin-panel-step completed">
+            <AdminPanelNavAnchor step={AdminPanelNavStep.DataPreview} status="done" />
+            <Title level={3}>{t('Successfully loaded {{fileName}}', { fileName: schema.value.file.name })}</Title>
             <div className="mb-1">
               <Text>{t('Here is what the data looks like:')}</Text>
               {schema.value.rowsPreview.length === 1000 && (
@@ -50,8 +50,8 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
 
     case 'failed':
       return (
-        <div className="SchemaLoadStep notebook-step failed">
-          <NotebookNavAnchor step={NotebookNavStep.DataPreview} status="failed" />
+        <div className="SchemaLoadStep admin-panel-step failed">
+          <AdminPanelNavAnchor step={AdminPanelNavStep.DataPreview} status="failed" />
           <Result
             status="error"
             title={t('Schema discovery failed')}
@@ -62,8 +62,8 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
 
     case 'in_progress':
       return (
-        <div className="SchemaLoadStep notebook-step text-center">
-          <NotebookNavAnchor step={NotebookNavStep.DataPreview} status="loading" />
+        <div className="SchemaLoadStep admin-panel-step text-center">
+          <AdminPanelNavAnchor step={AdminPanelNavStep.DataPreview} status="loading" />
           <Space direction="vertical">
             <Spin size="large" />
             <Text type="secondary">{t('Loading schema')}</Text>

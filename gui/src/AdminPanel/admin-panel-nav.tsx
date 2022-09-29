@@ -11,69 +11,69 @@ const { Step } = Steps;
 
 // Nav state
 
-export enum NotebookNavStep {
+export enum AdminPanelNavStep {
   CsvImport,
   DataPreview,
   AidSelection,
 }
 
-export type NotebookNavStepStatus = 'inactive' | 'active' | 'loading' | 'done' | 'failed';
+export type AdminPanelNavStepStatus = 'inactive' | 'active' | 'loading' | 'done' | 'failed';
 
-type NotebookNavStepState = {
+type AdminPanelNavStepState = {
   htmlElement: HTMLElement | null;
-  status: NotebookNavStepStatus;
+  status: AdminPanelNavStepStatus;
 };
 
-type NotebookNavState = {
-  steps: NotebookNavStepState[];
-  focusedStep: NotebookNavStep;
+type AdminPanelNavState = {
+  steps: AdminPanelNavStepState[];
+  focusedStep: AdminPanelNavStep;
 };
 
-const defaultNavState: NotebookNavState = {
-  steps: Array(NotebookNavStep.AidSelection + 1)
+const defaultNavState: AdminPanelNavState = {
+  steps: Array(AdminPanelNavStep.AidSelection + 1)
     .fill(null)
     .map(() => ({ status: 'inactive', htmlElement: null })),
-  focusedStep: NotebookNavStep.CsvImport,
+  focusedStep: AdminPanelNavStep.CsvImport,
 };
 
-const defaultVisibility = Array(NotebookNavStep.AidSelection + 1).fill(false);
+const defaultVisibility = Array(AdminPanelNavStep.AidSelection + 1).fill(false);
 
-const NotebookNavStateContext = React.createContext<NotebookNavState>(defaultNavState);
+const AdminPanelNavStateContext = React.createContext<AdminPanelNavState>(defaultNavState);
 
-export function useNavState(): NotebookNavState {
-  return useContext(NotebookNavStateContext);
+export function useNavState(): AdminPanelNavState {
+  return useContext(AdminPanelNavStateContext);
 }
 
 // Nav functions
 
-type NotebookNavStepPatch =
+type AdminPanelNavStepPatch =
   | { htmlElement: null; status?: never }
   | { htmlElement: HTMLElement; status: 'active' | 'loading' | 'done' | 'failed' }
-  | { htmlElement?: never; status: NotebookNavStepStatus };
+  | { htmlElement?: never; status: AdminPanelNavStepStatus };
 
-type NotebookNavFunctions = {
-  updateStepStatus(step: NotebookNavStep, patch: NotebookNavStepPatch): void;
-  updateStepVisibility(step: NotebookNavStep, visible: boolean): void;
-  scrollToStep(step: NotebookNavStep): void;
+type AdminPanelNavFunctions = {
+  updateStepStatus(step: AdminPanelNavStep, patch: AdminPanelNavStepPatch): void;
+  updateStepVisibility(step: AdminPanelNavStep, visible: boolean): void;
+  scrollToStep(step: AdminPanelNavStep): void;
 };
 
-const NotebookNavFunctionsContext = React.createContext<NotebookNavFunctions>({
+const AdminPanelNavFunctionsContext = React.createContext<AdminPanelNavFunctions>({
   updateStepStatus: noop,
   updateStepVisibility: noop,
   scrollToStep: noop,
 });
 
-function useNavFunctions(): NotebookNavFunctions {
-  return useContext(NotebookNavFunctionsContext);
+function useNavFunctions(): AdminPanelNavFunctions {
+  return useContext(AdminPanelNavFunctionsContext);
 }
 
 // Context provider
 
-export type NotebookNavProviderProps = {
+export type AdminPanelNavProviderProps = {
   isActive: boolean;
 };
 
-export const NotebookNavProvider: React.FunctionComponent<NotebookNavProviderProps> = ({ isActive, children }) => {
+export const AdminPanelNavProvider: React.FunctionComponent<AdminPanelNavProviderProps> = ({ isActive, children }) => {
   const [navState, updateNavState] = useImmer(defaultNavState);
 
   // Refs are needed in `navFunctions` because we want it referentially stable.
@@ -83,7 +83,7 @@ export const NotebookNavProvider: React.FunctionComponent<NotebookNavProviderPro
 
   const focusStep = useStaticValue(() =>
     debounce(
-      (step?: NotebookNavStep) =>
+      (step?: AdminPanelNavStep) =>
         updateNavState((draft) => {
           if (typeof step !== 'undefined') {
             draft.focusedStep = step;
@@ -91,7 +91,7 @@ export const NotebookNavProvider: React.FunctionComponent<NotebookNavProviderPro
           }
 
           const maxStep = Math.max(
-            NotebookNavStep.CsvImport,
+            AdminPanelNavStep.CsvImport,
             findLastIndex(draft.steps, (s) => s.status !== 'inactive'),
           );
           const visibleStep = visibilityRef.current.findIndex((visible) => visible);
@@ -101,10 +101,10 @@ export const NotebookNavProvider: React.FunctionComponent<NotebookNavProviderPro
     ),
   );
 
-  const navFunctions = useStaticValue<NotebookNavFunctions>(() => ({
+  const navFunctions = useStaticValue<AdminPanelNavFunctions>(() => ({
     updateStepStatus(step, patch) {
       updateNavState((draft) => {
-        const { steps } = draft as NotebookNavState;
+        const { steps } = draft as AdminPanelNavState;
         if (patch.htmlElement === null) {
           steps[step] = {
             htmlElement: null,
@@ -119,11 +119,11 @@ export const NotebookNavProvider: React.FunctionComponent<NotebookNavProviderPro
 
       focusStep();
     },
-    updateStepVisibility(step: NotebookNavStep, visible: boolean) {
+    updateStepVisibility(step: AdminPanelNavStep, visible: boolean) {
       visibilityRef.current = produce(visibilityRef.current, (draft) => void (draft[step] = visible));
       focusStep();
     },
-    scrollToStep(step: NotebookNavStep) {
+    scrollToStep(step: AdminPanelNavStep) {
       const { htmlElement } = navStateRef.current.steps[step];
       if (htmlElement) {
         htmlElement.scrollIntoView({
@@ -147,7 +147,7 @@ export const NotebookNavProvider: React.FunctionComponent<NotebookNavProviderPro
     },
   }));
 
-  // Prevents updates while notebook is not active.
+  // Prevents updates while adminPanel is not active.
   useEffect(() => {
     if (!isActive) {
       focusStep.cancel();
@@ -162,20 +162,20 @@ export const NotebookNavProvider: React.FunctionComponent<NotebookNavProviderPro
   }, [focusStep]);
 
   return (
-    <NotebookNavStateContext.Provider value={navState}>
-      <NotebookNavFunctionsContext.Provider value={navFunctions}>{children}</NotebookNavFunctionsContext.Provider>
-    </NotebookNavStateContext.Provider>
+    <AdminPanelNavStateContext.Provider value={navState}>
+      <AdminPanelNavFunctionsContext.Provider value={navFunctions}>{children}</AdminPanelNavFunctionsContext.Provider>
+    </AdminPanelNavStateContext.Provider>
   );
 };
 
 // Context consumers
 
-export type NotebookNavAnchorProps = {
-  step: NotebookNavStep;
-  status?: NotebookNavStepStatus;
+export type AdminPanelNavAnchorProps = {
+  step: AdminPanelNavStep;
+  status?: AdminPanelNavStepStatus;
 };
 
-export const NotebookNavAnchor: React.FunctionComponent<NotebookNavAnchorProps> = ({ step, status = 'active' }) => {
+export const AdminPanelNavAnchor: React.FunctionComponent<AdminPanelNavAnchorProps> = ({ step, status = 'active' }) => {
   const navFunctions = useNavFunctions();
 
   const visibilityRef = useRef<HTMLDivElement>(null);
@@ -185,7 +185,7 @@ export const NotebookNavAnchor: React.FunctionComponent<NotebookNavAnchorProps> 
       navFunctions.updateStepStatus(step, {
         htmlElement,
         status,
-      } as NotebookNavStepPatch);
+      } as AdminPanelNavStepPatch);
     },
     [step, status, navFunctions],
   );
@@ -207,7 +207,7 @@ export const NotebookNavAnchor: React.FunctionComponent<NotebookNavAnchorProps> 
   );
 };
 
-function mapStatus(status: NotebookNavStepStatus): 'error' | 'process' | 'finish' | 'wait' {
+function mapStatus(status: AdminPanelNavStepStatus): 'error' | 'process' | 'finish' | 'wait' {
   switch (status) {
     case 'inactive':
       return 'wait';
@@ -226,11 +226,11 @@ function mapText(text: string, focused: boolean) {
   else return <>{text}</>;
 }
 
-const NotebookNavSteps = React.memo<{ steps: NotebookNavStepState[]; focusedStep: NotebookNavStep }>(
+const AdminPanelNavSteps = React.memo<{ steps: AdminPanelNavStepState[]; focusedStep: AdminPanelNavStep }>(
   ({ steps, focusedStep }) => {
-    const t = useT('Sidebar::NotebookNavSteps');
+    const t = useT('Sidebar::AdminPanelNavSteps');
     const navFunctions = useNavFunctions();
-    const status = (step: NotebookNavStep) => mapStatus(steps[step].status);
+    const status = (step: AdminPanelNavStep) => mapStatus(steps[step].status);
 
     return (
       <Steps
@@ -259,18 +259,18 @@ const NotebookNavSteps = React.memo<{ steps: NotebookNavStepState[]; focusedStep
         size="small"
       >
         <Step
-          status={status(NotebookNavStep.CsvImport)}
-          title={mapText(t('CSV Import'), focusedStep === NotebookNavStep.CsvImport)}
+          status={status(AdminPanelNavStep.CsvImport)}
+          title={mapText(t('CSV Import'), focusedStep === AdminPanelNavStep.CsvImport)}
           description={t('Load data from CSV')}
         />
         <Step
-          status={status(NotebookNavStep.DataPreview)}
-          title={mapText(t('Data Preview'), focusedStep === NotebookNavStep.DataPreview)}
+          status={status(AdminPanelNavStep.DataPreview)}
+          title={mapText(t('Data Preview'), focusedStep === AdminPanelNavStep.DataPreview)}
           description={t('Preview contents of file')}
         />
         <Step
-          status={status(NotebookNavStep.AidSelection)}
-          title={mapText(t('ID Selection'), focusedStep === NotebookNavStep.AidSelection)}
+          status={status(AdminPanelNavStep.AidSelection)}
+          title={mapText(t('ID Selection'), focusedStep === AdminPanelNavStep.AidSelection)}
           description={t('Select the entity identifier column')}
         />
       </Steps>
@@ -278,7 +278,7 @@ const NotebookNavSteps = React.memo<{ steps: NotebookNavStepState[]; focusedStep
   },
 );
 
-export const NotebookNav: React.FunctionComponent = () => {
+export const AdminPanelNav: React.FunctionComponent = () => {
   const { steps, focusedStep } = useNavState();
-  return <NotebookNavSteps steps={steps} focusedStep={focusedStep} />;
+  return <AdminPanelNavSteps steps={steps} focusedStep={focusedStep} />;
 };

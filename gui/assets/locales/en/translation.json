@@ -47,11 +47,11 @@
     "Anonymization": "Anonymization",
     "Changelog": "Changelog"
   },
-  "Notebook": {
+  "AdminPanel": {
     "Importing": "Importing"
   },
   "Sidebar": {
-    "NotebookNavSteps": {
+    "AdminPanelNavSteps": {
       "CSV Import": "CSV Import",
       "Load data from CSV": "Load data from CSV",
       "Data Preview": "Data Preview",
@@ -65,7 +65,7 @@
     },
     "DataPreviewHelp": {
       "Data Preview": "Data Preview",
-      "Use the data preview to confirm that the data was imported correctly.": "Use the data preview to confirm that the data was imported correctly."
+      "Use the data preview to confirm that the data was loaded correctly.": "Use the data preview to confirm that the data was loaded correctly."
     },
     "AidSelectionHelp": {
       "ID Selection": "ID Selection",
@@ -74,14 +74,14 @@
     }
   },
   "FileLoadStep": {
-    "Import data to anonymize": "Import data to anonymize",
-    "Import data from CSV file": "Import data from CSV file",
-    "Click or drag file to this area to import": "Click or drag file to this area to import"
+    "Import data": "Import data",
+    "From CSV file": "From CSV file",
+    "Click or drag file to this area": "Click or drag file to this area"
   },
   "SchemaLoadStep": {
     "Loading schema": "Loading schema",
     "Loaded {{fileName}}": "Loaded {{fileName}}",
-    "Successfully imported {{fileName}}": "Successfully imported {{fileName}}",
+    "Successfully loaded {{fileName}}": "Successfully loaded {{fileName}}",
     "Here is what the data looks like:": "Here is what the data looks like:",
     "(only the first 1000 rows are shown)": "(only the first 1000 rows are shown)",
     "Schema discovery failed": "Schema discovery failed",

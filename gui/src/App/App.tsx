@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
 import { Docs, DocsFunctionsContext, PageId } from '../Docs';
-import { Notebook } from '../Notebook';
+import { AdminPanel } from '../AdminPanel';
 import { importer, ImporterContext, getT, TFunc, useStaticValue, useT } from '../shared';
 import { useCheckUpdates } from './use-check-updates';
 
@@ -20,8 +20,8 @@ type CommonTabData = {
   title: string;
 };
 
-type NotebookTab = CommonTabData & {
-  type: 'notebook';
+type AdminPanelTab = CommonTabData & {
+  type: 'adminPanel';
 };
 
 type DocsTab = CommonTabData & {
@@ -31,7 +31,7 @@ type DocsTab = CommonTabData & {
   scrollInvalidator: number; // Triggers a scroll when changed
 };
 
-type TabInfo = NotebookTab | DocsTab;
+type TabInfo = AdminPanelTab | DocsTab;
 
 type AppState = {
   tabs: TabInfo[];
@@ -41,7 +41,7 @@ type AppState = {
 let nextTabId = 1;
 
 function openAdminPanelTab(t: TFunc): TabInfo {
-  return { id: (nextTabId++).toString(), title: t('Admin Panel'), type: 'notebook' };
+  return { id: (nextTabId++).toString(), title: t('Admin Panel'), type: 'adminPanel' };
 }
 
 function newDocsTab(page: PageId, section: string | null, t: TFunc): TabInfo {
@@ -82,9 +82,9 @@ export const App: FunctionComponent = () => {
       case 'add':
         // TODO: open query tab
         /*updateState((state) => {
-          const addedNotebook = newNotebookTab(t);
-          state.tabs.push(addedNotebook);
-          state.activeTab = addedNotebook.id;
+          const addedAdminPanel = newAdminPanelTab(t);
+          state.tabs.push(addedAdminPanel);
+          state.activeTab = addedAdminPanel.id;
           setWindowTitle(state);
         });*/
         return;
@@ -153,9 +153,9 @@ export const App: FunctionComponent = () => {
           <div className="App">
             <Tabs type="editable-card" activeKey={activeTab} onChange={setActiveTab} onEdit={onEdit}>
               {tabs.map((tab) => (
-                <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'notebook'}>
-                  {tab.type === 'notebook' ? (
-                    <Notebook isActive={activeTab === tab.id} onTitleChange={(title) => setTitle(tab.id, title)} />
+                <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'adminPanel'}>
+                  {tab.type === 'adminPanel' ? (
+                    <AdminPanel isActive={activeTab === tab.id} onTitleChange={(title) => setTitle(tab.id, title)} />
                   ) : (
                     <Docs
                       onTitleChange={(title) => setTitle(tab.id, title)}
