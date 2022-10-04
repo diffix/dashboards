@@ -14,6 +14,7 @@ const { Option } = Select;
 type AidSelectionProps = {
   schema: TableSchema;
   file: File;
+  invalidateTableList: () => void;
 };
 
 async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: TFunc) {
@@ -40,7 +41,7 @@ async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: 
   }
 }
 
-export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema, file }) => {
+export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema, file, invalidateTableList }) => {
   const t = useT('AidSelectionStep');
   const [aidColumn, setAidColumn] = useState('');
   const [buttonState, setButtonState] = useState({
@@ -91,7 +92,10 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
             disabled={!buttonState.enabled}
             onClick={async () => {
               const success = await importCSV(file, schema, aidColumn, t);
-              if (success) setButtonState({ title: 'Imported!', enabled: false });
+              if (success) {
+                setButtonState({ title: 'Imported!', enabled: false });
+                invalidateTableList();
+              }
             }}
           >
             {buttonState.title}

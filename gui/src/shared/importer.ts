@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { ColumnType, File, Importer, TableColumn, TableSchema, Task } from '../types';
+import { ColumnType, File, ImportedTable, Importer, TableColumn, TableSchema, Task } from '../types';
 import { runTask } from './utils';
 
 class DiffixImporter implements Importer {
@@ -32,6 +32,18 @@ class DiffixImporter implements Importer {
       if (info.isInteger) return 'integer';
       if (info.isReal) return 'real';
       return 'text';
+    });
+  }
+
+  loadTables(): Task<ImportedTable[]> {
+    return runTask(async (signal) => {
+      return window.loadTables(signal);
+    });
+  }
+
+  removeTable(tableName: string): Task<void> {
+    return runTask(async (signal) => {
+      return window.removeTable(tableName, signal);
     });
   }
 

@@ -1,5 +1,6 @@
 import { Divider } from 'antd';
 import React, { FunctionComponent } from 'react';
+import { TableListStep } from '../TableListStep';
 import { AidSelectionStep } from '../AidSelectionStep';
 import { FileLoadStep } from '../FileLoadStep';
 import { SchemaLoadStep } from '../SchemaLoadStep';
@@ -25,13 +26,19 @@ export const AdminPanel: FunctionComponent<AdminPanelProps> = ({ isActive, onTit
           <AdminPanelHelp />
         </Layout.Sidebar>
         <Layout.Content className="AdminPanel-content">
-          <FileLoadStep onLoad={(file) => onTitleChange(t('Importing') + ' ' + file.name)}>
-            {({ file }) => (
-              <SchemaLoadStep file={file}>
-                {({ schema }) => <AidSelectionStep schema={schema} file={file} />}
-              </SchemaLoadStep>
+          <TableListStep>
+            {({ invalidateTableList }) => (
+              <FileLoadStep onLoad={(file) => onTitleChange(t('Importing') + ' ' + file.name)}>
+                {({ file }) => (
+                  <SchemaLoadStep file={file}>
+                    {({ schema }) => (
+                      <AidSelectionStep schema={schema} file={file} invalidateTableList={invalidateTableList} />
+                    )}
+                  </SchemaLoadStep>
+                )}
+              </FileLoadStep>
             )}
-          </FileLoadStep>
+          </TableListStep>
         </Layout.Content>
       </Layout>
     </AdminPanelNavProvider>

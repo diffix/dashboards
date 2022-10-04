@@ -65,6 +65,18 @@ window.callService = (request: unknown, signal: AbortSignal) =>
     return json ? JSON.parse(json) : null;
   });
 
+window.loadTables = (signal: AbortSignal) =>
+  newTask(signal, async (taskId) => {
+    const result = await ipcRenderer.invoke('load_tables', taskId);
+    return result;
+  });
+
+window.removeTable = (tableName: string, signal: AbortSignal) =>
+  newTask(signal, async (taskId) => {
+    const result = await ipcRenderer.invoke('remove_table', taskId, tableName);
+    return result;
+  });
+
 window.readCSV = (fileName: string, signal: AbortSignal) =>
   newTask(signal, (taskId) => {
     return ipcRenderer.invoke('read_csv', taskId, fileName);

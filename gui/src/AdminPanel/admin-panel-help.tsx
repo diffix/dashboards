@@ -19,6 +19,21 @@ export const Paragraph: FunctionComponent<{ t: TFunc }> = ({ t, children }) => {
   );
 };
 
+function TableListHelp() {
+  const t = useT('TableListHelp');
+  return (
+    <div>
+      <Title level={4}>{t('Table list')}</Title>
+      <Paragraph t={t}>
+        Inspect and manage the imported tables.{' '}
+        <DocsLink page="anonymization" section="load-table-from-csv">
+          Click here for details.
+        </DocsLink>
+      </Paragraph>
+    </div>
+  );
+}
+
 function CsvImportHelp() {
   const t = useT('CsvImportHelp');
   return (
@@ -62,6 +77,8 @@ function AidSelectionHelp() {
 
 const AdminPanelStepHelp = React.memo<{ step: AdminPanelNavStep }>(({ step }) => {
   switch (step) {
+    case AdminPanelNavStep.TableList:
+      return <TableListHelp />;
     case AdminPanelNavStep.CsvImport:
       return <CsvImportHelp />;
     case AdminPanelNavStep.DataPreview:
