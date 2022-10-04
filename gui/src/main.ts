@@ -15,12 +15,12 @@ import { TableColumn } from './types';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 
-const trustedUser = 'bi_diffix_trusted';
-const adminUser = 'bi_diffix_admin';
+const trustedUser = 'diffix_trusted';
+const adminUser = 'diffix_admin';
 
 const connectionConfig = {
   port: 20432,
-  database: 'bi_diffix',
+  database: 'diffix',
   user: adminUser,
   password: adminUser,
   connectionTimeoutMillis: 1000,

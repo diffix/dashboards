@@ -31,7 +31,7 @@ fi
 psql -U $USER -d postgres -p 20432 -h $BI_DIFFIX_SOCKET -c 'SHOW config_file'
 
 # Setup users/tables and the `pg_diffix` extension.
-if [ "$( psql -U $USER -d postgres -p 20432 -h $BI_DIFFIX_SOCKET -XtAc "SELECT 1 FROM pg_database WHERE datname='bi_diffix'" )" != '1' ]
+if [ "$( psql -U $USER -d postgres -p 20432 -h $BI_DIFFIX_SOCKET -XtAc "SELECT 1 FROM pg_database WHERE datname='diffix'" )" != '1' ]
 then
   psql -v ON_ERROR_STOP=1 -U $USER -d postgres -p 20432 -h $BI_DIFFIX_SOCKET -f ../scripts/init.sql 
 fi

@@ -33,9 +33,9 @@ psql -U %username% -d postgres -p 20432 -c "SHOW config_file"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 REM Setup users/tables and the `pg_diffix` extension.
-for /f %%i in ('psql -U %username% -d postgres -p 20432 -XAtc "SELECT 1 FROM pg_database WHERE datname='bi_diffix'"') do set HAS_BI_DIFFIX=%%i
+for /f %%i in ('psql -U %username% -d postgres -p 20432 -XAtc "SELECT 1 FROM pg_database WHERE datname='diffix'"') do set HAS_DIFFIX_DATABASE=%%i
 
-if not "%HAS_BI_DIFFIX%" == "1" (
+if not "%HAS_DIFFIX_DATABASE%" == "1" (
     psql -v "ON_ERROR_STOP=1" -U %username% -d postgres -p 20432 -f "..\scripts\init.sql"
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
