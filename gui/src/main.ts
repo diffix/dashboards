@@ -11,7 +11,7 @@ import util from 'util';
 import { PageId } from './Docs';
 import { i18nConfig, rowIndexColumn } from './shared/config';
 import { parse } from 'csv-parse';
-import { TableColumn } from './types';
+import { ServiceName, ServiceStatus, TableColumn } from './types';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 
@@ -293,38 +293,6 @@ function setupI18n() {
 }
 
 function setupIPC() {
-  ipcMain.handle('call_service', (_event, taskId: string, request: string) =>
-    runTask(taskId, async (signal) => {
-      console.info(`(${taskId}) Calling service: ${request}.`);
-
-      const promise = asyncExecFile('TODO, whatever we need', null, {
-        maxBuffer: 100 * 1024 * 1024,
-        windowsHide: true,
-        signal,
-      });
-
-      promise.child.stdin?.write(request);
-      promise.child.stdin?.end();
-
-      try {
-        const { stdout, stderr } = await promise;
-        console.log(stderr.trimEnd());
-        return stdout;
-      } catch (err) {
-        if ((err as Error)?.name === 'AbortError') {
-          throw 'Service call aborted.';
-        }
-
-        const stderr = (err as { stderr?: string })?.stderr;
-        if (stderr) {
-          console.log(stderr.trimEnd());
-        }
-
-        throw 'Service call failed.';
-      }
-    }),
-  );
-
   ipcMain.handle(
     'import_csv',
     async (_event, taskId: string, fileName: string, tableName: string, columns: TableColumn[], aidColumn: string) => {
@@ -402,10 +370,41 @@ function setupIPC() {
   });
 }
 
+let postgresql = null;
+let metabase = null;
+
+function setServiceStatus(name: ServiceName, status: ServiceStatus) {
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  mainWindow?.webContents.send('update_service_status', name, status);
+}
+
+async function startServices() {
+  console.info('Starting PostgreSQL...');
+  await new Promise((r) => setTimeout(r, 10000));
+  postgresql = asyncExecFile('notepad.exe', null, { maxBuffer: 100 * 1024 * 1024 });
+  console.info('PostgreSQL started.');
+  setServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
+  postgresql.child.on('close', (code) => {
+    console.error(`PostgreSQL exited with code ${code}.`);
+    setServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
+  });
+
+  console.info('Starting Metabase...');
+  await new Promise((r) => setTimeout(r, 10000));
+  metabase = asyncExecFile('notepad.exe', null, { maxBuffer: 100 * 1024 * 1024 });
+  console.info('Metabase started.');
+  setServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
+  metabase.child.on('close', (code) => {
+    console.error(`Metabase exited with code ${code}.`);
+    setServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
+  });
+}
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   setupApp();
   setupI18n();
   setupIPC();
+  startServices();
 }

@@ -48,7 +48,8 @@
     "Changelog": "Changelog"
   },
   "AdminPanel": {
-    "Importing": "Importing"
+    "Importing": "Importing",
+    "Services": "Services"
   },
   "Sidebar": {
     "AdminPanelNavSteps": {

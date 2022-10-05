@@ -59,11 +59,11 @@ async function newTask<T>(signal: AbortSignal, runner: (taskId: string) => Promi
   }
 }
 
-window.callService = (request: unknown, signal: AbortSignal) =>
-  newTask(signal, async (taskId) => {
-    const json: string | null = await ipcRenderer.invoke('call_service', taskId, JSON.stringify(request));
-    return json ? JSON.parse(json) : null;
-  });
+window.updateServiceStatus = (_name, _status) => {};
+
+ipcRenderer.on('update_service_status', (_event, name, status) => {
+  window.updateServiceStatus(name, status);
+});
 
 window.readCSV = (fileName: string, signal: AbortSignal) =>
   newTask(signal, (taskId) => {

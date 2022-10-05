@@ -9,6 +9,17 @@ export type ComputedData<T> =
   | { state: 'failed'; error: string }
   | { state: 'completed'; value: T };
 
+export enum ServiceStatus {
+  Starting,
+  Running,
+  Stopped,
+}
+
+export enum ServiceName {
+  PostgreSQL,
+  Metabase,
+}
+
 // Schema
 
 export type RowDataIndex = number;
@@ -33,27 +44,6 @@ export type BooleanColumn = { name: string; type: 'boolean' };
 export type TableColumn = IntegerColumn | RealColumn | TextColumn | BooleanColumn;
 
 export type ColumnType = TableColumn['type'];
-
-// Query request
-
-export type NumericGeneralization = {
-  binSize: number;
-};
-
-export type StringGeneralization = {
-  substringStart: number;
-  substringLength: number;
-};
-
-export type BucketColumn =
-  | (IntegerColumn & { generalization: NumericGeneralization | null })
-  | (RealColumn & { generalization: NumericGeneralization | null })
-  | (TextColumn & { generalization: StringGeneralization | null })
-  | BooleanColumn;
-
-export type CountInput = 'Rows' | 'Entities';
-
-// Query results
 
 export type LoadResponse = {
   columns: ResultColumn[];
@@ -88,7 +78,7 @@ declare global {
   interface Window {
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
-    callService(request: unknown, signal: AbortSignal): Promise<Response>;
+    updateServiceStatus(name: ServiceName, status: ServiceStatus): void;
     readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;
     importCSV(
       fileName: string,

@@ -1,0 +1,17 @@
+.Services-starting {
+  font-size: 125%;
+  color: orange !important;
+  vertical-align: 0.125em !important;
+}
+
+.Services-running {
+  font-size: 125%;
+  color: green !important;
+  vertical-align: 0.125em !important;
+}
+
+.Services-stopped {
+  font-size: 125%;
+  color: red !important;
+  vertical-align: 0.125em !important;
+}

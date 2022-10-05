@@ -10,6 +10,7 @@ import { Docs, DocsFunctionsContext, PageId } from '../Docs';
 import { AdminPanel } from '../AdminPanel';
 import { importer, ImporterContext, getT, TFunc, useStaticValue, useT } from '../shared';
 import { useCheckUpdates } from './use-check-updates';
+import { ServiceName, ServiceStatus } from '../types';
 
 import './App.css';
 
@@ -36,6 +37,8 @@ type TabInfo = AdminPanelTab | DocsTab;
 type AppState = {
   tabs: TabInfo[];
   activeTab: string;
+  postgresql: ServiceStatus;
+  metabase: ServiceStatus;
 };
 
 let nextTabId = 1;
@@ -72,6 +75,8 @@ export const App: FunctionComponent = () => {
     return {
       tabs: [initialTab],
       activeTab: initialTab.id,
+      postgresql: ServiceStatus.Starting,
+      metabase: ServiceStatus.Starting,
     };
   });
 
@@ -144,7 +149,20 @@ export const App: FunctionComponent = () => {
 
   window.onOpenDocs = (page) => docsFunctions.openDocs(page);
 
-  const { tabs, activeTab } = state;
+  window.updateServiceStatus = (name, status) =>
+    updateState((state) => {
+      switch (name) {
+        case ServiceName.PostgreSQL:
+          state.postgresql = status;
+          break;
+
+        case ServiceName.Metabase:
+          state.metabase = status;
+          break;
+      }
+    });
+
+  const { tabs, activeTab, postgresql, metabase } = state;
 
   return (
     <ConfigProvider locale={window.i18n.language === 'de' ? deDE : enUS}>
@@ -155,7 +173,12 @@ export const App: FunctionComponent = () => {
               {tabs.map((tab) => (
                 <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'adminPanel'}>
                   {tab.type === 'adminPanel' ? (
-                    <AdminPanel isActive={activeTab === tab.id} onTitleChange={(title) => setTitle(tab.id, title)} />
+                    <AdminPanel
+                      isActive={activeTab === tab.id}
+                      onTitleChange={(title) => setTitle(tab.id, title)}
+                      postgresql={postgresql}
+                      metabase={metabase}
+                    />
                   ) : (
                     <Docs
                       onTitleChange={(title) => setTitle(tab.id, title)}
