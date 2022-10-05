@@ -1,18 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { inProgressState, useImporter } from '../shared';
 import { ComputedData, ImportedTable } from '../types';
 
-export function useQuery(
-  tableListLoaded: boolean,
-  setTableListLoaded: (v: boolean) => void,
-): ComputedData<ImportedTable[]> {
+export function useQuery(): [ComputedData<ImportedTable[]>, () => void] {
   const importer = useImporter();
   const [result, setResult] = useState<ComputedData<ImportedTable[]>>(inProgressState);
+  const invalidateTableList = useCallback(() => setResult(inProgressState), []);
+  const notInProgress = result.state !== 'in_progress';
 
   useEffect(() => {
-    if (tableListLoaded) return;
-    setResult(inProgressState);
-
+    if (notInProgress) return;
     let canceled = false;
 
     const task = importer.loadTables();
@@ -21,7 +18,6 @@ export function useQuery(
       .then((queryResult) => {
         if (!canceled) {
           setResult({ state: 'completed', value: queryResult });
-          setTableListLoaded(true);
         }
       })
       .catch((error) => {
@@ -34,7 +30,7 @@ export function useQuery(
       canceled = true;
       task.cancel();
     };
-  }, [importer, tableListLoaded, setTableListLoaded]);
+  }, [importer, notInProgress]);
 
-  return result;
+  return [result, invalidateTableList];
 }

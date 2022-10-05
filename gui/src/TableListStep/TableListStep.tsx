@@ -1,6 +1,6 @@
 import { Divider, message, Result, Table } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import React, { FunctionComponent, useCallback, useState } from 'react';
+import React, { FunctionComponent } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
 import { importer, TFunc, useCachedData, useT } from '../shared';
 
@@ -88,9 +88,7 @@ export type TableListStepData = {
 
 export const TableListStep: FunctionComponent<TableListStepProps> = ({ children }) => {
   const t = useT('TableListStep');
-  const [tableListLoaded, setTableListLoaded] = useState(false);
-  const invalidateTableList = useCallback(() => setTableListLoaded(false), []);
-  const computedResult = useQuery(tableListLoaded, setTableListLoaded);
+  const [computedResult, invalidateTableList] = useQuery();
   const cachedResult = useCachedData(computedResult, emptyQueryResult);
 
   switch (computedResult.state) {
