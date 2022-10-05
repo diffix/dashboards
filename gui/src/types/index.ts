@@ -9,6 +9,17 @@ export type ComputedData<T> =
   | { state: 'failed'; error: string }
   | { state: 'completed'; value: T };
 
+export enum ServiceStatus {
+  Starting,
+  Running,
+  Stopped,
+}
+
+export enum ServiceName {
+  PostgreSQL,
+  Metabase,
+}
+
 // Schema
 
 export type RowDataIndex = number;
@@ -75,7 +86,8 @@ declare global {
   interface Window {
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
-    callService(request: unknown, signal: AbortSignal): Promise<Response>;
+    onServiceStatusUpdate(name: ServiceName, status: ServiceStatus): void;
+    getServicesStatus: (name: ServiceName) => ServiceStatus;
     loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
     removeTable(tableName: string, signal: AbortSignal): Promise<void>;
     readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;

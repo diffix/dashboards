@@ -6,7 +6,7 @@ import { i18nConfig } from './shared/config';
 
 import de from '../assets/locales/de/translation.json';
 import en from '../assets/locales/en/translation.json';
-import { TableColumn } from './types';
+import { TableColumn, ServiceName } from './types';
 
 const args = window.process.argv;
 let initialLanguage = 'en';
@@ -59,11 +59,13 @@ async function newTask<T>(signal: AbortSignal, runner: (taskId: string) => Promi
   }
 }
 
-window.callService = (request: unknown, signal: AbortSignal) =>
-  newTask(signal, async (taskId) => {
-    const json: string | null = await ipcRenderer.invoke('call_service', taskId, JSON.stringify(request));
-    return json ? JSON.parse(json) : null;
-  });
+window.onServiceStatusUpdate = (_name, _status) => {};
+
+ipcRenderer.on('update_service_status', (_event, name, status) => {
+  window.onServiceStatusUpdate(name, status);
+});
+
+window.getServicesStatus = (name: ServiceName) => ipcRenderer.sendSync('get_service_status', name);
 
 window.loadTables = (signal: AbortSignal) =>
   newTask(signal, async (taskId) => {
