@@ -36,22 +36,7 @@ export type ColumnType = TableColumn['type'];
 
 // Query request
 
-export type NumericGeneralization = {
-  binSize: number;
-};
-
-export type StringGeneralization = {
-  substringStart: number;
-  substringLength: number;
-};
-
-export type BucketColumn =
-  | (IntegerColumn & { generalization: NumericGeneralization | null })
-  | (RealColumn & { generalization: NumericGeneralization | null })
-  | (TextColumn & { generalization: StringGeneralization | null })
-  | BooleanColumn;
-
-export type CountInput = 'Rows' | 'Entities';
+export type ImportedTable = { key: string; name: string; aidColumns: string[] };
 
 // Query results
 
@@ -74,6 +59,8 @@ export type Value = boolean | number | string | null;
 // API
 
 export type Importer = {
+  loadTables(): Task<ImportedTable[]>;
+  removeTable(tableName: string): Task<void>;
   loadSchema(file: File): Task<TableSchema>;
   importCSV(file: File, columns: TableColumn[], aidColumn: string): Task<void>;
 };
@@ -89,6 +76,8 @@ declare global {
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
     callService(request: unknown, signal: AbortSignal): Promise<Response>;
+    loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
+    removeTable(tableName: string, signal: AbortSignal): Promise<void>;
     readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;
     importCSV(
       fileName: string,
