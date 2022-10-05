@@ -373,30 +373,30 @@ function setupIPC() {
 let postgresql = null;
 let metabase = null;
 
-function setServiceStatus(name: ServiceName, status: ServiceStatus) {
+function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
   const mainWindow = BrowserWindow.getAllWindows()[0];
   mainWindow?.webContents.send('update_service_status', name, status);
 }
 
 async function startServices() {
   console.info('Starting PostgreSQL...');
-  await new Promise((r) => setTimeout(r, 10000));
+  //await new Promise((r) => setTimeout(r, 10000));
   postgresql = asyncExecFile('notepad.exe', null, { maxBuffer: 100 * 1024 * 1024 });
   console.info('PostgreSQL started.');
-  setServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
+  updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
   postgresql.child.on('close', (code) => {
     console.error(`PostgreSQL exited with code ${code}.`);
-    setServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
+    updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
   });
 
   console.info('Starting Metabase...');
-  await new Promise((r) => setTimeout(r, 10000));
+  //await new Promise((r) => setTimeout(r, 10000));
   metabase = asyncExecFile('notepad.exe', null, { maxBuffer: 100 * 1024 * 1024 });
   console.info('Metabase started.');
-  setServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
+  updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
   metabase.child.on('close', (code) => {
     console.error(`Metabase exited with code ${code}.`);
-    setServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
+    updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
   });
 }
 
