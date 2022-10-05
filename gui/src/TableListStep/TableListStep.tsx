@@ -4,7 +4,7 @@ import React, { FunctionComponent } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
 import { importer, TFunc, useCachedData, useT } from '../shared';
 
-import { useQuery } from './use-query';
+import { useTableList } from './use-table-list';
 
 import './TableListStep.css';
 import { ImportedTable } from '../types';
@@ -88,7 +88,7 @@ export type TableListStepData = {
 
 export const TableListStep: FunctionComponent<TableListStepProps> = ({ children }) => {
   const t = useT('TableListStep');
-  const [computedResult, invalidateTableList] = useQuery();
+  const [computedResult, invalidateTableList] = useTableList();
   const cachedResult = useCachedData(computedResult, emptyQueryResult);
 
   switch (computedResult.state) {
