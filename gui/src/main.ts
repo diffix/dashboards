@@ -15,11 +15,14 @@ import { ServiceName, ServiceStatus, TableColumn } from './types';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 
+const trustedUser = 'diffix_trusted';
+const adminUser = 'diffix_admin';
+
 const connectionConfig = {
-  port: 10432,
-  database: 'prop_test',
-  user: 'prop_test',
-  password: 'prop_test',
+  port: 20432,
+  database: 'diffix',
+  user: adminUser,
+  password: adminUser,
   connectionTimeoutMillis: 1000,
 };
 
@@ -240,6 +243,63 @@ function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tab
   });
 }
 
+const setupScriptName = 'pgsetup' + (process.platform === 'win32' ? '.cmd' : '.sh');
+const setupScriptPath = path.join(resourcesLocation, '../scripts', setupScriptName);
+
+const shutdownScriptName = 'pgshutdown' + (process.platform === 'win32' ? '.cmd' : '.sh');
+const shutdownScriptPath = path.join(resourcesLocation, '../scripts', shutdownScriptName);
+
+const pgRootPath = path.join(resourcesLocation, 'pgsql');
+
+// TODO: leaving the xyzPostgres unrefactored, as they are likely temporary
+async function setupPostgres() {
+  console.info(`Starting PostgreSQL`);
+  const controller = new AbortController();
+  const args: string[] = [pgRootPath];
+
+  try {
+    const { stdout, stderr } = await asyncExecFile(setupScriptPath, args, {
+      maxBuffer: 100 * 1024 * 1024,
+      windowsHide: true,
+      signal: controller.signal,
+    });
+    console.log(stderr.trimEnd());
+    console.log(stdout.trimEnd());
+  } catch (err) {
+    console.log(err);
+
+    if ((err as Error)?.name === 'AbortError') {
+      throw 'Postgres setup aborted.';
+    }
+
+    const stderr = (err as { stderr?: string })?.stderr;
+    if (stderr) {
+      console.log(stderr.trimEnd());
+    }
+
+    throw 'Postgres setup failed.';
+  }
+}
+
+async function shutdownPostgres() {
+  console.info(`Stopping PostgreSQL`);
+  const controller = new AbortController();
+  const args: string[] = [pgRootPath];
+
+  try {
+    const { stdout, stderr } = await asyncExecFile(shutdownScriptPath, args, {
+      maxBuffer: 100 * 1024 * 1024,
+      windowsHide: true,
+      signal: controller.signal,
+    });
+    console.log(stderr.trimEnd());
+    console.log(stdout.trimEnd());
+  } catch (err) {
+    console.log(err);
+    throw 'Postgres shutdown failed.';
+  }
+}
+
 function setupApp() {
   app.on('second-instance', (_event, _commandLine, _workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
@@ -250,7 +310,7 @@ function setupApp() {
     }
   });
 
-  app.on('ready', () => {
+  app.on('ready', async () => {
     // Feeding the locale to `changeLanguage` or extracting the language cause problems.
     if (['de', 'de-AT', 'de-CH', 'de-DE', 'de-LI', 'de-LU'].includes(app.getLocale())) {
       i18n.changeLanguage('de');
@@ -258,11 +318,27 @@ function setupApp() {
     setupMenu();
     registerProtocols();
     createWindow();
+    try {
+      await setupPostgres();
+    } catch (e) {
+      console.error(e);
+      app.quit();
+    }
   });
 
   app.on('window-all-closed', () => {
     if (!isMac) {
       app.quit();
+    }
+  });
+
+  app.on('will-quit', async (event) => {
+    try {
+      event.preventDefault();
+      await shutdownPostgres();
+      process.exit(0);
+    } catch (e) {
+      console.error(e);
     }
   });
 
@@ -312,6 +388,7 @@ function setupIPC() {
             await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${aidColumn}" SERIAL`);
           }
           await client.query(`CALL diffix.mark_personal('"${tableName}"', '"${aidColumn}"');`);
+          await client.query(`GRANT SELECT ON "${tableName}" TO "${trustedUser}"`);
         } finally {
           client.end();
         }
