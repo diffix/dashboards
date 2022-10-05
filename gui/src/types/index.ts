@@ -45,6 +45,12 @@ export type TableColumn = IntegerColumn | RealColumn | TextColumn | BooleanColum
 
 export type ColumnType = TableColumn['type'];
 
+// Query request
+
+export type ImportedTable = { key: string; name: string; aidColumns: string[] };
+
+// Query results
+
 export type LoadResponse = {
   columns: ResultColumn[];
   rows: ResultRow[];
@@ -64,6 +70,8 @@ export type Value = boolean | number | string | null;
 // API
 
 export type Importer = {
+  loadTables(): Task<ImportedTable[]>;
+  removeTable(tableName: string): Task<void>;
   loadSchema(file: File): Task<TableSchema>;
   importCSV(file: File, columns: TableColumn[], aidColumn: string): Task<void>;
 };
@@ -80,6 +88,8 @@ declare global {
     i18nMissingKeys: Record<string, unknown>;
     onServiceStatusUpdate(name: ServiceName, status: ServiceStatus): void;
     getServicesStatus: (name: ServiceName) => ServiceStatus;
+    loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
+    removeTable(tableName: string, signal: AbortSignal): Promise<void>;
     readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;
     importCSV(
       fileName: string,

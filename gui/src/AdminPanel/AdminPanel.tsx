@@ -1,6 +1,7 @@
 import { Divider } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { Services } from '../Services';
+import { TableListStep } from '../TableListStep';
 import { AidSelectionStep } from '../AidSelectionStep';
 import { FileLoadStep } from '../FileLoadStep';
 import { SchemaLoadStep } from '../SchemaLoadStep';
@@ -30,13 +31,19 @@ export const AdminPanel: FunctionComponent<AdminPanelProps> = ({ isActive, onTit
         </Layout.Sidebar>
         <Layout.Content className="AdminPanel-content">
           <Services postgresql={postgresql} metabase={metabase}>
-            <FileLoadStep onLoad={(file) => onTitleChange(t('Importing') + ' ' + file.name)}>
-              {({ file }) => (
-                <SchemaLoadStep file={file}>
-                  {({ schema }) => <AidSelectionStep schema={schema} file={file} />}
-                </SchemaLoadStep>
-              )}
-            </FileLoadStep>
+          <TableListStep>
+            {({ invalidateTableList }) => (
+              <FileLoadStep onLoad={(file) => onTitleChange(t('Importing') + ' ' + file.name)}>
+                {({ file }) => (
+                  <SchemaLoadStep file={file}>
+                    {({ schema }) => (
+                      <AidSelectionStep schema={schema} file={file} invalidateTableList={invalidateTableList} />
+                    )}
+                  </SchemaLoadStep>
+                )}
+              </FileLoadStep>
+            )}
+          </TableListStep>
           </Services>
         </Layout.Content>
       </Layout>

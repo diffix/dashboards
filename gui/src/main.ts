@@ -11,7 +11,7 @@ import util from 'util';
 import { PageId } from './Docs';
 import { i18nConfig, rowIndexColumn } from './shared/config';
 import { parse } from 'csv-parse';
-import { ServiceName, ServiceStatus, TableColumn } from './types';
+import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 
@@ -369,6 +369,49 @@ function setupI18n() {
 }
 
 function setupIPC() {
+  ipcMain.handle('load_tables', async (_event, taskId: string) => {
+    const client = new Client(connectionConfig);
+    await client.connect();
+    return runTask(taskId, async (_signal) => {
+      console.info(`(${taskId}) Loading imported tables.`);
+
+      try {
+        const ret: ImportedTable[] = [];
+        const personalTables = await client.query(
+          `SELECT tablename FROM pg_catalog.pg_tables, diffix.show_labels() ` +
+            `WHERE objname = ('public."' || tablename || '"') AND tableowner='${adminUser}' AND label='personal';`,
+        );
+        personalTables.rows.forEach((row) => ret.push({ key: row.tablename, name: row.tablename, aidColumns: [] }));
+
+        const aids = await client.query(
+          `SELECT tablename, objname FROM pg_catalog.pg_tables, diffix.show_labels() ` +
+            `WHERE objname LIKE ('public."' || tablename || '".%') AND tableowner='${adminUser}' AND label='aid';`,
+        );
+        aids.rows.forEach((row) =>
+          ret.find(({ name }) => name == row.tablename)?.aidColumns.push(row.objname.split('.').at(-1)),
+        );
+
+        return ret;
+      } finally {
+        client.end();
+      }
+    });
+  });
+
+  ipcMain.handle('remove_table', async (_event, taskId: string, tableName: string) => {
+    const client = new Client(connectionConfig);
+    await client.connect();
+    return runTask(taskId, async (_signal) => {
+      console.info(`(${taskId}) Removing imported table.`);
+
+      try {
+        await client.query(`DROP TABLE public."${tableName}";`);
+      } finally {
+        client.end();
+      }
+    });
+  });
+
   ipcMain.handle(
     'import_csv',
     async (_event, taskId: string, fileName: string, tableName: string, columns: TableColumn[], aidColumn: string) => {

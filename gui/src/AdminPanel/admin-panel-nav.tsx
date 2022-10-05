@@ -13,6 +13,7 @@ const { Step } = Steps;
 
 export enum AdminPanelNavStep {
   Services,
+  TableList,
   CsvImport,
   DataPreview,
   AidSelection,
@@ -34,7 +35,7 @@ const defaultNavState: AdminPanelNavState = {
   steps: Array(AdminPanelNavStep.AidSelection + 1)
     .fill(null)
     .map(() => ({ status: 'inactive', htmlElement: null })),
-  focusedStep: AdminPanelNavStep.CsvImport,
+  focusedStep: AdminPanelNavStep.TableList,
 };
 
 const defaultVisibility = Array(AdminPanelNavStep.AidSelection + 1).fill(false);
@@ -259,6 +260,11 @@ const AdminPanelNavSteps = React.memo<{ steps: AdminPanelNavStepState[]; focused
         }}
         size="small"
       >
+        <Step
+          status={status(AdminPanelNavStep.TableList)}
+          title={mapText(t('Table List'), focusedStep === AdminPanelNavStep.TableList)}
+          description={t('Inspect and manage imported tables')}
+        />
         <Step
           status={status(AdminPanelNavStep.CsvImport)}
           title={mapText(t('CSV Import'), focusedStep === AdminPanelNavStep.CsvImport)}
