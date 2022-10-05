@@ -368,12 +368,38 @@ function setupIPC() {
 
     return newestSemVer && currentSemVer && semver.gt(newestSemVer, currentSemVer) ? newestTagName : null;
   });
+
+  ipcMain.on('get_service_status', (event, name: ServiceName) => {
+    switch (name) {
+      case ServiceName.PostgreSQL:
+        event.returnValue = postgresqlStatus;
+        break;
+
+      case ServiceName.Metabase:
+        event.returnValue = metabaseStatus;
+        break;
+    }
+  });
 }
 
 let postgresql = null;
+let postgresqlStatus = ServiceStatus.Starting;
+
 let metabase = null;
+let metabaseStatus = ServiceStatus.Starting;
 
 function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
+  // Remember service status for later interogations.
+  switch (name) {
+    case ServiceName.PostgreSQL:
+      postgresqlStatus = status;
+      break;
+
+    case ServiceName.Metabase:
+      metabaseStatus = status;
+      break;
+  }
+
   const mainWindow = BrowserWindow.getAllWindows()[0];
   mainWindow?.webContents.send('update_service_status', name, status);
 }

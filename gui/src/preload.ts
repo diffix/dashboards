@@ -6,7 +6,7 @@ import { i18nConfig } from './shared/config';
 
 import de from '../assets/locales/de/translation.json';
 import en from '../assets/locales/en/translation.json';
-import { TableColumn } from './types';
+import { TableColumn, ServiceName } from './types';
 
 const args = window.process.argv;
 let initialLanguage = 'en';
@@ -59,11 +59,13 @@ async function newTask<T>(signal: AbortSignal, runner: (taskId: string) => Promi
   }
 }
 
-window.updateServiceStatus = (_name, _status) => {};
+window.onServiceStatusUpdate = (_name, _status) => {};
 
 ipcRenderer.on('update_service_status', (_event, name, status) => {
-  window.updateServiceStatus(name, status);
+  window.onServiceStatusUpdate(name, status);
 });
+
+window.getServicesStatus = (name: ServiceName) => ipcRenderer.sendSync('get_service_status', name);
 
 window.readCSV = (fileName: string, signal: AbortSignal) =>
   newTask(signal, (taskId) => {

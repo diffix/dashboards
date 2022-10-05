@@ -75,8 +75,8 @@ export const App: FunctionComponent = () => {
     return {
       tabs: [initialTab],
       activeTab: initialTab.id,
-      postgresql: ServiceStatus.Starting,
-      metabase: ServiceStatus.Starting,
+      postgresql: window.getServicesStatus(ServiceName.PostgreSQL),
+      metabase: window.getServicesStatus(ServiceName.Metabase),
     };
   });
 
@@ -149,7 +149,7 @@ export const App: FunctionComponent = () => {
 
   window.onOpenDocs = (page) => docsFunctions.openDocs(page);
 
-  window.updateServiceStatus = (name, status) =>
+  window.onServiceStatusUpdate = (name, status) =>
     updateState((state) => {
       switch (name) {
         case ServiceName.PostgreSQL:

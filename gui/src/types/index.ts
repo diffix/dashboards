@@ -78,7 +78,8 @@ declare global {
   interface Window {
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
-    updateServiceStatus(name: ServiceName, status: ServiceStatus): void;
+    onServiceStatusUpdate(name: ServiceName, status: ServiceStatus): void;
+    getServicesStatus: (name: ServiceName) => ServiceStatus;
     readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;
     importCSV(
       fileName: string,
