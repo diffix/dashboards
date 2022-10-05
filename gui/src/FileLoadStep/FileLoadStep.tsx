@@ -1,4 +1,4 @@
-import { FileOutlined } from '@ant-design/icons';
+import { FileDoneOutlined, FileOutlined } from '@ant-design/icons';
 import { Divider, Typography, Upload } from 'antd';
 import React, { FunctionComponent, useCallback, useState } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
@@ -9,7 +9,6 @@ const { Dragger } = Upload;
 const { Title } = Typography;
 
 export type FileLoadStepProps = {
-  onLoad: (file: File) => void;
   children: (data: FileLoadStepData) => React.ReactNode;
 };
 
@@ -18,10 +17,18 @@ export type FileLoadStepData = {
   removeFile: () => void;
 };
 
-export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children, onLoad }) => {
+export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children }) => {
   const t = useT('FileLoadStep');
   const [file, setFile] = useState<File | null>(null);
-  const removeFile = useCallback(() => setFile(null), []);
+  const [lastCompletedImport, setLastCompletedImport] = useState('');
+  const removeFile = useCallback(() => {
+    file && setLastCompletedImport(file.name);
+    setFile(null);
+  }, [file]);
+
+  const dragPromptText = lastCompletedImport
+    ? t(`${lastCompletedImport} imported successfully. Click or drag another file to this area`)
+    : t('Click or drag file to this area');
 
   return (
     <>
@@ -35,17 +42,14 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children, o
             // Uploader is mid state update. We push the op to next frame to avoid react warning.
             setTimeout(() => {
               setFile(file);
-              onLoad(file);
             }, 0);
             return false;
           }}
           showUploadList={false}
         >
-          <p className="ant-upload-drag-icon">
-            <FileOutlined />
-          </p>
+          <p className="ant-upload-drag-icon">{lastCompletedImport ? <FileDoneOutlined /> : <FileOutlined />}</p>
           <p className="ant-upload-text">{t('From CSV file')}</p>
-          <p className="ant-upload-hint">{t('Click or drag file to this area')}</p>
+          <p className="ant-upload-hint">{dragPromptText}</p>
         </Dragger>
       </div>
       {/* Render next step */}

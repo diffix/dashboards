@@ -155,7 +155,7 @@ export const App: FunctionComponent = () => {
               {tabs.map((tab) => (
                 <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'adminPanel'}>
                   {tab.type === 'adminPanel' ? (
-                    <AdminPanel isActive={activeTab === tab.id} onTitleChange={(title) => setTitle(tab.id, title)} />
+                    <AdminPanel isActive={activeTab === tab.id} />
                   ) : (
                     <Docs
                       onTitleChange={(title) => setTitle(tab.id, title)}
