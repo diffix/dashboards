@@ -173,12 +173,7 @@ export const App: FunctionComponent = () => {
               {tabs.map((tab) => (
                 <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'adminPanel'}>
                   {tab.type === 'adminPanel' ? (
-                    <AdminPanel
-                      isActive={activeTab === tab.id}
-                      onTitleChange={(title) => setTitle(tab.id, title)}
-                      postgresql={postgresql}
-                      metabase={metabase}
-                    />
+                    <AdminPanel isActive={activeTab === tab.id} postgresql={postgresql} metabase={metabase} />
                   ) : (
                     <Docs
                       onTitleChange={(title) => setTitle(tab.id, title)}

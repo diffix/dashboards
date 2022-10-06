@@ -15,12 +15,13 @@ type AidSelectionProps = {
   schema: TableSchema;
   file: File;
   invalidateTableList: () => void;
+  removeFile: () => void;
 };
 
 async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: TFunc) {
   const fileName = file.name;
   message.loading({
-    content: t('Importing CSV from {{fileName}}...', { fileName }),
+    content: t('Importing {{fileName}}...', { fileName }),
     key: file.path,
     duration: 0,
   });
@@ -29,7 +30,7 @@ async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: 
     const task = importer.importCSV(file, schema.columns, aidColumn);
     await task.result;
     message.success({
-      content: t('Data from {{fileName}} imported successfully!', { fileName }),
+      content: t('{{fileName}} imported successfully!', { fileName }),
       key: file.path,
       duration: 10,
     });
@@ -41,13 +42,16 @@ async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: 
   }
 }
 
-export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema, file, invalidateTableList }) => {
+export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({
+  schema,
+  file,
+  invalidateTableList,
+  removeFile,
+}) => {
   const t = useT('AidSelectionStep');
   const [aidColumn, setAidColumn] = useState('');
-  const [buttonState, setButtonState] = useState({
-    title: `Import into ${file.name} (destructive operation!)`,
-    enabled: true,
-  });
+  const fileName = file.name;
+
   return (
     <>
       <div className="AidSelectionStep admin-panel-step">
@@ -89,16 +93,15 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
       {aidColumn ? (
         <div>
           <Button
-            disabled={!buttonState.enabled}
             onClick={async () => {
               const success = await importCSV(file, schema, aidColumn, t);
               if (success) {
-                setButtonState({ title: 'Imported!', enabled: false });
                 invalidateTableList();
+                removeFile();
               }
             }}
           >
-            {buttonState.title}
+            {t('Import into {{fileName}} (destructive operation!)', { fileName })}
           </Button>
         </div>
       ) : null}
