@@ -19,13 +19,30 @@ export const Paragraph: FunctionComponent<{ t: TFunc }> = ({ t, children }) => {
   );
 };
 
+function ServicesHelp() {
+  const t = useT('ServicesHelp');
+  return (
+    <div>
+      <Title level={4}>{t('Services')}</Title>
+      <Paragraph t={t}>
+        View status of depending services.
+        <br />
+        <DocsLink page="anonymization" section="services">
+          Click here for details.
+        </DocsLink>
+      </Paragraph>
+    </div>
+  );
+}
+
 function TableListHelp() {
   const t = useT('TableListHelp');
   return (
     <div>
-      <Title level={4}>{t('Table list')}</Title>
+      <Title level={4}>{t('Table List')}</Title>
       <Paragraph t={t}>
-        Inspect and manage the imported tables.{' '}
+        Inspect and manage the imported tables.
+        <br />
         <DocsLink page="anonymization" section="load-table-from-csv">
           Click here for details.
         </DocsLink>
@@ -40,7 +57,8 @@ function CsvImportHelp() {
     <div>
       <Title level={4}>{t('CSV Import')}</Title>
       <Paragraph t={t}>
-        <strong>BI Diffix</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).{' '}
+        <strong>BI Diffix</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).
+        <br />
         <DocsLink page="anonymization" section="load-table-from-csv">
           Click here for details.
         </DocsLink>
@@ -77,6 +95,8 @@ function AidSelectionHelp() {
 
 const AdminPanelStepHelp = React.memo<{ step: AdminPanelNavStep }>(({ step }) => {
   switch (step) {
+    case AdminPanelNavStep.Services:
+      return <ServicesHelp />;
     case AdminPanelNavStep.TableList:
       return <TableListHelp />;
     case AdminPanelNavStep.CsvImport:
