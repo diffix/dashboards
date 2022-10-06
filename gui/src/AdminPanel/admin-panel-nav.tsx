@@ -93,7 +93,7 @@ export const AdminPanelNavProvider: React.FunctionComponent<AdminPanelNavProvide
           }
 
           const maxStep = Math.max(
-            AdminPanelNavStep.CsvImport,
+            AdminPanelNavStep.Services,
             findLastIndex(draft.steps, (s) => s.status !== 'inactive'),
           );
           const visibleStep = visibilityRef.current.findIndex((visible) => visible);
@@ -260,6 +260,11 @@ const AdminPanelNavSteps = React.memo<{ steps: AdminPanelNavStepState[]; focused
         }}
         size="small"
       >
+        <Step
+          status={status(AdminPanelNavStep.Services)}
+          title={mapText(t('Services'), focusedStep === AdminPanelNavStep.Services)}
+          description={t('View status of depending services')}
+        />
         <Step
           status={status(AdminPanelNavStep.TableList)}
           title={mapText(t('Table List'), focusedStep === AdminPanelNavStep.TableList)}

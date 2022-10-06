@@ -53,12 +53,22 @@
   },
   "Sidebar": {
     "AdminPanelNavSteps": {
+      "Services": "Services",
+      "Table List": "Table List",
       "CSV Import": "CSV Import",
       "Load data from CSV": "Load data from CSV",
       "Data Preview": "Data Preview",
       "Preview contents of file": "Preview contents of file",
       "ID Selection": "ID Selection",
-      "Select the entity identifier column": "Select the entity identifier column"
+      "Select the entity identifier column": "Select the entity identifier column",
+      "View status of depending services": "View status of depending services",
+      "Inspect and manage imported tables": "Inspect and manage imported tables"
+    },
+    "ServicesHelp": {
+      "Services": "Services"
+    },
+    "TableListHelp": {
+      "Table List": "Table List"
     },
     "CsvImportHelp": {
       "CSV Import": "CSV Import",
