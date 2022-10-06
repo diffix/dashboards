@@ -12,6 +12,7 @@ const { Step } = Steps;
 // Nav state
 
 export enum AdminPanelNavStep {
+  Services,
   TableList,
   CsvImport,
   DataPreview,
