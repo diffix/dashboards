@@ -27,8 +27,10 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
   }, [file]);
 
   const dragPromptText = lastCompletedImport
-    ? t(`${lastCompletedImport} imported successfully. Click or drag another file to this area`)
-    : t('Click or drag file to this area');
+    ? t('{{lastCompletedImport}} imported successfully. Click or drag another file to this area', {
+        lastCompletedImport,
+      })
+    : t('Click or drag a file to this area');
 
   return (
     <>

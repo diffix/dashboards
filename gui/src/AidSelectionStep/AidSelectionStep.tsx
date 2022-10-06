@@ -50,6 +50,8 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({
 }) => {
   const t = useT('AidSelectionStep');
   const [aidColumn, setAidColumn] = useState('');
+  const fileName = file.name;
+
   return (
     <>
       <div className="AidSelectionStep admin-panel-step">
@@ -99,7 +101,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({
               }
             }}
           >
-            {`Import into ${file.name} (destructive operation!)`}
+            {t('Import into {{fileName}} (destructive operation!)', { fileName })}
           </Button>
         </div>
       ) : null}
