@@ -1,4 +1,4 @@
-import { execFile } from 'child_process';
+import { execFile, PromiseWithChild } from 'child_process';
 import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
 import fs from 'fs';
@@ -10,6 +10,14 @@ import stream from 'stream';
 import util from 'util';
 import { PageId } from './Docs';
 import { i18nConfig, rowIndexColumn } from './shared/config';
+import {
+  setupPostgres,
+  startPostgres,
+  shutdownPostgres,
+  setupPgDiffix,
+  getPostgresqlStatus,
+  setPostgresqlStatus,
+} from './postgres';
 import { parse } from 'csv-parse';
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 import { Client } from 'pg';
@@ -243,63 +251,6 @@ function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tab
   });
 }
 
-const setupScriptName = 'pgsetup' + (process.platform === 'win32' ? '.cmd' : '.sh');
-const setupScriptPath = path.join(resourcesLocation, '../scripts', setupScriptName);
-
-const shutdownScriptName = 'pgshutdown' + (process.platform === 'win32' ? '.cmd' : '.sh');
-const shutdownScriptPath = path.join(resourcesLocation, '../scripts', shutdownScriptName);
-
-const pgRootPath = path.join(resourcesLocation, 'pgsql');
-
-// TODO: leaving the xyzPostgres unrefactored, as they are likely temporary
-async function setupPostgres() {
-  console.info(`Starting PostgreSQL`);
-  const controller = new AbortController();
-  const args: string[] = [pgRootPath];
-
-  try {
-    const { stdout, stderr } = await asyncExecFile(setupScriptPath, args, {
-      maxBuffer: 100 * 1024 * 1024,
-      windowsHide: true,
-      signal: controller.signal,
-    });
-    console.log(stderr.trimEnd());
-    console.log(stdout.trimEnd());
-  } catch (err) {
-    console.log(err);
-
-    if ((err as Error)?.name === 'AbortError') {
-      throw 'Postgres setup aborted.';
-    }
-
-    const stderr = (err as { stderr?: string })?.stderr;
-    if (stderr) {
-      console.log(stderr.trimEnd());
-    }
-
-    throw 'Postgres setup failed.';
-  }
-}
-
-async function shutdownPostgres() {
-  console.info(`Stopping PostgreSQL`);
-  const controller = new AbortController();
-  const args: string[] = [pgRootPath];
-
-  try {
-    const { stdout, stderr } = await asyncExecFile(shutdownScriptPath, args, {
-      maxBuffer: 100 * 1024 * 1024,
-      windowsHide: true,
-      signal: controller.signal,
-    });
-    console.log(stderr.trimEnd());
-    console.log(stdout.trimEnd());
-  } catch (err) {
-    console.log(err);
-    throw 'Postgres shutdown failed.';
-  }
-}
-
 function setupApp() {
   app.on('second-instance', (_event, _commandLine, _workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
@@ -318,12 +269,6 @@ function setupApp() {
     setupMenu();
     registerProtocols();
     createWindow();
-    try {
-      await setupPostgres();
-    } catch (e) {
-      console.error(e);
-      app.quit();
-    }
   });
 
   app.on('window-all-closed', () => {
@@ -335,7 +280,7 @@ function setupApp() {
   app.on('will-quit', async (event) => {
     try {
       event.preventDefault();
-      await shutdownPostgres();
+      if (process.platform !== 'win32') await shutdownPostgres(postgresql?.child);
       process.exit(0);
     } catch (e) {
       console.error(e);
@@ -492,7 +437,7 @@ function setupIPC() {
   ipcMain.on('get_service_status', (event, name: ServiceName) => {
     switch (name) {
       case ServiceName.PostgreSQL:
-        event.returnValue = postgresqlStatus;
+        event.returnValue = getPostgresqlStatus();
         break;
 
       case ServiceName.Metabase:
@@ -502,17 +447,11 @@ function setupIPC() {
   });
 }
 
-let postgresql = null;
-let postgresqlStatus = ServiceStatus.Starting;
-
-let metabase = null;
-let metabaseStatus = ServiceStatus.Starting;
-
 function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
   // Remember service status for later interogations.
   switch (name) {
     case ServiceName.PostgreSQL:
-      postgresqlStatus = status;
+      setPostgresqlStatus(status);
       break;
 
     case ServiceName.Metabase:
@@ -524,12 +463,22 @@ function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
   mainWindow?.webContents.send('update_service_status', name, status);
 }
 
+let postgresql: PromiseWithChild<{ stdout: string; stderr: string }> | null = null;
+
+let metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null = null;
+let metabaseStatus = ServiceStatus.Starting;
+
 async function startServices() {
-  console.info('Starting PostgreSQL...');
+  await setupPostgres();
   //await new Promise((r) => setTimeout(r, 10000));
-  postgresql = asyncExecFile('notepad.exe', null, { maxBuffer: 100 * 1024 * 1024 });
-  console.info('PostgreSQL started.');
-  updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
+  postgresql = startPostgres();
+  postgresql.child.stderr?.on('data', async (data) => {
+    if (data.includes('database system is ready to accept connections')) {
+      await setupPgDiffix();
+      updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
+      console.info('PostgreSQL and pg_diffix started.');
+    }
+  });
   postgresql.child.on('close', (code) => {
     console.error(`PostgreSQL exited with code ${code}.`);
     updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);

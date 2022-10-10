@@ -2,9 +2,8 @@
 
 setlocal
 
-set PGROOT=%1
-if %PGROOT% == "" exit 1
-set PATH=%PATH%;%PGROOT%\bin
+set LOCAL_PG_BIN=%~dp0..\gui\pgsql\bin
+set PATH=%PATH%;%LOCAL_PG_BIN%
 set BI_DIFFIX_HOME=%userprofile%\.bi_diffix\postgres
 set BI_DIFFIX_LOGFILE=%BI_DIFFIX_HOME%\logfile
 
