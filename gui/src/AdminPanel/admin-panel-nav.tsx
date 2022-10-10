@@ -17,6 +17,7 @@ export enum AdminPanelNavStep {
   CsvImport,
   DataPreview,
   AidSelection,
+  Import,
 }
 
 export type AdminPanelNavStepStatus = 'inactive' | 'active' | 'loading' | 'done' | 'failed';
@@ -32,13 +33,13 @@ type AdminPanelNavState = {
 };
 
 const defaultNavState: AdminPanelNavState = {
-  steps: Array(AdminPanelNavStep.AidSelection + 1)
+  steps: Array(AdminPanelNavStep.Import + 1)
     .fill(null)
     .map(() => ({ status: 'inactive', htmlElement: null })),
   focusedStep: AdminPanelNavStep.TableList,
 };
 
-const defaultVisibility = Array(AdminPanelNavStep.AidSelection + 1).fill(false);
+const defaultVisibility = Array(AdminPanelNavStep.Import + 1).fill(false);
 
 const AdminPanelNavStateContext = React.createContext<AdminPanelNavState>(defaultNavState);
 
@@ -279,6 +280,11 @@ const AdminPanelNavSteps = React.memo<{ steps: AdminPanelNavStepState[]; focused
           status={status(AdminPanelNavStep.AidSelection)}
           title={mapText(t('ID Selection'), focusedStep === AdminPanelNavStep.AidSelection)}
           description={t('Select the entity identifier column')}
+        />
+        <Step
+          status={status(AdminPanelNavStep.Import)}
+          title={mapText(t('Import'), focusedStep === AdminPanelNavStep.Import)}
+          description={t('Finalize import')}
         />
       </Steps>
     );

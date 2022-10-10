@@ -1,10 +1,10 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Alert, Button, message, Select, Typography } from 'antd';
+import { Alert, Divider, Select, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
-import { importer, TFunc, useT } from '../shared';
+import { useT } from '../shared';
 import { rowIndexColumn } from '../shared/config';
-import { File, TableSchema } from '../types';
+import { TableSchema } from '../types';
 
 import './AidSelectionStep.css';
 
@@ -13,44 +13,16 @@ const { Option } = Select;
 
 type AidSelectionProps = {
   schema: TableSchema;
-  file: File;
-  invalidateTableList: () => void;
-  removeFile: () => void;
+  children: (data: AidSelectionStepData) => React.ReactNode;
 };
 
-async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: TFunc) {
-  const fileName = file.name;
-  message.loading({
-    content: t('Importing {{fileName}}...', { fileName }),
-    key: file.path,
-    duration: 0,
-  });
+export type AidSelectionStepData = {
+  aidColumn: string;
+};
 
-  try {
-    const task = importer.importCSV(file, schema.columns, aidColumn);
-    await task.result;
-    message.success({
-      content: t('{{fileName}} imported successfully!', { fileName }),
-      key: file.path,
-      duration: 10,
-    });
-    return true;
-  } catch (e) {
-    console.error(e);
-    message.error({ content: t('Data import failed!'), key: file.path, duration: 10 });
-    return false;
-  }
-}
-
-export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({
-  schema,
-  file,
-  invalidateTableList,
-  removeFile,
-}) => {
+export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema, children }) => {
   const t = useT('AidSelectionStep');
   const [aidColumn, setAidColumn] = useState('');
-  const fileName = file.name;
 
   return (
     <>
@@ -90,21 +62,15 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({
           ))}
         </Select>
       </div>
-      {aidColumn ? (
-        <div>
-          <Button
-            onClick={async () => {
-              const success = await importCSV(file, schema, aidColumn, t);
-              if (success) {
-                invalidateTableList();
-                removeFile();
-              }
-            }}
-          >
-            {t('Import into {{fileName}} (destructive operation!)', { fileName })}
-          </Button>
-        </div>
-      ) : null}
+      <div className="AidSelectionStep-reserved-space">
+        {/* Render next step */}
+        {aidColumn && (
+          <>
+            <Divider />
+            {children({ aidColumn })}
+          </>
+        )}
+      </div>
     </>
   );
 };

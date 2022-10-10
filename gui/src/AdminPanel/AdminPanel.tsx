@@ -4,6 +4,7 @@ import { Services } from '../Services';
 import { TableListStep } from '../TableListStep';
 import { AidSelectionStep } from '../AidSelectionStep';
 import { FileLoadStep } from '../FileLoadStep';
+import { ImportStep } from '../ImportStep';
 import { SchemaLoadStep } from '../SchemaLoadStep';
 import { Layout } from '../shared';
 import { ServiceStatus } from '../types';
@@ -35,12 +36,17 @@ export const AdminPanel: FunctionComponent<AdminPanelProps> = ({ isActive, postg
                   {({ file, removeFile }) => (
                     <SchemaLoadStep file={file}>
                       {({ schema }) => (
-                        <AidSelectionStep
-                          schema={schema}
-                          file={file}
-                          invalidateTableList={invalidateTableList}
-                          removeFile={removeFile}
-                        />
+                        <AidSelectionStep schema={schema}>
+                          {({ aidColumn }) => (
+                            <ImportStep
+                              schema={schema}
+                              file={file}
+                              aidColumn={aidColumn}
+                              invalidateTableList={invalidateTableList}
+                              removeFile={removeFile}
+                            />
+                          )}
+                        </AidSelectionStep>
                       )}
                     </SchemaLoadStep>
                   )}
