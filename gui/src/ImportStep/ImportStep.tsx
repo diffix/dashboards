@@ -1,15 +1,16 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { Alert, Button, message, Typography } from 'antd';
-import React, { FunctionComponent } from 'react';
+import { Button, Form, Input, message, Typography } from 'antd';
+import path from 'path';
+import React, { FunctionComponent, useState } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
 import { importer, TFunc, useT } from '../shared';
-import { File, TableSchema } from '../types';
+import { File, ImportedTable, TableSchema } from '../types';
 
 import './ImportStep.css';
 
 const { Title } = Typography;
 
 type ImportProps = {
+  tableList: ImportedTable[];
   file: File;
   schema: TableSchema;
   aidColumn: string;
@@ -17,7 +18,7 @@ type ImportProps = {
   removeFile: () => void;
 };
 
-async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: TFunc) {
+async function importCSV(file: File, tableName: string, schema: TableSchema, aidColumn: string, t: TFunc) {
   const fileName = file.name;
   message.loading({
     content: t('Importing {{fileName}}...', { fileName }),
@@ -26,7 +27,7 @@ async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: 
   });
 
   try {
-    const task = importer.importCSV(file, schema.columns, aidColumn);
+    const task = importer.importCSV(file, tableName, schema.columns, aidColumn);
     await task.result;
     message.success({
       content: t('{{fileName}} imported successfully!', { fileName }),
@@ -42,6 +43,7 @@ async function importCSV(file: File, schema: TableSchema, aidColumn: string, t: 
 }
 
 export const ImportStep: FunctionComponent<ImportProps> = ({
+  tableList,
   file,
   schema,
   aidColumn,
@@ -50,37 +52,38 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
 }) => {
   const t = useT('ImportStep');
   const fileName = file.name;
+  const [tableName, setTableName] = useState(path.parse(fileName).name);
+  const tableExists = tableList.map((table) => table.name).includes(tableName) ? true : false;
 
   return (
     <>
       <div className="ImportStep admin-panel-step">
         <AdminPanelNavAnchor step={AdminPanelNavStep.Import} />
         <Title level={3}>{t('Import')}</Title>
-        <Alert
-          className="ImportStep-notice"
-          message={
-            <>
-              <strong>{t('CAUTION:')}</strong> {t('TBD.')}
-            </>
-          }
-          type="info"
-          showIcon
-          icon={<InfoCircleOutlined />}
-          closable
-        />
-        <div>
-          <Button
-            onClick={async () => {
-              const success = await importCSV(file, schema, aidColumn, t);
-              if (success) {
-                invalidateTableList();
-                removeFile();
-              }
-            }}
+        <Form layout="inline" initialValues={{ tableName }} onValuesChange={({ tableName }) => setTableName(tableName)}>
+          <Form.Item
+            label={t('Table name')}
+            hasFeedback
+            validateStatus={tableExists ? 'warning' : ''}
+            help={tableExists ? `${tableName} already exists, will be overwritten` : null}
+            name="tableName"
+            rules={[{ required: true }]}
           >
-            {t('Import into {{fileName}} (destructive operation!)', { fileName })}
-          </Button>
-        </div>
+            <Input placeholder={tableName} />
+          </Form.Item>
+        </Form>
+        <Button
+          onClick={async () => {
+            const success = await importCSV(file, tableName, schema, aidColumn, t);
+            if (success) {
+              invalidateTableList();
+              removeFile();
+            }
+          }}
+          disabled={tableName ? false : true}
+        >
+          {t('Import')}
+        </Button>
       </div>
     </>
   );

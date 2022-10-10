@@ -31,7 +31,7 @@ export const AdminPanel: FunctionComponent<AdminPanelProps> = ({ isActive, postg
         <Layout.Content className="AdminPanel-content">
           <Services postgresql={postgresql} metabase={metabase}>
             <TableListStep>
-              {({ invalidateTableList }) => (
+              {({ tableList, invalidateTableList }) => (
                 <FileLoadStep>
                   {({ file, removeFile }) => (
                     <SchemaLoadStep file={file}>
@@ -39,6 +39,7 @@ export const AdminPanel: FunctionComponent<AdminPanelProps> = ({ isActive, postg
                         <AidSelectionStep schema={schema}>
                           {({ aidColumn }) => (
                             <ImportStep
+                              tableList={tableList}
                               schema={schema}
                               file={file}
                               aidColumn={aidColumn}

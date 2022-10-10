@@ -73,7 +73,7 @@ export type Importer = {
   loadTables(): Task<ImportedTable[]>;
   removeTable(tableName: string): Task<void>;
   loadSchema(file: File): Task<TableSchema>;
-  importCSV(file: File, columns: TableColumn[], aidColumn: string): Task<void>;
+  importCSV(file: File, tableName: string, columns: TableColumn[], aidColumn: string): Task<void>;
 };
 
 export type Task<T> = {

@@ -58,9 +58,9 @@ class DiffixImporter implements Importer {
     });
   }
 
-  importCSV(file: File, columns: TableColumn[], aidColumn: string): Task<void> {
+  importCSV(file: File, tableName: string, columns: TableColumn[], aidColumn: string): Task<void> {
     return runTask(async (signal) => {
-      await window.importCSV(file.path, file.name, columns, aidColumn, signal);
+      await window.importCSV(file.path, tableName, columns, aidColumn, signal);
     });
   }
 }
