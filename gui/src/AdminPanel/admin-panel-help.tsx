@@ -93,6 +93,16 @@ function AidSelectionHelp() {
   );
 }
 
+function ImportHelp() {
+  const t = useT('ImportHelp');
+  return (
+    <div>
+      <Title level={4}>{t('Import')}</Title>
+      <Paragraph t={t}>Finalize import into the database. TODO: link docs</Paragraph>
+    </div>
+  );
+}
+
 const AdminPanelStepHelp = React.memo<{ step: AdminPanelNavStep }>(({ step }) => {
   switch (step) {
     case AdminPanelNavStep.Services:
@@ -105,6 +115,8 @@ const AdminPanelStepHelp = React.memo<{ step: AdminPanelNavStep }>(({ step }) =>
       return <DataPreviewHelp />;
     case AdminPanelNavStep.AidSelection:
       return <AidSelectionHelp />;
+    case AdminPanelNavStep.Import:
+      return <ImportHelp />;
     default:
       return null;
   }

@@ -88,11 +88,11 @@ window.importCSV = (
   fileName: string,
   tableName: string,
   columns: TableColumn[],
-  aidColumn: string,
+  aidColumns: string[],
   signal: AbortSignal,
 ) =>
   newTask(signal, (taskId) => {
-    return ipcRenderer.invoke('import_csv', taskId, fileName, tableName, columns, aidColumn);
+    return ipcRenderer.invoke('import_csv', taskId, fileName, tableName, columns, aidColumns);
   });
 
 window.onOpenDocs = (_page) => {};

@@ -9,7 +9,7 @@ import { useTableList } from './use-table-list';
 import './TableListStep.css';
 import { ImportedTable } from '../types';
 
-type CommonProps = {
+type TableListProps = {
   result: ImportedTable[];
   loading: boolean;
   invalidateTableList: () => void;
@@ -40,7 +40,7 @@ async function removeTable(tableName: string, invalidateTableList: () => void, t
   }
 }
 
-function TableList({ result, loading, invalidateTableList, t }: CommonProps) {
+function TableList({ result, loading, invalidateTableList, t }: TableListProps) {
   const columns = [
     {
       title: 'Name',
@@ -83,6 +83,7 @@ export type TableListStepProps = {
 };
 
 export type TableListStepData = {
+  tableList: ImportedTable[];
   invalidateTableList: () => void;
 };
 
@@ -102,7 +103,7 @@ export const TableListStep: FunctionComponent<TableListStepProps> = ({ children 
           {
             <>
               <Divider />
-              {children({ invalidateTableList })}
+              {children({ tableList: cachedResult, invalidateTableList })}
             </>
           }
         </>

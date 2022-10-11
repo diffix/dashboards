@@ -11,4 +11,4 @@ export const i18nConfig = {
   supportedLngs: ['en', 'de'],
 } as const;
 
-export const rowIndexColumn = 'RowIndex';
+export const rowIndexColumn = 'DiffixRowIndex';
