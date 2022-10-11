@@ -37,12 +37,12 @@ export const AdminPanel: FunctionComponent<AdminPanelProps> = ({ isActive, postg
                     <SchemaLoadStep file={file}>
                       {({ schema }) => (
                         <AidSelectionStep schema={schema}>
-                          {({ aidColumn }) => (
+                          {({ aidColumns }) => (
                             <ImportStep
                               tableList={tableList}
                               schema={schema}
                               file={file}
-                              aidColumn={aidColumn}
+                              aidColumns={aidColumns}
                               invalidateTableList={invalidateTableList}
                               removeFile={removeFile}
                             />

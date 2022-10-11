@@ -73,7 +73,7 @@ export type Importer = {
   loadTables(): Task<ImportedTable[]>;
   removeTable(tableName: string): Task<void>;
   loadSchema(file: File): Task<TableSchema>;
-  importCSV(file: File, tableName: string, columns: TableColumn[], aidColumn: string): Task<void>;
+  importCSV(file: File, tableName: string, columns: TableColumn[], aidColumns: string[]): Task<void>;
 };
 
 export type Task<T> = {
@@ -95,7 +95,7 @@ declare global {
       fileName: string,
       tableName: string,
       columns: TableColumn[],
-      aidColumn: string,
+      aidColumns: string[],
       signal: AbortSignal,
     ): Promise<void>;
     onOpenDocs: (page: PageId) => void;

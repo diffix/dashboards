@@ -13,12 +13,12 @@ type ImportProps = {
   tableList: ImportedTable[];
   file: File;
   schema: TableSchema;
-  aidColumn: string;
+  aidColumns: string[];
   invalidateTableList: () => void;
   removeFile: () => void;
 };
 
-async function importCSV(file: File, tableName: string, schema: TableSchema, aidColumn: string, t: TFunc) {
+async function importCSV(file: File, tableName: string, schema: TableSchema, aidColumns: string[], t: TFunc) {
   const fileName = file.name;
   message.loading({
     content: t('Importing {{fileName}}...', { fileName }),
@@ -27,7 +27,7 @@ async function importCSV(file: File, tableName: string, schema: TableSchema, aid
   });
 
   try {
-    const task = importer.importCSV(file, tableName, schema.columns, aidColumn);
+    const task = importer.importCSV(file, tableName, schema.columns, aidColumns);
     await task.result;
     message.success({
       content: t('{{fileName}} imported successfully!', { fileName }),
@@ -46,7 +46,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
   tableList,
   file,
   schema,
-  aidColumn,
+  aidColumns,
   invalidateTableList,
   removeFile,
 }) => {
@@ -74,7 +74,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
         </Form>
         <Button
           onClick={async () => {
-            const success = await importCSV(file, tableName, schema, aidColumn, t);
+            const success = await importCSV(file, tableName, schema, aidColumns, t);
             if (success) {
               invalidateTableList();
               removeFile();

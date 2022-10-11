@@ -322,11 +322,10 @@ function setupIPC() {
 
       try {
         const ret: ImportedTable[] = [];
-        const personalTables = await client.query(
-          `SELECT tablename FROM pg_catalog.pg_tables, diffix.show_labels() ` +
-            `WHERE objname = ('public."' || tablename || '"') AND tableowner='${adminUser}' AND label='personal';`,
+        const allTables = await client.query(
+          `SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner='${adminUser}';`,
         );
-        personalTables.rows.forEach((row) => ret.push({ key: row.tablename, name: row.tablename, aidColumns: [] }));
+        allTables.rows.forEach((row) => ret.push({ key: row.tablename, name: row.tablename, aidColumns: [] }));
 
         const aids = await client.query(
           `SELECT tablename, objname FROM pg_catalog.pg_tables, diffix.show_labels() ` +
@@ -359,7 +358,14 @@ function setupIPC() {
 
   ipcMain.handle(
     'import_csv',
-    async (_event, taskId: string, fileName: string, tableName: string, columns: TableColumn[], aidColumn: string) => {
+    async (
+      _event,
+      taskId: string,
+      fileName: string,
+      tableName: string,
+      columns: TableColumn[],
+      aidColumns: string[],
+    ) => {
       const client = new Client(connectionConfig);
       await client.connect();
       return runTask(taskId, async (signal) => {
@@ -372,10 +378,12 @@ function setupIPC() {
           await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
           await copyFromFile(client, signal, fileName, tableName);
-          if (aidColumn == rowIndexColumn) {
-            await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${aidColumn}" SERIAL`);
+          if (aidColumns.includes(rowIndexColumn)) {
+            await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${rowIndexColumn}" SERIAL`);
           }
-          await client.query(`CALL diffix.mark_personal('"${tableName}"', '"${aidColumn}"');`);
+          aidColumns.map(async (aidColumn) => {
+            await client.query(`CALL diffix.mark_personal('"${tableName}"', '"${aidColumn}"');`);
+          });
           await client.query(`GRANT SELECT ON "${tableName}" TO "${trustedUser}"`);
         } finally {
           client.end();
