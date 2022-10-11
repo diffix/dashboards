@@ -145,15 +145,15 @@ function setupMenu() {
         },
         {
           label: t('Help::Community Discussions'),
-          click: () => openURL('https://github.com/diffix/bi_diffix/discussions'),
+          click: () => openURL('https://github.com/diffix/dashboards/discussions'),
         },
         {
           label: t('Help::Search Issues'),
-          click: () => openURL('https://github.com/diffix/bi_diffix/issues'),
+          click: () => openURL('https://github.com/diffix/dashboards/issues'),
         },
         {
           label: t('Help::Latest Releases'),
-          click: () => openURL('https://github.com/diffix/bi_diffix/releases'),
+          click: () => openURL('https://github.com/diffix/dashboards/releases'),
         },
       ],
     },
@@ -434,7 +434,7 @@ function setupIPC() {
   });
 
   ipcMain.handle('check_for_updates', async (_event) => {
-    const response = await fetch('https://api.github.com/repos/diffix/bi_diffix/releases/latest');
+    const response = await fetch('https://api.github.com/repos/diffix/dashboards/releases/latest');
 
     // 404 here means there hasn't yet been a full release yet, just prerelases or drafts
     if (response.status == 404) return null;

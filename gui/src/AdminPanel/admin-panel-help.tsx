@@ -57,7 +57,7 @@ function CsvImportHelp() {
     <div>
       <Title level={4}>{t('CSV Import')}</Title>
       <Paragraph t={t}>
-        <strong>BI Diffix</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).
+        <strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).
         <br />
         <DocsLink page="anonymization" section="load-table-from-csv">
           Click here for details.

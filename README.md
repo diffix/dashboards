@@ -1,2 +1,3 @@
-# bi_diffix
-Business Intelligence app for Open Diffix
+# Diffix Dashboards
+
+Desktop application for producing anonymized dashboards using Open Diffix

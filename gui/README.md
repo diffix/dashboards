@@ -1,4 +1,4 @@
-# GUI for the BI Diffix tools
+# GUI for the Diffix Dashboards tools
 
 TODO
 
