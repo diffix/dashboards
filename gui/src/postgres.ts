@@ -21,7 +21,7 @@ const dataDirPath = path.join(os.homedir(), '.bi_diffix', 'postgres');
 const socketPath = path.join(dataDirPath, 'socket');
 
 const initPgDiffixScriptName = 'init.sql';
-const initPgDiffixScriptPath = path.join(resourcesLocation, '../scripts', initPgDiffixScriptName);
+const initPgDiffixScriptPath = path.join(resourcesLocation, 'scripts', initPgDiffixScriptName);
 
 export let postgresqlStatus = ServiceStatus.Starting;
 
@@ -100,23 +100,9 @@ export function startPostgres(): PromiseWithChild<{ stdout: string; stderr: stri
 }
 
 export async function shutdownPostgres(postgresql?: ChildProcess): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    postgresql?.kill();
-    console.info('Waiting for PostgreSQL to shutdown...');
-    let trials = 0;
-    const checkPostgresqlStatus = () => {
-      if (postgresqlStatus === ServiceStatus.Stopped) {
-        resolve();
-      } else if (trials >= 50) {
-        console.error('PostgreSQL could not be shutdown');
-        reject();
-      } else {
-        setTimeout(checkPostgresqlStatus, 100);
-        trials++;
-      }
-    };
-    checkPostgresqlStatus();
-  });
+  console.info('Shutting down PostgreSQL...');
+  postgresql?.kill();
+  return waitForPostgresqlStatus(ServiceStatus.Stopped);
 }
 
 export function getPostgresqlStatus(): ServiceStatus {
@@ -125,4 +111,22 @@ export function getPostgresqlStatus(): ServiceStatus {
 
 export function setPostgresqlStatus(status: ServiceStatus): void {
   postgresqlStatus = status;
+}
+
+export function waitForPostgresqlStatus(status: ServiceStatus): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    let trials = 0;
+    const checkPostgresqlStatus = () => {
+      if (getPostgresqlStatus() === status) {
+        resolve();
+      } else if (trials >= 50) {
+        console.error(`PostgreSQL didn't reach awaited status, tried ${trials} times`);
+        reject();
+      } else {
+        setTimeout(checkPostgresqlStatus, 100);
+        trials++;
+      }
+    };
+    checkPostgresqlStatus();
+  });
 }

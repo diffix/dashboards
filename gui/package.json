@@ -24,7 +24,8 @@
       "packagerConfig": {
         "extraResource": [
           "assets",
-          "docs"
+          "docs",
+          "scripts"
         ],
         "name": "bi_diffix",
         "icon": "assets/icon"

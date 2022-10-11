@@ -17,6 +17,7 @@ import {
   setupPgDiffix,
   getPostgresqlStatus,
   setPostgresqlStatus,
+  waitForPostgresqlStatus,
 } from './postgres';
 import { parse } from 'csv-parse';
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
@@ -315,6 +316,7 @@ function setupI18n() {
 
 function setupIPC() {
   ipcMain.handle('load_tables', async (_event, taskId: string) => {
+    await waitForPostgresqlStatus(ServiceStatus.Running);
     const client = new Client(connectionConfig);
     await client.connect();
     return runTask(taskId, async (_signal) => {
@@ -343,6 +345,7 @@ function setupIPC() {
   });
 
   ipcMain.handle('remove_table', async (_event, taskId: string, tableName: string) => {
+    await waitForPostgresqlStatus(ServiceStatus.Running);
     const client = new Client(connectionConfig);
     await client.connect();
     return runTask(taskId, async (_signal) => {
@@ -366,6 +369,7 @@ function setupIPC() {
       columns: TableColumn[],
       aidColumns: string[],
     ) => {
+      await waitForPostgresqlStatus(ServiceStatus.Running);
       const client = new Client(connectionConfig);
       await client.connect();
       return runTask(taskId, async (signal) => {
@@ -395,6 +399,7 @@ function setupIPC() {
   ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) reading CSV ${fileName}.`);
+      await waitForPostgresqlStatus(ServiceStatus.Running);
 
       const promise = () =>
         new Promise<string[][]>((resolve, reject) => {
