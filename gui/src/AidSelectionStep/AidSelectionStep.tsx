@@ -99,7 +99,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
         {(aidColumn || publicTable) && (
           <>
             <Divider />
-            {children({ aidColumns: publicTable ? [aidColumn] : [] })}
+            {children({ aidColumns: publicTable ? [] : [aidColumn] })}
           </>
         )}
       </div>

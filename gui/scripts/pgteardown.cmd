@@ -2,7 +2,7 @@
 
 setlocal
 
-set LOCAL_PG_BIN=%~dp0..\gui\pgsql\bin
+set LOCAL_PG_BIN=%~dp0..\pgsql\bin
 set PATH=%PATH%;%LOCAL_PG_BIN%
 set BI_DIFFIX_HOME=%userprofile%\.bi_diffix\postgres
 set BI_DIFFIX_LOGFILE=%BI_DIFFIX_HOME%\logfile
