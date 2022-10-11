@@ -11,7 +11,7 @@ const notificationContent = (version: string, t: TFunc) => {
       <br />
       Click{' '}
       <strong>
-        <a href={`https://github.com/diffix/bi_diffix/releases/tag/${version}`} target="_blank" rel="noreferrer">
+        <a href={`https://github.com/diffix/dashboards/releases/tag/${version}`} target="_blank" rel="noreferrer">
           here
         </a>
       </strong>{' '}

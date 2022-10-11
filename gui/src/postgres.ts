@@ -17,7 +17,7 @@ const postgresBinPath = execFileSync(pgConfigPath, ['--bindir'], { timeout: 5000
 const postgresPath = path.join(postgresBinPath, 'postgres');
 const psqlPath = path.join(postgresBinPath, 'psql');
 const initdbPath = path.join(postgresBinPath, 'initdb');
-const dataDirPath = path.join(os.homedir(), '.bi_diffix', 'postgres');
+const dataDirPath = path.join(os.homedir(), '.diffix_dashboards', 'postgres');
 const socketPath = path.join(dataDirPath, 'socket');
 
 const initPgDiffixScriptName = 'init.sql';

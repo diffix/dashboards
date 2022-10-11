@@ -2,13 +2,13 @@
   "App": {
     "Menu": {
       "AppMenu": {
-        "BI Diffix": "BI Diffix",
-        "About BI Diffix": "About BI Diffix",
+        "Diffix Dashboards": "Diffix Dashboards",
+        "About Diffix Dashboards": "About Diffix Dashboards",
         "Services": "Services",
-        "Hide BI Diffix": "Hide BI Diffix",
+        "Hide Diffix Dashboards": "Hide Diffix Dashboards",
         "Hide Others": "Hide Others",
         "Show All": "Show All",
-        "Quit BI Diffix": "Quit BI Diffix"
+        "Quit Diffix Dashboards": "Quit Diffix Dashboards"
       },
       "View": {
         "&View": "&View",
@@ -35,7 +35,7 @@
       }
     },
     "Documentation": "Documentation",
-    "BI Diffix": "BI Diffix",
+    "Diffix Dashboards": "Diffix Dashboards",
     "Admin Panel": "Admin Panel"
   },
   "check-updates": {
@@ -72,7 +72,7 @@
     },
     "CsvImportHelp": {
       "CSV Import": "CSV Import",
-      "<strong>BI Diffix</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>": "<strong>BI Diffix</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>"
+      "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>": "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>"
     },
     "DataPreviewHelp": {
       "Data Preview": "Data Preview",

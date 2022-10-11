@@ -62,9 +62,9 @@ function setWindowTitle(state: AppState) {
   const t = getT('App');
   const tab = find(state.tabs, { id: state.activeTab });
   if (tab) {
-    window.setMainWindowTitle(tab.title + ' - ' + t('BI Diffix'));
+    window.setMainWindowTitle(tab.title + ' - ' + t('Diffix Dashboards'));
   } else {
-    window.setMainWindowTitle(t('BI Diffix'));
+    window.setMainWindowTitle(t('Diffix Dashboards'));
   }
 }
 
