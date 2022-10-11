@@ -25,7 +25,8 @@
         "extraResource": [
           "assets",
           "docs",
-          "scripts"
+          "scripts",
+          "pgsql"
         ],
         "name": "diffix_dashboards",
         "icon": "assets/icon"
