@@ -1,5 +1,0 @@
-# Ignore everything in this directory
-*
-# Except this file
-!.gitignore
-# This allows us to keep an empty dir in the repo, so that CI/CD doesn't complain when `npm run make`ing

@@ -7,6 +7,7 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
+    "build-win": "node build.win.js",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",

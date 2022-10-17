@@ -1,13 +1,17 @@
-# GUI for the Diffix Dashboards tools
+# Diffix Dashboards
 
-TODO
-
-## To use
+Desktop application for producing anonymized dashboards using Open Diffix.
 
 ## Development
 
+Run `git submodule init --update`.
 Run `asdf install` to install `node` via `asdf`.
 Run `npm install` to install dependencies.
+
+Build services:
+
+- On Windows: install VS 2022 with "Desktop development with C++" selected and run `npm run build-win`.
+- On Linux: install PostgreSQL, ensure that `pg_config` is in your `PATH`, install pg_diffix.
 
 Following the setup, run `npm start` to start the development environment with hot code reloading.
 
@@ -19,7 +23,7 @@ Before committing, make sure to lint and format your code with `npm run lint` an
 
 2. Execute `npm version [major|minor|patch]` in a clean working folder.
 
-  This will bump and update the app version, create a commit for the new release, tag it and push it to GitHub.
-  A draft release will be then created automatically on GitHub.
+This will bump and update the app version, create a commit for the new release, tag it and push it to GitHub.
+A draft release will be then created automatically on GitHub.
 
 3. After making sure the generated assets are OK, the release can be published manually in the GitHub UI.
