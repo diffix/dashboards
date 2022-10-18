@@ -22,7 +22,8 @@ async function download(url, dest) {
 
 const pgroot = 'pgsql';
 const archivePath = 'postgresql.zip';
-const vcvarsPath = 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat';
+const vswherePath = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe';
+const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
 
 (async () => {
   if (fs.existsSync(pgroot)) {
@@ -42,21 +43,29 @@ const vcvarsPath = 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\
   fs.rmSync(pgroot + '/symbols', { recursive: true });
 
   console.log('Building pg_diffix...');
-  if (!fs.existsSync(vcvarsPath)) {
-    console.error("Couldn't find VS 2022 build tools!");
+  if (!fs.existsSync(vswherePath)) {
+    console.error('Could not find any instance of Visual Studio!');
     process.exitCode = 1;
     return;
   }
 
   try {
-    childProcess.execSync(`"${vcvarsPath}" && msbuild -p:Configuration=Release`, {
+    const vsPath = childProcess
+      .execFileSync(vswherePath, ['-latest', '-property', 'installationPath'])
+      .toString()
+      .trim();
+    console.log('Using VS build tools from: ' + vsPath);
+
+    childProcess.execSync(`"${vsPath + vcvarsPath}" && msbuild -p:Configuration=Release`, {
       cwd: 'pg_diffix',
       env: { PGROOT: '..\\' + pgroot },
     });
+
+    console.log('Installing pg_diffix...');
     childProcess.execSync('install.bat Release', { cwd: 'pg_diffix', env: { PGROOT: '..\\' + pgroot } });
   } catch (error) {
-    console.log(error.stdout.toString());
-    console.error(error.stderr.toString());
+    if (error.stdout) console.log(error.stdout.toString());
+    if (error.stderr) console.error(error.stderr.toString());
     console.error(error.message);
     process.exitCode = 1;
     return;
