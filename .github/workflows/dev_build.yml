@@ -21,6 +21,3 @@ jobs:
       - name: Run GUI linter
         run: npm run lint
         working-directory: ./gui
-      - name: Build GUI App
-        run: npm run package
-        working-directory: ./gui
