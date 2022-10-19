@@ -1,42 +1,35 @@
-import { ServiceStatus } from './types';
-import { app } from 'electron';
 import { execFile, execFileSync, PromiseWithChild } from 'child_process';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import util from 'util';
-import { waitForServiceStatus } from './servicesUtils';
+import { ServiceStatus } from '../../types';
+import { appResourcesLocation, isWin, postgresConfig } from '../config';
+import { getUsername, waitForServiceStatus } from '../service-utils';
 
 const asyncExecFile = util.promisify(execFile);
 
-const resourcesLocation = path.join(app.getAppPath(), app.isPackaged ? '..' : '.');
-
-const isWin = process.platform === 'win32';
-
-const pgConfigPath = isWin ? path.join(resourcesLocation, 'pgsql', 'bin', 'pg_config') : 'pg_config';
+const pgConfigPath = isWin ? path.join(appResourcesLocation, 'pgsql', 'bin', 'pg_config') : 'pg_config';
 const postgresBinPath = execFileSync(pgConfigPath, ['--bindir'], { timeout: 5000 }).toString().trim();
 const postgresPath = path.join(postgresBinPath, 'postgres');
 const psqlPath = path.join(postgresBinPath, 'psql');
 const initdbPath = path.join(postgresBinPath, 'initdb');
-const dataDirPath = path.join(os.homedir(), '.diffix_dashboards', 'postgres');
-const socketPath = path.join(dataDirPath, 'socket');
+const socketPath = path.join(postgresConfig.dataDirectory, 'socket');
 
 const initPgDiffixScriptName = 'init.sql';
-const initPgDiffixScriptPath = path.join(resourcesLocation, 'scripts', initPgDiffixScriptName);
-
-const serverPort = '20432';
+const initPgDiffixScriptPath = path.join(appResourcesLocation, 'scripts', initPgDiffixScriptName);
 
 let postgresqlStatus = ServiceStatus.Starting;
 
 async function initdbPostgres() {
   console.info('Initializing PostgreSQL local database...');
-  fs.mkdirSync(dataDirPath, { recursive: true });
-  await asyncExecFile(initdbPath, ['-U', os.userInfo().username, '-D', dataDirPath, '-E', 'UTF8']);
+  const { dataDirectory } = postgresConfig;
+  fs.mkdirSync(dataDirectory, { recursive: true });
+  await asyncExecFile(initdbPath, ['-U', getUsername(), '-D', dataDirectory, '-E', 'UTF8']);
   isWin || fs.mkdirSync(socketPath, { recursive: true });
 }
 
 export async function setupPostgres(): Promise<void> {
-  if (!fs.existsSync(dataDirPath)) {
+  if (!fs.existsSync(postgresConfig.dataDirectory)) {
     console.info('Setting up local PostgreSQL data directory...');
     await initdbPostgres();
   } else {
@@ -50,13 +43,13 @@ export async function setupPgDiffix(): Promise<void> {
     psqlPath,
     [
       '-U',
-      `${os.userInfo().username}`,
+      `${getUsername()}`,
       '-d',
       'postgres',
       '-p',
-      serverPort,
+      postgresConfig.port.toString(),
       '-XtAc',
-      "SELECT 1 FROM pg_database WHERE datname='diffix'",
+      `SELECT 1 FROM pg_database WHERE datname='${postgresConfig.tablesDatabase}'`,
     ].concat(socketArgs),
   );
 
@@ -70,17 +63,17 @@ export async function setupPgDiffix(): Promise<void> {
         '-v',
         'ON_ERROR_STOP=1',
         '-U',
-        `${os.userInfo().username}`,
+        `${getUsername()}`,
         '-d',
         'postgres',
         '-p',
-        serverPort,
+        postgresConfig.port.toString(),
         '-f',
         initPgDiffixScriptPath,
       ].concat(socketArgs),
     );
   } else {
-    throw `Unexpected result when detecting pg_diffix: ${detectPgDiffix.stdout.trim()}`;
+    throw new Error(`Unexpected result when detecting pg_diffix: ${detectPgDiffix.stdout.trim()}`);
   }
 }
 
@@ -88,7 +81,10 @@ export function startPostgres(): PromiseWithChild<{ stdout: string; stderr: stri
   console.info('Starting PostgreSQL...');
   const socketArgs = isWin ? [] : ['-k', socketPath];
 
-  return asyncExecFile(postgresPath, ['-p', serverPort, '-D', dataDirPath].concat(socketArgs));
+  return asyncExecFile(
+    postgresPath,
+    ['-p', postgresConfig.port.toString(), '-D', postgresConfig.dataDirectory].concat(socketArgs),
+  );
 }
 
 export async function shutdownPostgres(): Promise<void> {
@@ -96,7 +92,7 @@ export async function shutdownPostgres(): Promise<void> {
   // On Windows, if we let the OS handle shutdown, it will not be graceful, and next start
   // is in recovery mode.
   // On Linux, `postgresql?.kill()` works fine, but the common `pg_ctl` is just as good.
-  asyncExecFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', dataDirPath, 'stop']);
+  asyncExecFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', postgresConfig.dataDirectory, 'stop']);
   return waitForPostgresqlStatus(ServiceStatus.Stopped);
 }
 

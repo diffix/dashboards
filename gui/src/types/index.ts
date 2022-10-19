@@ -12,6 +12,7 @@ export type ComputedData<T> =
 export enum ServiceStatus {
   Starting,
   Running,
+  InvalidState,
   Stopped,
 }
 

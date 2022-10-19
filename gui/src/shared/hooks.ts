@@ -1,8 +1,8 @@
 import { isEqual } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TFunction, useTranslation } from 'react-i18next';
+import { i18nConfig } from '../constants';
 import { ComputedData } from '../types';
-import { i18nConfig } from './config';
 
 export type TFunc = TFunction<typeof i18nConfig.ns, string>;
 

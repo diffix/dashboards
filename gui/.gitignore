@@ -99,6 +99,6 @@ bin/
 obj/
 
 pgsql/
-metabase/
+/metabase/
 metabase_jar/
 openjdk/

@@ -1,37 +1,42 @@
 import { PromiseWithChild } from 'child_process';
-import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
+import { parse } from 'csv-parse';
+import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, session, shell } from 'electron';
 import fetch from 'electron-fetch';
 import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
-import semver from 'semver';
-import stream from 'stream';
-import { PageId } from './Docs';
-import { i18nConfig, rowIndexColumn } from './shared/config';
-import {
-  setupPostgres,
-  startPostgres,
-  shutdownPostgres,
-  setupPgDiffix,
-  getPostgresqlStatus,
-  setPostgresqlStatus,
-  waitForPostgresqlStatus,
-} from './postgres';
-import { getMetabaseStatus, setMetabaseStatus, shutdownMetabase, startMetabase } from './metabase';
-import { parse } from 'csv-parse';
-import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
-
-const trustedUser = 'diffix_trusted';
-const adminUser = 'diffix_admin';
+import semver from 'semver';
+import stream from 'stream';
+import { i18nConfig, ROW_INDEX_COLUMN } from './constants';
+import { PageId } from './Docs';
+import { appResourcesLocation, isMac, postgresConfig } from './main/config';
+import {
+  getMetabaseStatus,
+  initializeMetabase,
+  logInToMetabase,
+  setMetabaseStatus,
+  shutdownMetabase,
+  startMetabase,
+} from './main/metabase';
+import {
+  getPostgresqlStatus,
+  setPostgresqlStatus,
+  setupPgDiffix,
+  setupPostgres,
+  shutdownPostgres,
+  startPostgres,
+  waitForPostgresqlStatus,
+} from './main/postgres';
+import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 
 const connectionConfig = {
-  port: 20432,
-  database: 'diffix',
-  user: adminUser,
-  password: adminUser,
+  database: postgresConfig.tablesDatabase,
+  port: postgresConfig.port,
+  user: postgresConfig.adminUser,
+  password: postgresConfig.adminPassword,
   connectionTimeoutMillis: 1000,
 };
 
@@ -43,16 +48,13 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-const isMac = process.platform === 'darwin';
-const resourcesLocation = path.join(app.getAppPath(), app.isPackaged ? '..' : '.');
-
 // Localization
 
 i18n.use(i18nFsBackend).init({
   ...i18nConfig,
   backend: {
-    loadPath: path.join(resourcesLocation, 'assets', 'locales', '{{lng}}/{{ns}}.json'),
-    addPath: path.join(resourcesLocation, 'assets', 'locales', '{{lng}}/{{ns}}.missing.json'),
+    loadPath: path.join(appResourcesLocation, 'assets', 'locales', '{{lng}}/{{ns}}.json'),
+    addPath: path.join(appResourcesLocation, 'assets', 'locales', '{{lng}}/{{ns}}.missing.json'),
     ident: 2,
   },
   debug: i18nConfig.debug && !app.isPackaged,
@@ -168,7 +170,17 @@ protocol.registerSchemesAsPrivileged([{ scheme: 'docs', privileges: { bypassCSP:
 function registerProtocols() {
   protocol.registerFileProtocol('docs', (request, callback) => {
     const url = request.url.substring('docs://'.length);
-    callback(path.join(resourcesLocation, 'docs', i18n.language, url));
+    callback(path.join(appResourcesLocation, 'docs', i18n.language, url));
+  });
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy':
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:* 127.0.0.1:* google.com *.google.com",
+      },
+    });
   });
 }
 
@@ -184,8 +196,9 @@ function createWindow() {
       contextIsolation: false,
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       additionalArguments: [`--language=${i18n.language}`],
+      webviewTag: true,
     },
-    icon: path.join(resourcesLocation, 'assets', 'icon.png'),
+    icon: path.join(appResourcesLocation, 'assets', 'icon.png'),
   });
 
   mainWindow.on('page-title-updated', function (e) {
@@ -321,6 +334,7 @@ function setupIPC() {
     return runTask(taskId, async (_signal) => {
       console.info(`(${taskId}) Loading imported tables.`);
 
+      const { adminUser } = postgresConfig;
       try {
         const ret: ImportedTable[] = [];
         const allTables = await client.query(
@@ -382,15 +396,15 @@ function setupIPC() {
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
           await copyFromFile(client, signal, fileName, tableName);
           if (aidColumns.length > 0) {
-            if (aidColumns.includes(rowIndexColumn)) {
-              await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${rowIndexColumn}" SERIAL`);
+            if (aidColumns.includes(ROW_INDEX_COLUMN)) {
+              await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${ROW_INDEX_COLUMN}" SERIAL`);
             }
             const aidColumnsSQL = aidColumns.map((aidColumn) => `'"${aidColumn}"'`).join(', ');
             await client.query(`CALL diffix.mark_personal('"${tableName}"', ${aidColumnsSQL});`);
           } else {
             await client.query(`CALL diffix.mark_public('"${tableName}"');`);
           }
-          await client.query(`GRANT SELECT ON "${tableName}" TO "${trustedUser}"`);
+          await client.query(`GRANT SELECT ON "${tableName}" TO "${postgresConfig.trustedUser}"`);
         } finally {
           client.end();
         }
@@ -486,9 +500,15 @@ async function startServices() {
   postgresql = startPostgres();
   postgresql.child.stderr?.on('data', async (data) => {
     if (data.includes('database system is ready to accept connections')) {
-      await setupPgDiffix();
-      updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
-      console.info('PostgreSQL and pg_diffix started.');
+      try {
+        await setupPgDiffix();
+        console.info('PostgreSQL and pg_diffix started.');
+        updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
+      } catch (err) {
+        console.info('pg_diffix initialization failed.');
+        console.error(err);
+        updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.InvalidState);
+      }
     }
   });
   postgresql.child.on('close', (code) => {
@@ -499,8 +519,16 @@ async function startServices() {
   metabase = startMetabase();
   metabase.child.stdout?.on('data', async (data) => {
     if (data.includes('Metabase Initialization COMPLETE')) {
-      updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
-      console.info('Metabase started.');
+      try {
+        await initializeMetabase();
+        await logInToMetabase();
+        console.info('Metabase started.');
+        updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
+      } catch (err) {
+        console.info('Metabase initialization failed.');
+        console.error(err);
+        updateServiceStatus(ServiceName.Metabase, ServiceStatus.InvalidState);
+      }
     }
   });
   metabase.child.on('close', (code) => {

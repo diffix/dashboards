@@ -21,6 +21,7 @@ function statusToIcon(status: ServiceStatus) {
       return <SyncOutlined spin className="Services-starting" />;
     case ServiceStatus.Running:
       return <CheckCircleOutlined className="Services-running" />;
+    case ServiceStatus.InvalidState:
     case ServiceStatus.Stopped:
       return <CloseCircleOutlined className="Services-stopped" />;
   }
