@@ -49,7 +49,7 @@ export const Services: FunctionComponent<ServicesProps> = ({ postgresql, metabas
         </Space>
       </div>
       {/* Render next step */}
-      {metabase !== ServiceStatus.Starting && (
+      {postgresql !== ServiceStatus.Starting && (
         <>
           <Divider />
           {children}
