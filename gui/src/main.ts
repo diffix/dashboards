@@ -18,7 +18,7 @@ import {
   setPostgresqlStatus,
   waitForPostgresqlStatus,
 } from './postgres';
-import { getMetabaseStatus, setMetabaseStatus, shutdownMetabase, startMetabase } from './metabase';
+import { getMetabaseStatus, metabaseJettyPort, setMetabaseStatus, shutdownMetabase, startMetabase } from './metabase';
 import { parse } from 'csv-parse';
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 import { Client } from 'pg';
@@ -501,6 +501,7 @@ async function startServices() {
     if (data.includes('Metabase Initialization COMPLETE')) {
       updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
       console.info('Metabase started.');
+      openURL(`http://localhost:${metabaseJettyPort}`);
     }
   });
   metabase.child.on('close', (code) => {

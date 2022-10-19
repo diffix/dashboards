@@ -24,7 +24,7 @@ const socketPath = path.join(dataDirPath, 'socket');
 const initPgDiffixScriptName = 'init.sql';
 const initPgDiffixScriptPath = path.join(resourcesLocation, 'scripts', initPgDiffixScriptName);
 
-export let postgresqlStatus = ServiceStatus.Starting;
+let postgresqlStatus = ServiceStatus.Starting;
 
 async function initdbPostgres() {
   console.info('Initializing PostgreSQL local database...');

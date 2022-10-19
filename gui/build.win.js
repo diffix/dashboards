@@ -24,8 +24,9 @@ async function download(url, dest) {
 
 const pgroot = 'pgsql';
 const metabaseDir = 'metabase';
+const metabaseJarDir = 'metabase_jar';
 const postgresqlArchivePath = 'postgresql.zip';
-const metabaseJarPath = path.join(metabaseDir, 'metabase.jar');
+const metabaseJarPath = path.join(metabaseJarDir, 'metabase.jar');
 const vswherePath = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe';
 const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
 
@@ -74,6 +75,9 @@ const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
 
     console.log('Installing pg_diffix...');
     childProcess.execSync('install.bat Release', { cwd: 'pg_diffix', env: { PGROOT: path.join('..', pgroot) } });
+
+    console.log('Bundling Metabase...');
+    childProcess.execSync(`jpackage --type app-image -i ${metabaseJarDir} -n metabase --main-jar metabase.jar`);
   } catch (error) {
     if (error.stdout) console.log(error.stdout.toString());
     if (error.stderr) console.error(error.stderr.toString());
@@ -81,6 +85,9 @@ const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
     process.exitCode = 1;
     return;
   }
+
+  console.log('Cleaning Metabase temporary jar...');
+  fs.rmSync(metabaseJarDir, { recursive: true });
 
   console.log('Build finished!');
 })();

@@ -10,8 +10,8 @@ Run `npm install` to install dependencies.
 
 Build services:
 
-- On Windows: install VS 2022 with "Desktop development with C++" selected and run `npm run build-win`.
-- On Linux: install PostgreSQL, ensure that `pg_config` is in your `PATH`, install pg_diffix.
+- On Windows: install VS 2022 with "Desktop development with C++" selected, install JDK compatible with Metabase, and run `npm run build-win`.
+- On Linux: install PostgreSQL, ensure that `pg_config` is in your `PATH`, install pg_diffix, install JDK compatible with Metabase, download Metabase JAR file and use `jpackage` to bundle it into a runtime image.
 
 Following the setup, run `npm start` to start the development environment with hot code reloading.
 
