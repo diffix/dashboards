@@ -1,4 +1,4 @@
-import { execFile, PromiseWithChild } from 'child_process';
+import { PromiseWithChild } from 'child_process';
 import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
 import fs from 'fs';
@@ -7,7 +7,6 @@ import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
 import semver from 'semver';
 import stream from 'stream';
-import util from 'util';
 import { PageId } from './Docs';
 import { i18nConfig, rowIndexColumn } from './shared/config';
 import {
@@ -19,6 +18,7 @@ import {
   setPostgresqlStatus,
   waitForPostgresqlStatus,
 } from './postgres';
+import { getMetabaseStatus, setMetabaseStatus, shutdownMetabase, startMetabase } from './metabase';
 import { parse } from 'csv-parse';
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 import { Client } from 'pg';
@@ -34,8 +34,6 @@ const connectionConfig = {
   password: adminUser,
   connectionTimeoutMillis: 1000,
 };
-
-const asyncExecFile = util.promisify(execFile);
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -281,10 +279,11 @@ function setupApp() {
   app.on('will-quit', async (event) => {
     try {
       event.preventDefault();
-      if (process.platform !== 'win32') await shutdownPostgres(postgresql?.child);
-      process.exit(0);
+      await Promise.all([shutdownPostgres(postgresql?.child), shutdownMetabase(metabase?.child)]);
     } catch (e) {
       console.error(e);
+    } finally {
+      process.exit(0);
     }
   });
 
@@ -382,12 +381,15 @@ function setupIPC() {
           await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
           await copyFromFile(client, signal, fileName, tableName);
-          if (aidColumns.includes(rowIndexColumn)) {
-            await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${rowIndexColumn}" SERIAL`);
+          if (aidColumns.length > 0) {
+            if (aidColumns.includes(rowIndexColumn)) {
+              await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${rowIndexColumn}" SERIAL`);
+            }
+            const aidColumnsSQL = aidColumns.map((aidColumn) => `'"${aidColumn}"'`).join(', ');
+            await client.query(`CALL diffix.mark_personal('"${tableName}"', ${aidColumnsSQL});`);
+          } else {
+            await client.query(`CALL diffix.mark_public('"${tableName}"');`);
           }
-          aidColumns.map(async (aidColumn) => {
-            await client.query(`CALL diffix.mark_personal('"${tableName}"', '"${aidColumn}"');`);
-          });
           await client.query(`GRANT SELECT ON "${tableName}" TO "${trustedUser}"`);
         } finally {
           client.end();
@@ -454,7 +456,7 @@ function setupIPC() {
         break;
 
       case ServiceName.Metabase:
-        event.returnValue = metabaseStatus;
+        event.returnValue = getMetabaseStatus();
         break;
     }
   });
@@ -468,7 +470,7 @@ function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
       break;
 
     case ServiceName.Metabase:
-      metabaseStatus = status;
+      setMetabaseStatus(status);
       break;
   }
 
@@ -477,13 +479,10 @@ function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
 }
 
 let postgresql: PromiseWithChild<{ stdout: string; stderr: string }> | null = null;
-
 let metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null = null;
-let metabaseStatus = ServiceStatus.Starting;
 
 async function startServices() {
   await setupPostgres();
-  //await new Promise((r) => setTimeout(r, 10000));
   postgresql = startPostgres();
   postgresql.child.stderr?.on('data', async (data) => {
     if (data.includes('database system is ready to accept connections')) {
@@ -497,11 +496,13 @@ async function startServices() {
     updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
   });
 
-  console.info('Starting Metabase...');
-  //await new Promise((r) => setTimeout(r, 10000));
-  metabase = asyncExecFile('notepad.exe', null, { maxBuffer: 100 * 1024 * 1024 });
-  console.info('Metabase started.');
-  updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
+  metabase = startMetabase();
+  metabase.child.stdout?.on('data', async (data) => {
+    if (data.includes('Metabase Initialization COMPLETE')) {
+      updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
+      console.info('Metabase started.');
+    }
+  });
   metabase.child.on('close', (code) => {
     console.error(`Metabase exited with code ${code}.`);
     updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);

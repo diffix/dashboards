@@ -27,7 +27,8 @@
           "assets",
           "docs",
           "scripts",
-          "pgsql"
+          "pgsql",
+          "metabase"
         ],
         "name": "diffix_dashboards",
         "icon": "assets/icon"

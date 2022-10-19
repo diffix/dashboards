@@ -5,6 +5,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import util from 'util';
+import { waitForServiceStatus } from './servicesUtils';
 
 const asyncExecFile = util.promisify(execFile);
 
@@ -101,7 +102,12 @@ export function startPostgres(): PromiseWithChild<{ stdout: string; stderr: stri
 
 export async function shutdownPostgres(postgresql?: ChildProcess): Promise<void> {
   console.info('Shutting down PostgreSQL...');
-  postgresql?.kill();
+  if (isWin) {
+    // If we let the OS handle shutdown, it will not be graceful, and next start is in recovery mode.
+    asyncExecFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', dataDirPath, 'stop']);
+  } else {
+    postgresql?.kill();
+  }
   return waitForPostgresqlStatus(ServiceStatus.Stopped);
 }
 
@@ -114,19 +120,5 @@ export function setPostgresqlStatus(status: ServiceStatus): void {
 }
 
 export function waitForPostgresqlStatus(status: ServiceStatus): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    let trials = 0;
-    const checkPostgresqlStatus = () => {
-      if (getPostgresqlStatus() === status) {
-        resolve();
-      } else if (trials >= 50) {
-        console.error(`PostgreSQL didn't reach awaited status, tried ${trials} times`);
-        reject();
-      } else {
-        setTimeout(checkPostgresqlStatus, 100);
-        trials++;
-      }
-    };
-    checkPostgresqlStatus();
-  });
+  return waitForServiceStatus(status, 'PostgreSQL', getPostgresqlStatus);
 }
