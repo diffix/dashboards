@@ -1,6 +1,6 @@
 import { ServiceStatus } from './types';
 import { app } from 'electron';
-import { ChildProcess, execFile, execFileSync, PromiseWithChild } from 'child_process';
+import { execFile, execFileSync, PromiseWithChild } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -100,14 +100,12 @@ export function startPostgres(): PromiseWithChild<{ stdout: string; stderr: stri
   return asyncExecFile(postgresPath, ['-p', '20432', '-D', dataDirPath].concat(socketArgs));
 }
 
-export async function shutdownPostgres(postgresql?: ChildProcess): Promise<void> {
+export async function shutdownPostgres(): Promise<void> {
   console.info('Shutting down PostgreSQL...');
-  if (isWin) {
-    // If we let the OS handle shutdown, it will not be graceful, and next start is in recovery mode.
-    asyncExecFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', dataDirPath, 'stop']);
-  } else {
-    postgresql?.kill();
-  }
+  // On Windows, if we let the OS handle shutdown, it will not be graceful, and next start
+  // is in recovery mode.
+  // On Linux, `postgresql?.kill()` works fine, but the common `pg_ctl` is just as good.
+  asyncExecFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', dataDirPath, 'stop']);
   return waitForPostgresqlStatus(ServiceStatus.Stopped);
 }
 

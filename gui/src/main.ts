@@ -279,7 +279,7 @@ function setupApp() {
   app.on('will-quit', async (event) => {
     try {
       event.preventDefault();
-      await Promise.all([shutdownPostgres(postgresql?.child), shutdownMetabase(metabase?.child)]);
+      await Promise.all([shutdownPostgres(), shutdownMetabase(metabase?.child)]);
     } catch (e) {
       console.error(e);
     } finally {
