@@ -11,7 +11,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --max-warnings 0 --ext .ts,.tsx .",
+    "lint": "eslint --max-warnings 0 --ext .js,.jsx,.ts,.tsx .",
     "check-format": "prettier --check src",
     "format": "prettier --write src",
     "preversion": "node version.js check",
