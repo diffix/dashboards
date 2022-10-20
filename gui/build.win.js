@@ -3,6 +3,7 @@ const fs = require('fs');
 const https = require('https');
 const childProcess = require('child_process');
 const path = require('path');
+const url = require('url');
 
 async function download(url, dest) {
   function get(url, file, resolve, reject) {
@@ -23,6 +24,9 @@ async function download(url, dest) {
 }
 
 const pgroot = 'pgsql';
+const openJdkDir = 'openjdk';
+const openJdkArchivePath = 'openjdk.zip';
+const jpackagePath = path.join(openJdkDir, 'bin', 'jpackage');
 const metabaseDir = 'metabase';
 const metabaseJarDir = 'metabase_jar';
 const postgresqlArchivePath = 'postgresql.zip';
@@ -30,10 +34,27 @@ const metabaseJarPath = path.join(metabaseJarDir, 'metabase.jar');
 const vswherePath = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe';
 const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
 
+const openJdkVersion = 'jdk-17.0.4.1+1';
+const postgresqlUrl = 'https://sbp.enterprisedb.com/getfile.jsp?fileid=1258169';
+// `openJdkVersion` and filename must be matched manually here.
+const openJdkUrl = new url.URL(
+  path.posix.join(
+    'adoptium/temurin17-binaries/releases/download',
+    openJdkVersion,
+    'OpenJDK17U-jdk_x64_windows_hotspot_17.0.4.1_1.zip',
+  ),
+  'https://github.com',
+).href;
+const metabaseUrl = 'https://downloads.metabase.com/v0.44.4/metabase.jar';
+
 (async () => {
   if (fs.existsSync(pgroot)) {
     console.log('Cleaning previous build (PostgreSQL)...');
     fs.rmSync(pgroot, { recursive: true });
+  }
+  if (fs.existsSync(openJdkDir)) {
+    console.log('Cleaning previous build (OpenJDK)...');
+    fs.rmSync(openJdkDir, { recursive: true });
   }
   if (fs.existsSync(metabaseDir)) {
     console.log('Cleaning previous build (Metabase)...');
@@ -41,18 +62,28 @@ const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
   }
 
   console.log('Downloading PostgreSQL...');
-  await download('https://sbp.enterprisedb.com/getfile.jsp?fileid=1258169', postgresqlArchivePath);
+  await download(postgresqlUrl, postgresqlArchivePath);
+
+  console.log('Downloading OpenJDK...');
+  await download(openJdkUrl, openJdkArchivePath);
 
   console.log('Downloading Metabase...');
-  await download('https://downloads.metabase.com/v0.44.4/metabase.jar', metabaseJarPath);
+  await download(metabaseUrl, metabaseJarPath);
 
   console.log('Unpacking PostgreSQL...');
   childProcess.execFileSync('tar.exe', ['-xf', postgresqlArchivePath]);
+
+  console.log('Unpacking OpenJDK...');
+  childProcess.execFileSync('tar.exe', ['-xf', openJdkArchivePath]);
+  fs.renameSync(openJdkVersion, openJdkDir);
 
   console.log('Cleaning PostgreSQL...');
   fs.rmSync(postgresqlArchivePath);
   fs.rmSync(path.join(pgroot, 'pgAdmin 4'), { recursive: true });
   fs.rmSync(path.join(pgroot, 'symbols'), { recursive: true });
+
+  console.log('Cleaning OpenJDK zip...');
+  fs.rmSync(openJdkArchivePath);
 
   console.log('Building pg_diffix...');
   if (!fs.existsSync(vswherePath)) {
@@ -77,7 +108,7 @@ const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
     childProcess.execSync('install.bat Release', { cwd: 'pg_diffix', env: { PGROOT: path.join('..', pgroot) } });
 
     console.log('Bundling Metabase...');
-    childProcess.execSync(`jpackage --type app-image -i ${metabaseJarDir} -n metabase --main-jar metabase.jar`);
+    childProcess.execSync(`${jpackagePath} --type app-image -i ${metabaseJarDir} -n metabase --main-jar metabase.jar`);
   } catch (error) {
     if (error.stdout) console.log(error.stdout.toString());
     if (error.stderr) console.error(error.stderr.toString());
@@ -88,6 +119,9 @@ const vcvarsPath = '\\VC\\Auxiliary\\Build\\vcvars64.bat';
 
   console.log('Cleaning Metabase temporary jar...');
   fs.rmSync(metabaseJarDir, { recursive: true });
+
+  console.log('Cleaning OpenJDK...');
+  fs.rmSync(openJdkDir, { recursive: true });
 
   console.log('Build finished!');
 })();
