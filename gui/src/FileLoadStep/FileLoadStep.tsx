@@ -36,7 +36,7 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
     <>
       <div className="FileLoadStep admin-panel-step">
         <AdminPanelNavAnchor step={AdminPanelNavStep.CsvImport} status={file ? 'done' : 'active'} />
-        <Title level={3}>{t('Import data')}</Title>
+        <Title level={3}>{t('Import table')}</Title>
         <Dragger
           accept=".csv,.tsv,.txt"
           fileList={[]}
