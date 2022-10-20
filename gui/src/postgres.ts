@@ -31,7 +31,7 @@ export let postgresqlStatus = ServiceStatus.Starting;
 async function initdbPostgres() {
   console.info('Initializing PostgreSQL local database...');
   fs.mkdirSync(dataDirPath, { recursive: true });
-  await asyncExecFile(initdbPath, ['-U', os.userInfo().username, '-D', dataDirPath]);
+  await asyncExecFile(initdbPath, ['-U', os.userInfo().username, '-D', dataDirPath, '-E', 'UTF8']);
   isWin || fs.mkdirSync(socketPath, { recursive: true });
 }
 
