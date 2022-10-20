@@ -1,4 +1,4 @@
-import { Divider, message, Result, Table } from 'antd';
+import { Divider, message, Result, Table, Typography } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import React, { FunctionComponent } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
@@ -8,6 +8,8 @@ import { useTableList } from './use-table-list';
 
 import './TableListStep.css';
 import { ImportedTable } from '../types';
+
+const { Title } = Typography;
 
 type TableListProps = {
   result: ImportedTable[];
@@ -98,6 +100,7 @@ export const TableListStep: FunctionComponent<TableListStepProps> = ({ children 
       const loading = computedResult.state !== 'completed';
       return (
         <>
+          <Title level={3}>{t('Import data')}</Title>
           <TableList result={cachedResult} loading={loading} invalidateTableList={invalidateTableList} t={t} />
           {/* Render next step */}
           {

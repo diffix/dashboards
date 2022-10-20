@@ -1,5 +1,9 @@
 {
   "App": {
+    "Admin Panel": "Admin Panel",
+    "Documentation": "Documentation",
+    "Diffix Dashboards": "Diffix Dashboards",
+
     "Menu": {
       "AppMenu": {
         "Diffix Dashboards": "Diffix Dashboards",
@@ -33,79 +37,85 @@
         "Search Issues": "Search Issues",
         "Latest Releases": "Latest Releases"
       }
-    },
-    "Documentation": "Documentation",
-    "Diffix Dashboards": "Diffix Dashboards",
-    "Admin Panel": "Admin Panel"
-  },
-  "check-updates": {
-    "Update Available": "Update Available",
-    "A more recent version ({{version}}) is available.<br/>Click <6><0>here</0></6> to open the release page.": "A more recent version ({{version}}) is available.<br/>Click <6><0>here</0></6> to open the release page."
-  },
-  "Docs": {
-    "Documentation": "Documentation",
-    "Anonymization": "Anonymization",
-    "Changelog": "Changelog"
-  },
-  "AdminPanel": {
-    "Importing": "Importing",
-    "Services": "Services"
+    }
   },
   "Sidebar": {
     "AdminPanelNavSteps": {
       "Services": "Services",
+      "View status of depending services": "View status of depending services",
       "Table List": "Table List",
+      "Inspect and manage imported tables": "Inspect and manage imported tables",
       "CSV Import": "CSV Import",
       "Load data from CSV": "Load data from CSV",
       "Data Preview": "Data Preview",
       "Preview contents of file": "Preview contents of file",
       "ID Selection": "ID Selection",
       "Select the entity identifier column": "Select the entity identifier column",
-      "View status of depending services": "View status of depending services",
-      "Inspect and manage imported tables": "Inspect and manage imported tables"
-    },
-    "ServicesHelp": {
-      "Services": "Services"
+      "Import": "Import",
+      "Finalize import": "Finalize import"
     },
     "TableListHelp": {
-      "Table List": "Table List"
+      "Table List": "Table List",
+      "Inspect and manage the imported tables.<br/><2>Click here for details.</2>": "Inspect and manage the imported tables.<br/><2>Click here for details.</2>"
     },
-    "CsvImportHelp": {
-      "CSV Import": "CSV Import",
-      "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>": "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric). <3>Click here for details.</3>"
-    },
-    "DataPreviewHelp": {
-      "Data Preview": "Data Preview",
-      "Use the data preview to confirm that the data was loaded correctly.": "Use the data preview to confirm that the data was loaded correctly."
+    "ServicesHelp": {
+      "Services": "Services",
+      "View status of depending services.<br/><2>Click here for details.</2>": "View status of depending services.<br/><2>Click here for details.</2>"
     },
     "AidSelectionHelp": {
       "ID Selection": "ID Selection",
       "<strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.": "<strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.",
-      "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. <4>Click here for details on how to set.</4>": "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. <4>Click here for details on how to set.</4>"
+      "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. TODO: link docs": "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. TODO: link docs"
+    },
+    "ImportHelp": {
+      "Import": "Import",
+      "Finalize import into the database. TODO: link docs": "Finalize import into the database. TODO: link docs"
+    },
+    "CsvImportHelp": {
+      "CSV Import": "CSV Import",
+      "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).<br/><3>Click here for details.</3>": "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).<br/><3>Click here for details.</3>"
+    },
+    "DataPreviewHelp": {
+      "Data Preview": "Data Preview",
+      "Use the data preview to confirm that the data was loaded correctly.": "Use the data preview to confirm that the data was loaded correctly."
     }
   },
+  "AdminPanel": {
+    "Services": "Services"
+  },
   "FileLoadStep": {
+    "Click or drag a file to this area": "Click or drag a file to this area",
     "Import data": "Import data",
     "From CSV file": "From CSV file",
-    "Click or drag file to this area": "Click or drag file to this area"
+    "{{lastCompletedImport}} imported successfully. Click or drag another file to this area": "{{lastCompletedImport}} imported successfully. Click or drag another file to this area"
+  },
+
+  "Docs": {
+    "Anonymization": "Anonymization",
+    "Documentation": "Documentation",
+    "Changelog": "Changelog"
   },
   "SchemaLoadStep": {
     "Loading schema": "Loading schema",
-    "Loaded {{fileName}}": "Loaded {{fileName}}",
     "Successfully loaded {{fileName}}": "Successfully loaded {{fileName}}",
     "Here is what the data looks like:": "Here is what the data looks like:",
-    "(only the first 1000 rows are shown)": "(only the first 1000 rows are shown)",
-    "Schema discovery failed": "Schema discovery failed",
-    "Something went wrong while loading the schema.": "Something went wrong while loading the schema."
+    "Loaded {{fileName}}": "Loaded {{fileName}}"
   },
   "AidSelectionStep": {
     "Select the protected entity identifier column": "Select the protected entity identifier column",
-    "CAUTION:": "CAUTION:",
-    "When no identifier column is present in the data, you must ensure that each individual row from the input file represents a unique entity.": "When no identifier column is present in the data, you must ensure that each individual row from the input file represents a unique entity.",
+    "Public": "Public",
+    "Personal": "Personal",
     "Select a column or 'None'": "Select a column or 'None'",
-    "[None]": "[None]",
-    "Importing CSV from {{fileName}}...": "Importing CSV from {{fileName}}...",
-    "Data from {{fileName}} imported successfully!": "Data from {{fileName}} imported successfully!",
-    "Data import failed!": "Data import failed!"
+    "[Auto-generated row index column]": "[Auto-generated row index column]",
+    "NOTICE:": "NOTICE:",
+    "File will be imported into a public table. Data contained within will not be anonymized.": "File will be imported into a public table. Data contained within will not be anonymized.",
+    "CAUTION:": "CAUTION:",
+    "When using the auto-generated index as identifier, you must ensure that each individual row from the input file represents a unique entity.": "When using the auto-generated index as identifier, you must ensure that each individual row from the input file represents a unique entity."
+  },
+  "ImportStep": {
+    "Import": "Import",
+    "Table name": "Table name",
+    "Importing {{fileName}}...": "Importing {{fileName}}...",
+    "{{fileName}} imported successfully!": "{{fileName}} imported successfully!"
   }
 }
