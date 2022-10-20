@@ -14,7 +14,7 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
 
   fs.mkdirSync(metabaseConfig.pluginsDir, { recursive: true });
 
-  return asyncExecFile('java', ['-jar', metabaseConfig.jarPath], {
+  return asyncExecFile(metabaseConfig.jarPath, [], {
     env: {
       MB_DB_TYPE: 'postgres',
       MB_DB_DBNAME: postgresConfig.metadataDatabase,

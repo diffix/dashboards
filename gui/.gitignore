@@ -98,7 +98,7 @@ out/
 bin/
 obj/
 
-pgsql/
+/pgsql/
 /metabase/
-metabase_jar/
-openjdk/
+/metabase_jar/
+/openjdk/
