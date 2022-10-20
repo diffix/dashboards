@@ -83,9 +83,12 @@
   "AdminPanel": {
     "Services": "Services"
   },
+  "TableListStep": {
+    "Imported tables": "Imported tables"
+  },
   "FileLoadStep": {
     "Click or drag a file to this area": "Click or drag a file to this area",
-    "Import data": "Import data",
+    "Import table": "Import table",
     "From CSV file": "From CSV file",
     "{{lastCompletedImport}} imported successfully. Click or drag another file to this area": "{{lastCompletedImport}} imported successfully. Click or drag another file to this area"
   },

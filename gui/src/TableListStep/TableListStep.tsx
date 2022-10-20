@@ -100,7 +100,7 @@ export const TableListStep: FunctionComponent<TableListStepProps> = ({ children 
       const loading = computedResult.state !== 'completed';
       return (
         <>
-          <Title level={3}>{t('Import data')}</Title>
+          <Title level={3}>{t('Imported tables')}</Title>
           <TableList result={cachedResult} loading={loading} invalidateTableList={invalidateTableList} t={t} />
           {/* Render next step */}
           {
