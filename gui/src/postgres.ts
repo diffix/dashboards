@@ -24,6 +24,8 @@ const socketPath = path.join(dataDirPath, 'socket');
 const initPgDiffixScriptName = 'init.sql';
 const initPgDiffixScriptPath = path.join(resourcesLocation, 'scripts', initPgDiffixScriptName);
 
+const serverPort = '20432';
+
 export let postgresqlStatus = ServiceStatus.Starting;
 
 async function initdbPostgres() {
@@ -33,21 +35,10 @@ async function initdbPostgres() {
   isWin || fs.mkdirSync(socketPath, { recursive: true });
 }
 
-function configurePostgres() {
-  console.info('Configuring PostgreSQL local database...');
-  fs.appendFileSync(path.join(dataDirPath, 'postgresql.auto.conf'), 'port = 20432' + os.EOL);
-  isWin ||
-    fs.appendFileSync(
-      path.join(dataDirPath, 'postgresql.auto.conf'),
-      `unix_socket_directories = '${socketPath}'` + os.EOL,
-    );
-}
-
 export async function setupPostgres(): Promise<void> {
   if (!fs.existsSync(dataDirPath)) {
     console.info('Setting up local PostgreSQL data directory...');
     await initdbPostgres();
-    configurePostgres();
   } else {
     console.info('PostgreSQL data directory found');
   }
@@ -63,7 +54,7 @@ export async function setupPgDiffix(): Promise<void> {
       '-d',
       'postgres',
       '-p',
-      '20432',
+      serverPort,
       '-XtAc',
       "SELECT 1 FROM pg_database WHERE datname='diffix'",
     ].concat(socketArgs),
@@ -83,7 +74,7 @@ export async function setupPgDiffix(): Promise<void> {
         '-d',
         'postgres',
         '-p',
-        '20432',
+        serverPort,
         '-f',
         initPgDiffixScriptPath,
       ].concat(socketArgs),
@@ -97,7 +88,7 @@ export function startPostgres(): PromiseWithChild<{ stdout: string; stderr: stri
   console.info('Starting PostgreSQL...');
   const socketArgs = isWin ? [] : ['-k', socketPath];
 
-  return asyncExecFile(postgresPath, ['-p', '20432', '-D', dataDirPath].concat(socketArgs));
+  return asyncExecFile(postgresPath, ['-p', serverPort, '-D', dataDirPath].concat(socketArgs));
 }
 
 export async function shutdownPostgres(postgresql?: ChildProcess): Promise<void> {
