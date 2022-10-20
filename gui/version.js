@@ -9,8 +9,7 @@ function replaceInFile(path, match, replacement) {
 
   switch (mode) {
     case 'check':
-      if (!data.match(match))
-        throw `Error: no match found in '${path}'.`;
+      if (!data.match(match)) throw `Error: no match found in '${path}'.`;
       break;
 
     case 'update':

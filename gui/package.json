@@ -12,8 +12,8 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --max-warnings 0 --ext .js,.jsx,.ts,.tsx .",
-    "check-format": "prettier --check src",
-    "format": "prettier --write src",
+    "check-format": "prettier --check .",
+    "format": "prettier --write .",
     "preversion": "node version.js check",
     "version": "node version.js update && git add CHANGELOG.md",
     "postversion": "git push --follow-tags && echo Release commit created, tagged and pushed!"
