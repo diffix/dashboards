@@ -16,10 +16,10 @@ import { appResourcesLocation, isMac, postgresConfig } from './main/config';
 import {
   getMetabaseStatus,
   initializeMetabase,
-  logInToMetabase,
   setMetabaseStatus,
   shutdownMetabase,
   startMetabase,
+  syncMetabaseSchema,
 } from './main/metabase';
 import {
   getPostgresqlStatus,
@@ -366,6 +366,7 @@ function setupIPC() {
 
       try {
         await client.query(`DROP TABLE public."${tableName}";`);
+        await syncMetabaseSchema();
       } finally {
         client.end();
       }
@@ -405,6 +406,7 @@ function setupIPC() {
             await client.query(`CALL diffix.mark_public('"${tableName}"');`);
           }
           await client.query(`GRANT SELECT ON "${tableName}" TO "${postgresConfig.trustedUser}"`);
+          await syncMetabaseSchema();
         } finally {
           client.end();
         }
@@ -521,7 +523,6 @@ async function startServices() {
     if (data.includes('Metabase Initialization COMPLETE')) {
       try {
         await initializeMetabase();
-        await logInToMetabase();
         console.info('Metabase started.');
         updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
       } catch (err) {

@@ -31,6 +31,8 @@ export const metabaseConfig = {
   siteName: 'Diffix Dashboards',
   adminEmail: 'admin@open-diffix.org',
   adminPassword: 'diffix',
+  directDataSourceName: 'Direct  Data',
+  anonymizedDataSourceName: 'Anonymized Data',
   sessionName: METABASE_SESSION_NAME,
   jarPath: isWin
     ? path.join(appResourcesLocation, 'metabase', 'metabase')

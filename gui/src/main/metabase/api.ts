@@ -1,5 +1,5 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
-import { metabaseConfig } from '../config';
+import { metabaseConfig, postgresConfig } from '../config';
 import { getUsername } from '../service-utils';
 
 type RequestOptions = Partial<ClientRequestConstructorOptions> & {
@@ -139,20 +139,63 @@ async function setupMetabase(setupToken: string): Promise<void> {
   });
 }
 
-export async function initializeMetabase(): Promise<void> {
-  await waitUntilReady();
-  const properties = await get('/api/session/properties');
-  const hasUserSetup = properties['has-user-setup'];
-  if (!hasUserSetup) {
-    await setupMetabase(properties['setup-token'] as string);
-  }
-}
-
-export async function logInToMetabase(): Promise<void> {
+async function logIn(): Promise<void> {
   const { adminEmail, adminPassword } = metabaseConfig;
   await post('/api/session', {
     username: adminEmail,
     password: adminPassword,
     remember: false,
   });
+}
+
+async function addDataSources(): Promise<void> {
+  function conn(name: string, user: string, password: string) {
+    return {
+      engine: 'postgres',
+      name,
+      details: {
+        host: postgresConfig.hostname,
+        port: postgresConfig.port,
+        dbname: postgresConfig.tablesDatabase,
+        user,
+        password,
+        'schema-filters-type': 'all',
+        ssl: false,
+        'tunnel-enabled': false,
+        'advanced-options': false,
+      },
+      is_full_sync: true,
+    };
+  }
+
+  await post(
+    '/api/database',
+    conn(metabaseConfig.directDataSourceName, postgresConfig.adminUser, postgresConfig.adminPassword),
+  );
+  await post(
+    '/api/database',
+    conn(metabaseConfig.anonymizedDataSourceName, postgresConfig.trustedUser, postgresConfig.trustedPassword),
+  );
+}
+
+export async function syncMetabaseSchema(): Promise<void> {
+  const databases = (await get('/api/database')).data as Array<{ id: number; is_sample: boolean }>;
+  for (const db of databases) {
+    if (!db.is_sample) {
+      await post(`/api/database/${db.id}/sync_schema`, {});
+    }
+  }
+}
+
+export async function initializeMetabase(): Promise<void> {
+  await waitUntilReady();
+  const properties = await get('/api/session/properties');
+  const hasUserSetup = properties['has-user-setup'];
+  if (!hasUserSetup) {
+    await setupMetabase(properties['setup-token'] as string);
+    await logIn();
+    await addDataSources();
+  } else {
+    await logIn();
+  }
 }
