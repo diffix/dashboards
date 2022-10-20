@@ -13,9 +13,11 @@ const resourcesLocation = path.join(app.getAppPath(), app.isPackaged ? '..' : '.
 
 const isWin = process.platform === 'win32';
 
-const metabaseJarPath = path.join(resourcesLocation, 'metabase', 'metabase.jar');
+const metabasePath = isWin
+  ? path.join(resourcesLocation, 'metabase', 'metabase')
+  : path.join(resourcesLocation, 'metabase', 'bin', 'metabase');
 
-export let metabaseStatus = ServiceStatus.Starting;
+let metabaseStatus = ServiceStatus.Starting;
 
 export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: string }> {
   console.info('Starting Metabase...');
@@ -23,7 +25,7 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
   const metabasePluginsDir = path.join(os.homedir(), '.diffix_dashboards', 'metabase', 'plugins');
   fs.mkdirSync(metabasePluginsDir, { recursive: true });
 
-  return asyncExecFile('java', ['-jar', metabaseJarPath], {
+  return asyncExecFile(metabasePath, [], {
     env: {
       MB_DB_TYPE: 'postgres',
       MB_DB_DBNAME: 'metabaseappdb',
@@ -31,6 +33,7 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
       MB_DB_USER: 'diffix_admin',
       MB_DB_PASS: 'diffix_admin',
       MB_DB_HOST: 'localhost',
+      MB_JETTY_PORT: '23000',
       MB_CHECK_FOR_UPDATES: 'false',
       MB_PASSWORD_COMPLEXITY: 'weak',
       MB_PASSWORD_LENGTH: '0',
@@ -43,13 +46,13 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
 
 export async function shutdownMetabase(metabase?: ChildProcess): Promise<void> {
   if (isWin) {
-    // No graceful way to shutdown Metabase on Windows, let the OS handle it.
-    return;
+    // This isn't graceful, but for packaged executables, the process isn't brought down.
+    asyncExecFile('taskkill', ['/pid', `${metabase?.pid}`, '/f', '/t']);
   } else {
     console.info('Shutting down Metabase...');
     metabase?.kill();
-    return waitForMetabaseStatus(ServiceStatus.Stopped);
   }
+  return waitForMetabaseStatus(ServiceStatus.Stopped);
 }
 
 export function getMetabaseStatus(): ServiceStatus {
