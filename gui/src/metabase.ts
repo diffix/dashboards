@@ -17,8 +17,6 @@ const metabasePath = isWin
   ? path.join(resourcesLocation, 'metabase', 'metabase')
   : path.join(resourcesLocation, 'metabase', 'bin', 'metabase');
 
-export const metabaseJettyPort = '23000';
-
 let metabaseStatus = ServiceStatus.Starting;
 
 export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: string }> {
@@ -35,7 +33,7 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
       MB_DB_USER: 'diffix_admin',
       MB_DB_PASS: 'diffix_admin',
       MB_DB_HOST: 'localhost',
-      MB_JETTY_PORT: metabaseJettyPort,
+      MB_JETTY_PORT: '23000',
       MB_CHECK_FOR_UPDATES: 'false',
       MB_PASSWORD_COMPLEXITY: 'weak',
       MB_PASSWORD_LENGTH: '0',
