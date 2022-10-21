@@ -1,4 +1,5 @@
-import { ServiceStatus } from './types';
+import os from 'os';
+import { ServiceStatus } from '../types';
 
 export function waitForServiceStatus(
   status: ServiceStatus,
@@ -20,4 +21,8 @@ export function waitForServiceStatus(
     };
     check();
   });
+}
+
+export function getUsername(): string {
+  return os.userInfo().username;
 }

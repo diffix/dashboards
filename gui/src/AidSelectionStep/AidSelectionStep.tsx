@@ -2,8 +2,8 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { Alert, Divider, Select, Switch, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
+import { ROW_INDEX_COLUMN } from '../constants';
 import { useT } from '../shared';
-import { rowIndexColumn } from '../shared/config';
 import { TableSchema } from '../types';
 
 import './AidSelectionStep.css';
@@ -52,7 +52,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
               filterOption={true}
               disabled={publicTable}
             >
-              <Option key={-1} value={rowIndexColumn}>
+              <Option key={-1} value={ROW_INDEX_COLUMN}>
                 {t('[Auto-generated row index column]')}
               </Option>
               {schema.columns.map((column, index) => (
@@ -62,7 +62,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
               ))}
             </Select>
           )}
-          {aidColumn == rowIndexColumn && !publicTable ? (
+          {aidColumn == ROW_INDEX_COLUMN && !publicTable ? (
             <Alert
               className="AidSelectionStep-notice"
               message={

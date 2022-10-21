@@ -6,11 +6,12 @@ import React, { FunctionComponent } from 'react';
 import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
-import { Docs, DocsFunctionsContext, PageId } from '../Docs';
 import { AdminPanel } from '../AdminPanel';
-import { importer, ImporterContext, getT, TFunc, useStaticValue, useT } from '../shared';
-import { useCheckUpdates } from './use-check-updates';
+import { Docs, DocsFunctionsContext, PageId } from '../Docs';
+import { Metabase } from '../Metabase';
+import { getT, importer, ImporterContext, TFunc, useStaticValue, useT } from '../shared';
 import { ServiceName, ServiceStatus } from '../types';
+import { useCheckUpdates } from './use-check-updates';
 
 import './App.css';
 
@@ -25,6 +26,10 @@ type AdminPanelTab = CommonTabData & {
   type: 'adminPanel';
 };
 
+type MetabaseTab = CommonTabData & {
+  type: 'metabase';
+};
+
 type DocsTab = CommonTabData & {
   type: 'docs';
   page: PageId;
@@ -32,7 +37,7 @@ type DocsTab = CommonTabData & {
   scrollInvalidator: number; // Triggers a scroll when changed
 };
 
-type TabInfo = AdminPanelTab | DocsTab;
+type TabInfo = AdminPanelTab | MetabaseTab | DocsTab;
 
 type AppState = {
   tabs: TabInfo[];
@@ -45,6 +50,14 @@ let nextTabId = 1;
 
 function openAdminPanelTab(t: TFunc): TabInfo {
   return { id: (nextTabId++).toString(), title: t('Admin Panel'), type: 'adminPanel' };
+}
+
+function newMetabaseTab(t: TFunc): TabInfo {
+  return {
+    id: (nextTabId++).toString(),
+    title: t('Metabase'),
+    type: 'metabase',
+  };
 }
 
 function newDocsTab(page: PageId, section: string | null, t: TFunc): TabInfo {
@@ -85,13 +98,12 @@ export const App: FunctionComponent = () => {
   function onEdit(targetKey: unknown, action: 'add' | 'remove'): void {
     switch (action) {
       case 'add':
-        // TODO: open query tab
-        /*updateState((state) => {
-          const addedAdminPanel = newAdminPanelTab(t);
-          state.tabs.push(addedAdminPanel);
-          state.activeTab = addedAdminPanel.id;
+        updateState((state) => {
+          const metabaseTab = newMetabaseTab(t);
+          state.tabs.push(metabaseTab);
+          state.activeTab = metabaseTab.id;
           setWindowTitle(state);
-        });*/
+        });
         return;
 
       case 'remove':
@@ -174,6 +186,8 @@ export const App: FunctionComponent = () => {
                 <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'adminPanel'}>
                   {tab.type === 'adminPanel' ? (
                     <AdminPanel isActive={activeTab === tab.id} postgresql={postgresql} metabase={metabase} />
+                  ) : tab.type === 'metabase' ? (
+                    <Metabase />
                   ) : (
                     <Docs
                       onTitleChange={(title) => setTitle(tab.id, title)}
