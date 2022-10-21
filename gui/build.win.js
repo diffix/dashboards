@@ -99,13 +99,13 @@ const metabaseUrl = 'https://downloads.metabase.com/v0.44.4/metabase.jar';
       .trim();
     console.log('Using VS build tools from: ' + vsPath);
 
-    childProcess.execSync(`"${path.join(vsPath, vcvarsPath)}" && msbuild -p:Configuration=Release`, {
-      cwd: 'pg_diffix',
-      env: { PGROOT: path.join('..', pgroot) },
-    });
+    childProcess.execSync(
+      `"${path.join(vsPath, vcvarsPath)}" && SET "PGROOT=..\\${pgroot}" && msbuild -p:Configuration=Release`,
+      { cwd: 'pg_diffix' },
+    );
 
     console.log('Installing pg_diffix...');
-    childProcess.execSync('install.bat Release', { cwd: 'pg_diffix', env: { PGROOT: path.join('..', pgroot) } });
+    childProcess.execSync(`SET "PGROOT=..\\${pgroot}" && install.bat Release`, { cwd: 'pg_diffix' });
 
     console.log('Bundling Metabase...');
     childProcess.execSync(`${jpackagePath} --type app-image -i ${metabaseJarDir} -n metabase --main-jar metabase.jar`);
