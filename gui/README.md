@@ -8,10 +8,19 @@ Run `git submodule init --update`.
 Run `asdf install` to install `node` via `asdf`.
 Run `npm install` to install dependencies.
 
-Build services:
+Build required services:
 
-- On Windows: install VS 2022 with "Desktop development with C++" selected, install JDK compatible with Metabase, and run `npm run build-win`.
-- On Linux: install PostgreSQL, ensure that `pg_config` is in your `PATH`, install pg_diffix, install JDK compatible with Metabase, download Metabase JAR file and use `jpackage` to bundle it into a runtime image.
+On Windows:
+
+- Install VS 2019 with "Desktop development with C++" selected;
+- Run `npm run build-win`.
+
+On Linux:
+
+- Install PostgreSQL (and ensure that `pg_config` is in your `PATH`);
+- Install pg_diffix;
+- Download JDK compatible with Metabase;
+- Download Metabase JAR file and use `jpackage` to bundle it into a runtime image.
 
 Following the setup, run `npm start` to start the development environment with hot code reloading.
 
