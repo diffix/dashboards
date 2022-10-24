@@ -6,35 +6,28 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            build-target: linux
-          - os: windows-latest
-            build-target: win
-          - os: macos-latest
-            build-target: osx
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - uses: actions/setup-node@master
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - name: Install GUI dependencies
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Install dependencies
         run: npm install
         working-directory: ./gui
-      - name: Make GUI
+      - name: Build services
+        run: npm run build-win
+        working-directory: ./gui
+      - name: Make setup package
         run: npm run make
         working-directory: ./gui
-      - name: Upload GUI ${{ matrix.build-target }} build
-        uses: actions/upload-artifact@v2
+      - name: Upload setup package
+        uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.build-target }}
-          path: out/make
-          retention-days: 10
-        working-directory: ./gui
+          name: Windows
+          path: gui/out/make/squirrel.windows/x64/*
+          retention-days: 15
