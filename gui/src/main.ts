@@ -515,6 +515,7 @@ async function startServices() {
   });
   postgresql.child.on('close', (code) => {
     console.error(`PostgreSQL exited with code ${code}.`);
+    updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
   });
 
   metabase = startMetabase();
@@ -527,6 +528,7 @@ async function startServices() {
       } catch (err) {
         console.info('Metabase initialization failed.');
         console.error(err);
+        updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
       }
     }
   });
