@@ -21,6 +21,8 @@ On Linux:
 - Install pg_diffix;
 - Download JDK compatible with Metabase;
 - Download Metabase JAR file and use `jpackage` to bundle it into a runtime image.
+  - `metabase.jar` should be placed in the `metabase_jar` folder inside `gui`
+  - invoke from `gui` folder using: `jpackage --type app-image -i metabase_jar -n metabase --main-jar metabase.jar`
 
 Following the setup, run `npm start` to start the development environment with hot code reloading.
 
