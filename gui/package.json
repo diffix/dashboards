@@ -84,13 +84,6 @@
                     "js": "./src/preload.ts"
                   },
                   "name": "main_window"
-                },
-                {
-                  "js": "./src/Metabase/entry.ts",
-                  "preload": {
-                    "js": "./src/Metabase/preload.ts"
-                  },
-                  "name": "metabase"
                 }
               ]
             },
