@@ -22,6 +22,7 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
       MB_DB_USER: postgresConfig.adminUser,
       MB_DB_PASS: postgresConfig.adminPassword,
       MB_DB_HOST: postgresConfig.hostname,
+      MB_JETTY_HOST: metabaseConfig.hostname,
       MB_JETTY_PORT: metabaseConfig.port.toString(),
       MB_CHECK_FOR_UPDATES: 'false',
       MB_PASSWORD_COMPLEXITY: 'weak',
