@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import util from 'util';
 import { ServiceStatus } from '../../types';
-import { appResourcesLocation, isWin, postgresConfig } from '../config';
+import { appDataLocation, appResourcesLocation, isWin, postgresConfig } from '../config';
 import { forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
 import log from 'electron-log';
 
@@ -88,6 +88,7 @@ export async function setupPostgres(): Promise<void> {
       await initdb();
     } catch (err) {
       setupLog.error(err);
+      await cleanAppData();
       throw err;
     }
   } else {
@@ -101,6 +102,7 @@ export async function setupPgDiffix(): Promise<void> {
     if (!hasPgDiffix) await psqlRunInitSQL();
   } catch (err) {
     setupLog.error(err);
+    await cleanAppData();
     throw err;
   }
 }
@@ -134,4 +136,10 @@ export function setPostgresqlStatus(status: ServiceStatus): void {
 
 export function waitForPostgresqlStatus(status: ServiceStatus): Promise<void> {
   return waitForServiceStatus(status, 'PostgreSQL', getPostgresqlStatus);
+}
+
+export async function cleanAppData(): Promise<void> {
+  console.info(`Cleaning the application data folder ${appDataLocation}...`);
+  await shutdownPostgres();
+  fs.rmSync(appDataLocation, { recursive: true });
 }
