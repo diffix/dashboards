@@ -40,11 +40,11 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
 }
 
 export async function shutdownMetabase(metabase?: ChildProcess): Promise<void> {
+  console.info('Shutting down Metabase...');
   if (isWin) {
     // This isn't graceful, but for packaged executables, the process isn't brought down.
     asyncExecFile('taskkill', ['/pid', `${metabase?.pid}`, '/f', '/t']);
   } else {
-    console.info('Shutting down Metabase...');
     metabase?.kill();
   }
   return waitForMetabaseStatus(ServiceStatus.Stopped);
