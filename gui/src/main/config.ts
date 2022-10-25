@@ -20,6 +20,8 @@ export const postgresConfig = {
   dataDirectory: path.join(appDataLocation, 'postgres'),
   tablesDatabase: 'diffix',
   metadataDatabase: 'metabaseappdb',
+  logId: 'postgresql_setup_log',
+  logFileName: 'postgresql_setup.log',
 } as const;
 
 export const metabaseConfig = {
@@ -38,4 +40,6 @@ export const metabaseConfig = {
     ? path.join(appResourcesLocation, 'metabase', 'metabase')
     : path.join(appResourcesLocation, 'metabase', 'bin', 'metabase'),
   pluginsDir: path.join(appDataLocation, 'metabase', 'plugins'),
+  logId: 'metabase_setup_log',
+  logFileName: 'metabase_setup.log',
 } as const;

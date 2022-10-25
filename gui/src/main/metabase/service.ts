@@ -11,8 +11,8 @@ const asyncExecFile = util.promisify(execFile);
 
 let metabaseStatus = ServiceStatus.Starting;
 
-const setupLog = log.create('metabase_setup_log');
-setupLog.transports.file.fileName = 'metabase_setup.log';
+const setupLog = log.create(metabaseConfig.logId);
+setupLog.transports.file.fileName = metabaseConfig.logFileName;
 
 export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: string }> {
   console.info('Starting Metabase...');

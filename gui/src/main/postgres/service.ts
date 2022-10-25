@@ -21,8 +21,8 @@ const initPgDiffixScriptPath = path.join(appResourcesLocation, 'scripts', initPg
 
 let postgresqlStatus = ServiceStatus.Starting;
 
-const setupLog = log.create('postgresql_setup_log');
-setupLog.transports.file.fileName = 'postgresql_setup.log';
+const setupLog = log.create(postgresConfig.logId);
+setupLog.transports.file.fileName = postgresConfig.logFileName;
 
 async function initdbPostgres() {
   setupLog.info('Initializing PostgreSQL local database...');
