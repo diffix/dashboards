@@ -4,10 +4,15 @@ import util from 'util';
 import { ServiceStatus } from '../../types';
 import { isWin, metabaseConfig, postgresConfig } from '../config';
 import { waitForServiceStatus } from '../service-utils';
+import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } from './api';
+import log from 'electron-log';
 
 const asyncExecFile = util.promisify(execFile);
 
 let metabaseStatus = ServiceStatus.Starting;
+
+const setupLog = log.create(metabaseConfig.logId);
+setupLog.transports.file.fileName = metabaseConfig.logFileName;
 
 export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: string }> {
   console.info('Starting Metabase...');
@@ -35,11 +40,11 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
 }
 
 export async function shutdownMetabase(metabase?: ChildProcess): Promise<void> {
+  console.info('Shutting down Metabase...');
   if (isWin) {
     // This isn't graceful, but for packaged executables, the process isn't brought down.
     asyncExecFile('taskkill', ['/pid', `${metabase?.pid}`, '/f', '/t']);
   } else {
-    console.info('Shutting down Metabase...');
     metabase?.kill();
   }
   return waitForMetabaseStatus(ServiceStatus.Stopped);
@@ -55,4 +60,23 @@ export function setMetabaseStatus(status: ServiceStatus): void {
 
 export function waitForMetabaseStatus(status: ServiceStatus): Promise<void> {
   return waitForServiceStatus(status, 'Metabase', getMetabaseStatus);
+}
+
+export async function initializeMetabase(): Promise<void> {
+  await waitUntilReady();
+  if (!(await hasUserSetup())) {
+    try {
+      setupLog.info('Setting Metabase up...');
+      const setupResult = await setupMetabase();
+      setupLog.info('Setup Metabase:', setupResult);
+      setupLog.info('Adding data sources to Metabase...');
+      const addDataSourcesResult = await addDataSources();
+      setupLog.info('Add data sources to Metabase:', addDataSourcesResult);
+    } catch (e) {
+      setupLog.error(e);
+      throw e;
+    }
+  } else {
+    await logIn();
+  }
 }

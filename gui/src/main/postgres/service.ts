@@ -4,7 +4,8 @@ import path from 'path';
 import util from 'util';
 import { ServiceStatus } from '../../types';
 import { appResourcesLocation, isWin, postgresConfig } from '../config';
-import { getUsername, waitForServiceStatus } from '../service-utils';
+import { forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
+import log from 'electron-log';
 
 const asyncExecFile = util.promisify(execFile);
 
@@ -20,17 +21,23 @@ const initPgDiffixScriptPath = path.join(appResourcesLocation, 'scripts', initPg
 
 let postgresqlStatus = ServiceStatus.Starting;
 
+const setupLog = log.create(postgresConfig.logId);
+setupLog.transports.file.fileName = postgresConfig.logFileName;
+
 async function initdbPostgres() {
-  console.info('Initializing PostgreSQL local database...');
+  setupLog.info('Initializing PostgreSQL local database...');
   const { dataDirectory } = postgresConfig;
   fs.mkdirSync(dataDirectory, { recursive: true });
-  await asyncExecFile(initdbPath, ['-U', getUsername(), '-D', dataDirectory, '-E', 'UTF8']);
+  const initDb = await asyncExecFile(initdbPath, ['-U', getUsername(), '-D', dataDirectory, '-E', 'UTF8']);
+
+  forwardLogLines(setupLog.info, 'initdb:', initDb.stderr);
+  forwardLogLines(setupLog.info, 'initdb:', initDb.stdout);
   isWin || fs.mkdirSync(socketPath, { recursive: true });
 }
 
 export async function setupPostgres(): Promise<void> {
   if (!fs.existsSync(postgresConfig.dataDirectory)) {
-    console.info('Setting up local PostgreSQL data directory...');
+    setupLog.info('Setting up local PostgreSQL data directory...');
     await initdbPostgres();
   } else {
     console.info('PostgreSQL data directory found');
@@ -52,12 +59,13 @@ export async function setupPgDiffix(): Promise<void> {
       `SELECT 1 FROM pg_database WHERE datname='${postgresConfig.tablesDatabase}'`,
     ].concat(socketArgs),
   );
+  forwardLogLines(setupLog.info, 'psql:', detectPgDiffix.stderr);
 
   if (detectPgDiffix.stdout.trim() == '1') {
     console.info('pg_diffix found');
   } else if (detectPgDiffix.stdout.trim() == '') {
-    console.info('Setting up pg_diffix...');
-    await asyncExecFile(
+    setupLog.info('Setting up pg_diffix...');
+    const psql = await asyncExecFile(
       psqlPath,
       [
         '-v',
@@ -72,8 +80,12 @@ export async function setupPgDiffix(): Promise<void> {
         initPgDiffixScriptPath,
       ].concat(socketArgs),
     );
+    forwardLogLines(setupLog.info, 'psql:', psql.stderr);
+    forwardLogLines(setupLog.info, 'psql:', psql.stdout);
   } else {
-    throw new Error(`Unexpected result when detecting pg_diffix: ${detectPgDiffix.stdout.trim()}`);
+    const msg = `Unexpected result when detecting pg_diffix: ${detectPgDiffix.stdout.trim()}`;
+    setupLog.error(msg);
+    throw new Error(msg);
   }
 }
 

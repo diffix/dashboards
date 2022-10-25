@@ -26,3 +26,7 @@ export function waitForServiceStatus(
 export function getUsername(): string {
   return os.userInfo().username;
 }
+
+export function forwardLogLines(dest: (...params: string[]) => void, prefix: string, logs: string): void {
+  logs.split('\n').forEach((line) => dest(prefix, line.trim()));
+}

@@ -1,9 +1,9 @@
-.webpack/
+/.webpack/
 
-pg_diffix/
-pgsql/
-metabase/
-metabase_jar/
-openjdk/
+/pg_diffix/
+/pgsql/
+/metabase/
+/metabase_jar/
+/openjdk/
 
-out/
+/out/

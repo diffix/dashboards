@@ -30,6 +30,8 @@ import {
   startPostgres,
 } from './main/postgres';
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
+import log from 'electron-log';
+import { forwardLogLines } from './main/service-utils';
 
 const connectionConfig = {
   database: postgresConfig.tablesDatabase,
@@ -260,6 +262,11 @@ function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tab
     });
     fileStream.pipe(pgStream);
   });
+}
+
+function setupLog() {
+  // Makes `electron-log` handle all `console.xyz` logging invocations.
+  Object.assign(console, log.functions);
 }
 
 function setupApp() {
@@ -494,8 +501,12 @@ let metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null = null
 async function startServices() {
   await setupPostgres();
   postgresql = startPostgres();
-  postgresql.child.stderr?.on('data', async (data) => {
-    if (data.includes('database system is ready to accept connections')) {
+
+  postgresql.child.stderr?.on('data', async (data: string) => {
+    if (
+      getPostgresqlStatus() !== ServiceStatus.Running &&
+      data.includes('database system is ready to accept connections')
+    ) {
       try {
         await setupPgDiffix();
         console.info('PostgreSQL and pg_diffix started.');
@@ -506,15 +517,18 @@ async function startServices() {
         updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
       }
     }
+    forwardLogLines(log.info, 'postgres:', data);
   });
+
   postgresql.child.on('close', (code) => {
     console.error(`PostgreSQL exited with code ${code}.`);
     updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
   });
 
   metabase = startMetabase();
-  metabase.child.stdout?.on('data', async (data) => {
-    if (data.includes('Metabase Initialization COMPLETE')) {
+
+  metabase.child.stdout?.on('data', async (data: string) => {
+    if (getMetabaseStatus() !== ServiceStatus.Running && data.includes('Metabase Initialization COMPLETE')) {
       try {
         await initializeMetabase();
         console.info('Metabase started.');
@@ -525,7 +539,12 @@ async function startServices() {
         updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
       }
     }
+    forwardLogLines(log.info, 'metabase:', data);
   });
+  metabase.child.stderr?.on('data', (data: string) => {
+    forwardLogLines(log.warn, 'metabase:', data);
+  });
+
   metabase.child.on('close', (code) => {
     console.error(`Metabase exited with code ${code}.`);
     updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
@@ -535,6 +554,7 @@ async function startServices() {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
+  setupLog();
   setupApp();
   setupI18n();
   setupIPC();
