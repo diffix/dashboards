@@ -4,10 +4,15 @@ import util from 'util';
 import { ServiceStatus } from '../../types';
 import { isWin, metabaseConfig, postgresConfig } from '../config';
 import { waitForServiceStatus } from '../service-utils';
+import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } from './api';
+import log from 'electron-log';
 
 const asyncExecFile = util.promisify(execFile);
 
 let metabaseStatus = ServiceStatus.Starting;
+
+const setupLog = log.create('metabase_setup_log');
+setupLog.transports.file.fileName = 'metabase_setup.log';
 
 export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: string }> {
   console.info('Starting Metabase...');
@@ -55,4 +60,26 @@ export function setMetabaseStatus(status: ServiceStatus): void {
 
 export function waitForMetabaseStatus(status: ServiceStatus): Promise<void> {
   return waitForServiceStatus(status, 'Metabase', getMetabaseStatus);
+}
+
+export async function initializeMetabase(): Promise<void> {
+  await waitUntilReady();
+  if (!(await hasUserSetup())) {
+    try {
+      setupLog.info('Setting Metabase up...');
+      const setupResult = await setupMetabase();
+      setupLog.info('Setup Metabase:', setupResult);
+      setupLog.info('Logging in to Metabase...');
+      const logInResult = await logIn();
+      setupLog.info('Log in to Metabase:', logInResult);
+      setupLog.info('Adding data sources to Metabase...');
+      const addDataSourcesResult = await addDataSources();
+      setupLog.info('Add data sources to Metabase:', addDataSourcesResult);
+    } catch (e) {
+      setupLog.error(e);
+      throw e;
+    }
+  } else {
+    await logIn();
+  }
 }
