@@ -3,8 +3,6 @@ import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
 
 import './Metabase.css';
 
-declare const METABASE_PRELOAD_WEBPACK_ENTRY: string;
-
 export const Metabase: FunctionComponent = () => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -13,7 +11,7 @@ export const Metabase: FunctionComponent = () => {
     const webviewProps = {
       partition: METABASE_SESSION_NAME,
       src: `http://localhost:${METABASE_PORT}`,
-      preload: 'file://' + METABASE_PRELOAD_WEBPACK_ENTRY,
+      preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
     };
 
     div.innerHTML = `<webview ${Object.entries(webviewProps)

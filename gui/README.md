@@ -4,7 +4,7 @@ Desktop application for producing anonymized dashboards using Open Diffix.
 
 ## Development
 
-Run `git submodule init --update`.
+Run `git submodule update --init`.
 Run `asdf install` to install `node` via `asdf`.
 Run `npm install` to install dependencies.
 

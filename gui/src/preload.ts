@@ -14,7 +14,8 @@ for (let i = args.length - 1; i >= 0; i--) {
   const arg = args[i];
   if (arg.startsWith('--language=')) {
     initialLanguage = arg.substring('--language='.length);
-    break;
+  } else if (arg.startsWith('--metabasePreloadEntry=')) {
+    window.METABASE_PRELOAD_WEBPACK_ENTRY = arg.substring('--metabasePreloadEntry='.length);
   }
 }
 

@@ -84,6 +84,7 @@ export type Task<T> = {
 export {};
 declare global {
   interface Window {
+    METABASE_PRELOAD_WEBPACK_ENTRY: string;
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
     onServiceStatusUpdate(name: ServiceName, status: ServiceStatus): void;
