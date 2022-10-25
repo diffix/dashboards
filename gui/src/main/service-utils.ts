@@ -28,5 +28,9 @@ export function getUsername(): string {
 }
 
 export function forwardLogLines(dest: (...params: string[]) => void, prefix: string, logs: string): void {
-  logs.split('\n').forEach((line) => dest(prefix, line.trim()));
+  logs
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .forEach((line) => dest(prefix, line));
 }
