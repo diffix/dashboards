@@ -69,9 +69,6 @@ export async function initializeMetabase(): Promise<void> {
       setupLog.info('Setting Metabase up...');
       const setupResult = await setupMetabase();
       setupLog.info('Setup Metabase:', setupResult);
-      setupLog.info('Logging in to Metabase...');
-      const logInResult = await logIn();
-      setupLog.info('Log in to Metabase:', logInResult);
       setupLog.info('Adding data sources to Metabase...');
       const addDataSourcesResult = await addDataSources();
       setupLog.info('Add data sources to Metabase:', addDataSourcesResult);
