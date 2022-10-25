@@ -27,7 +27,6 @@ setupLog.transports.file.fileName = postgresConfig.logFileName;
 async function initdb() {
   setupLog.info('Initializing PostgreSQL local database...');
   const { dataDirectory } = postgresConfig;
-  fs.mkdirSync(dataDirectory, { recursive: true });
   const initDb = await asyncExecFile(initdbPath, ['-U', getUsername(), '-D', dataDirectory, '-E', 'UTF8']);
 
   forwardLogLines(setupLog.info, 'initdb:', initDb.stderr);
