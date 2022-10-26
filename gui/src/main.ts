@@ -32,7 +32,7 @@ import {
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 import log from 'electron-log';
 import { forwardLogLines } from './main/service-utils';
-import { appLanguage } from './main/language';
+import { getAppLanguage } from './main/language';
 
 const connectionConfig = {
   database: postgresConfig.tablesDatabase,
@@ -281,7 +281,7 @@ function setupApp() {
   });
 
   app.on('ready', async () => {
-    i18n.changeLanguage(appLanguage());
+    i18n.changeLanguage(getAppLanguage());
     setupMenu();
     registerProtocols();
     createWindow();

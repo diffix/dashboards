@@ -1,7 +1,7 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
 import { metabaseConfig, postgresConfig } from '../config';
 import { delay, getUsername } from '../service-utils';
-import { appLanguage } from '../language';
+import { getAppLanguage } from '../language';
 
 type RequestOptions = Partial<ClientRequestConstructorOptions> & {
   headers?: Record<string, string>;
@@ -134,7 +134,7 @@ export async function setupMetabase(): Promise<Record<string, unknown>> {
     },
     database: null,
     invite: null,
-    prefs: { site_name: 'Open Diffix', site_locale: appLanguage(), allow_tracking: 'false' },
+    prefs: { site_name: 'Open Diffix', site_locale: getAppLanguage(), allow_tracking: 'false' },
   });
 }
 
