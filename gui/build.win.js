@@ -108,15 +108,15 @@ const metabaseUrl = 'https://downloads.metabase.com/v0.44.4/metabase.jar';
     childProcess.execSync(`SET "PGROOT=..\\${pgroot}" && install.bat Release`, { cwd: 'pg_diffix' });
 
     console.log('Building SendCtrlC...');
-    childProcess.execSync(
-      `"${path.join(vsPath, vcvarsPath)}" && msbuild -p:Configuration=Release`,
-      { cwd: 'SendCtrlC' },
-    );
+    childProcess.execSync(`"${path.join(vsPath, vcvarsPath)}" && msbuild -p:Configuration=Release`, {
+      cwd: 'SendCtrlC',
+    });
 
     console.log('Bundling Metabase...');
-    childProcess.execSync(`${jpackagePath} --type app-image --win-console -i ${metabaseJarDir} -n metabase --main-jar metabase.jar`);
+    childProcess.execSync(
+      `${jpackagePath} --type app-image --win-console -i ${metabaseJarDir} -n metabase --main-jar metabase.jar`,
+    );
     fs.copyFileSync('SendCtrlC\\x64\\Release\\SendCtrlC.exe', 'metabase\\SendCtrlC.exe');
-
   } catch (error) {
     if (error.stdout) console.log(error.stdout.toString());
     if (error.stderr) console.error(error.stderr.toString());

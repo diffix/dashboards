@@ -1,4 +1,4 @@
-import { ChildProcess, execFile, PromiseWithChild } from 'child_process';
+import { execFile, PromiseWithChild } from 'child_process';
 import fs from 'fs';
 import util from 'util';
 import { ServiceStatus } from '../../types';
@@ -40,8 +40,10 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
   });
 }
 
-export async function shutdownMetabase(metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null): Promise<void> {
-  console.info('Shutting down Metabase...');  
+export async function shutdownMetabase(
+  metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null,
+): Promise<void> {
+  console.info('Shutting down Metabase...');
   // Metabase always terminates with a non-zero exit code, so ignore any future exceptions.
   metabase?.catch(() => null);
   if (isWin) {
