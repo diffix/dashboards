@@ -6,6 +6,7 @@ import { isWin, metabaseConfig, postgresConfig } from '../config';
 import { waitForServiceStatus } from '../service-utils';
 import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } from './api';
 import log from 'electron-log';
+import { cleanAppData } from '../postgres';
 
 const asyncExecFile = util.promisify(execFile);
 
@@ -74,6 +75,7 @@ export async function initializeMetabase(): Promise<void> {
       setupLog.info('Add data sources to Metabase:', addDataSourcesResult);
     } catch (e) {
       setupLog.error(e);
+      cleanAppData();
       throw e;
     }
   } else {

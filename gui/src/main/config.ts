@@ -1,12 +1,14 @@
 import { app } from 'electron';
-import os from 'os';
 import path from 'path';
 import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
+import { productName } from '../../package.json';
 
 export const isWin = process.platform === 'win32';
 export const isMac = process.platform === 'darwin';
 
-export const appDataLocation = path.join(os.homedir(), '.diffix_dashboards');
+export const appDataLocation = isWin
+  ? path.join(app.getPath('appData'), 'Local', productName, 'data')
+  : path.join(app.getPath('appData'), productName, 'data');
 export const appResourcesLocation = path.join(app.getAppPath(), app.isPackaged ? '..' : '.');
 
 // Some of these need to be kept in sync with `init.sql`.
@@ -30,7 +32,7 @@ export const metabaseConfig = {
   port: METABASE_PORT,
   connectAttempts: 20,
   connectTimeout: 10_000,
-  siteName: 'Diffix Dashboards',
+  siteName: productName,
   adminEmail: 'admin@open-diffix.org',
   adminPassword: 'diffix',
   directDataSourceName: 'Direct Data',

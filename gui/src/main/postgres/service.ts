@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import util from 'util';
 import { ServiceStatus } from '../../types';
-import { appResourcesLocation, isWin, postgresConfig } from '../config';
+import { appDataLocation, appResourcesLocation, isWin, postgresConfig } from '../config';
 import { forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
 import log from 'electron-log';
 
@@ -24,10 +24,9 @@ let postgresqlStatus = ServiceStatus.Starting;
 const setupLog = log.create(postgresConfig.logId);
 setupLog.transports.file.fileName = postgresConfig.logFileName;
 
-async function initdbPostgres() {
+async function initdb() {
   setupLog.info('Initializing PostgreSQL local database...');
   const { dataDirectory } = postgresConfig;
-  fs.mkdirSync(dataDirectory, { recursive: true });
   const initDb = await asyncExecFile(initdbPath, ['-U', getUsername(), '-D', dataDirectory, '-E', 'UTF8']);
 
   forwardLogLines(setupLog.info, 'initdb:', initDb.stderr);
@@ -35,16 +34,7 @@ async function initdbPostgres() {
   isWin || fs.mkdirSync(socketPath, { recursive: true });
 }
 
-export async function setupPostgres(): Promise<void> {
-  if (!fs.existsSync(postgresConfig.dataDirectory)) {
-    setupLog.info('Setting up local PostgreSQL data directory...');
-    await initdbPostgres();
-  } else {
-    console.info('PostgreSQL data directory found');
-  }
-}
-
-export async function setupPgDiffix(): Promise<void> {
+async function psqlDetectPgDiffix() {
   const socketArgs = isWin ? [] : ['-h', `${socketPath}`];
   const detectPgDiffix = await asyncExecFile(
     psqlPath,
@@ -60,32 +50,60 @@ export async function setupPgDiffix(): Promise<void> {
     ].concat(socketArgs),
   );
   forwardLogLines(setupLog.info, 'psql:', detectPgDiffix.stderr);
-
-  if (detectPgDiffix.stdout.trim() == '1') {
-    console.info('pg_diffix found');
-  } else if (detectPgDiffix.stdout.trim() == '') {
-    setupLog.info('Setting up pg_diffix...');
-    const psql = await asyncExecFile(
-      psqlPath,
-      [
-        '-v',
-        'ON_ERROR_STOP=1',
-        '-U',
-        `${getUsername()}`,
-        '-d',
-        'postgres',
-        '-p',
-        postgresConfig.port.toString(),
-        '-f',
-        initPgDiffixScriptPath,
-      ].concat(socketArgs),
-    );
-    forwardLogLines(setupLog.info, 'psql:', psql.stderr);
-    forwardLogLines(setupLog.info, 'psql:', psql.stdout);
+  const result = detectPgDiffix.stdout.trim();
+  if (result == '1') {
+    return true;
+  } else if (result == '') {
+    return false;
   } else {
-    const msg = `Unexpected result when detecting pg_diffix: ${detectPgDiffix.stdout.trim()}`;
-    setupLog.error(msg);
-    throw new Error(msg);
+    throw new Error(`Unexpected result when detecting pg_diffix: ${result}`);
+  }
+}
+
+async function psqlRunInitSQL() {
+  const socketArgs = isWin ? [] : ['-h', `${socketPath}`];
+  const psql = await asyncExecFile(
+    psqlPath,
+    [
+      '-v',
+      'ON_ERROR_STOP=1',
+      '-U',
+      `${getUsername()}`,
+      '-d',
+      'postgres',
+      '-p',
+      postgresConfig.port.toString(),
+      '-f',
+      initPgDiffixScriptPath,
+    ].concat(socketArgs),
+  );
+  forwardLogLines(setupLog.info, 'psql:', psql.stderr);
+  forwardLogLines(setupLog.info, 'psql:', psql.stdout);
+}
+
+export async function setupPostgres(): Promise<void> {
+  if (!fs.existsSync(postgresConfig.dataDirectory)) {
+    setupLog.info('Setting up local PostgreSQL data directory...');
+    try {
+      await initdb();
+    } catch (err) {
+      setupLog.error(err);
+      await cleanAppData();
+      throw err;
+    }
+  } else {
+    console.info('PostgreSQL data directory found');
+  }
+}
+
+export async function setupPgDiffix(): Promise<void> {
+  const hasPgDiffix = await psqlDetectPgDiffix();
+  try {
+    if (!hasPgDiffix) await psqlRunInitSQL();
+  } catch (err) {
+    setupLog.error(err);
+    await cleanAppData();
+    throw err;
   }
 }
 
@@ -118,4 +136,10 @@ export function setPostgresqlStatus(status: ServiceStatus): void {
 
 export function waitForPostgresqlStatus(status: ServiceStatus): Promise<void> {
   return waitForServiceStatus(status, 'PostgreSQL', getPostgresqlStatus);
+}
+
+export async function cleanAppData(): Promise<void> {
+  console.info(`Cleaning the application data folder ${appDataLocation}...`);
+  await shutdownPostgres();
+  fs.rmSync(appDataLocation, { recursive: true });
 }
