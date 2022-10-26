@@ -40,13 +40,16 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
   });
 }
 
-export async function shutdownMetabase(metabase?: ChildProcess): Promise<void> {
-  console.info('Shutting down Metabase...');
+export async function shutdownMetabase(metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null): Promise<void> {
+  console.info('Shutting down Metabase...');  
+  // Metabase always terminates with a non-zero exit code, so ignore any future exceptions.
+  metabase?.catch(() => null);
   if (isWin) {
-    // This isn't graceful, but for packaged executables, the process isn't brought down.
-    asyncExecFile('taskkill', ['/pid', `${metabase?.pid}`, '/f', '/t']);
+    // We send a Ctrl-C event to the Metabase process in order to do a graceful shutdown,
+    // since signals don't work on Windows.
+    asyncExecFile('metabase/SendCtrlC.exe', [`${metabase?.child?.pid}`]);
   } else {
-    metabase?.kill();
+    metabase?.child?.kill();
   }
   return waitForMetabaseStatus(ServiceStatus.Stopped);
 }
