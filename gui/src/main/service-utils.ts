@@ -34,3 +34,7 @@ export function forwardLogLines(dest: (...params: string[]) => void, prefix: str
     .filter((line) => line.length > 0)
     .forEach((line) => dest(prefix, line));
 }
+
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

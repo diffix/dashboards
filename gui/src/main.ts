@@ -501,20 +501,6 @@ async function startServices() {
   postgresql = startPostgres();
 
   postgresql.child.stderr?.on('data', async (data: string) => {
-    if (
-      getPostgresqlStatus() !== ServiceStatus.Running &&
-      data.includes('database system is ready to accept connections')
-    ) {
-      try {
-        await setupPgDiffix();
-        console.info('PostgreSQL and pg_diffix started.');
-        updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
-      } catch (err) {
-        console.info('pg_diffix initialization failed.');
-        console.error(err);
-        updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
-      }
-    }
     forwardLogLines(log.info, 'postgres:', data);
   });
 
@@ -526,17 +512,6 @@ async function startServices() {
   metabase = startMetabase();
 
   metabase.child.stdout?.on('data', async (data: string) => {
-    if (getMetabaseStatus() !== ServiceStatus.Running && data.includes('Metabase Initialization COMPLETE')) {
-      try {
-        await initializeMetabase();
-        console.info('Metabase started.');
-        updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
-      } catch (err) {
-        console.info('Metabase initialization failed.');
-        console.error(err);
-        updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
-      }
-    }
     forwardLogLines(log.info, 'metabase:', data);
   });
   metabase.child.stderr?.on('data', (data: string) => {
@@ -547,6 +522,26 @@ async function startServices() {
     console.error(`Metabase exited with code ${code}.`);
     updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
   });
+
+  try {
+    await setupPgDiffix();
+    console.info('PostgreSQL and pg_diffix started.');
+    updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Running);
+  } catch (err) {
+    console.info('pg_diffix initialization failed.');
+    console.error(err);
+    updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
+  }
+
+  try {
+    await initializeMetabase();
+    console.info('Metabase started.');
+    updateServiceStatus(ServiceName.Metabase, ServiceStatus.Running);
+  } catch (err) {
+    console.info('Metabase initialization failed.');
+    console.error(err);
+    updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
+  }
 }
 
 if (!app.requestSingleInstanceLock()) {

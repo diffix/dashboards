@@ -64,6 +64,7 @@ export function waitForMetabaseStatus(status: ServiceStatus): Promise<void> {
 }
 
 export async function initializeMetabase(): Promise<void> {
+  console.info('Waiting until Metabase is ready...');
   await waitUntilReady();
   if (!(await hasUserSetup())) {
     try {

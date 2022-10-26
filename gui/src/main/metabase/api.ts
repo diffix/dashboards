@@ -1,6 +1,6 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
 import { metabaseConfig, postgresConfig } from '../config';
-import { getUsername } from '../service-utils';
+import { delay, getUsername } from '../service-utils';
 import { appLanguage } from '../language';
 
 type RequestOptions = Partial<ClientRequestConstructorOptions> & {
@@ -93,10 +93,6 @@ function post(path: string, data: unknown) {
     method: 'POST',
     body: data,
   }) as Promise<Record<string, unknown>>;
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function healthCheck(): Promise<boolean> {
