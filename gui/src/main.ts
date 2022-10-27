@@ -409,6 +409,9 @@ function setupIPC() {
           }
           await client.query(`GRANT SELECT ON "${tableName}" TO "${postgresConfig.trustedUser}"`);
           await syncMetabaseSchema();
+        } catch (err) {
+          await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
+          throw err;
         } finally {
           client.end();
         }

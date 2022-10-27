@@ -119,6 +119,7 @@
     "Import": "Import",
     "Table name": "Table name",
     "Importing {{fileName}}...": "Importing {{fileName}}...",
-    "{{fileName}} imported successfully!": "{{fileName}} imported successfully!"
+    "{{fileName}} imported successfully!": "{{fileName}} imported successfully!",
+    "Data import failed: {{reason}}": "Data import failed: {{reason}}"
   }
 }
