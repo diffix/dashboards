@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+import { EventEmitter } from 'events';
 import i18n from 'i18next';
 import { set } from 'lodash';
 import { initReactI18next } from 'react-i18next';
@@ -108,4 +109,10 @@ window.checkForUpdates = () => {
 
 ipcRenderer.on('open_docs', (_event, page) => {
   window.onOpenDocs(page);
+});
+
+window.metabaseEvents = new EventEmitter();
+
+ipcRenderer.on('metabase_event', (_event, eventName, ...args) => {
+  window.metabaseEvents.emit(eventName, ...args);
 });
