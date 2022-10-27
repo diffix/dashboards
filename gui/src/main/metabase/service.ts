@@ -1,4 +1,4 @@
-import { execFile, PromiseWithChild } from 'child_process';
+import { ChildProcess, execFile, PromiseWithChild } from 'child_process';
 import fs from 'fs';
 import util from 'util';
 import { ServiceStatus } from '../../types';
@@ -40,20 +40,43 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
   });
 }
 
-export async function shutdownMetabase(
-  metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null,
-): Promise<void> {
-  console.info('Shutting down Metabase...');
-  // Metabase always terminates with a non-zero exit code, so ignore any future exceptions.
-  metabase?.catch(() => null);
+function gracefulShutdown(process: ChildProcess) {
   if (isWin) {
     // We send a Ctrl-C event to the Metabase process in order to do a graceful shutdown,
     // since signals don't work on Windows.
-    asyncExecFile('metabase/SendCtrlC.exe', [`${metabase?.child?.pid}`]);
+    execFile('metabase/SendCtrlC.exe', [`${process.pid}`]);
   } else {
-    metabase?.child?.kill();
+    process.kill();
   }
-  return waitForMetabaseStatus(ServiceStatus.Stopped);
+}
+
+function forcefulShutdown(process: ChildProcess) {
+  if (isWin) {
+    // Metabase creates multiple processes, all of which have to be killed.
+    execFile('taskkill', ['/pid', `${process.pid}`, '/f', '/t']);
+  } else {
+    process.kill('SIGKILL');
+  }
+}
+
+export async function shutdownMetabase(
+  metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null,
+): Promise<void> {
+  const child = metabase?.child;
+  if (!child) return;
+
+  // Metabase always terminates with a non-zero exit code, so ignore any future exceptions.
+  metabase?.catch(() => null);
+
+  console.info('Shutting down Metabase...');
+  gracefulShutdown(metabase?.child);
+
+  return waitForMetabaseStatus(ServiceStatus.Stopped).catch(() => {
+    console.error('Metabase graceful shutdown failed! Stopping process forcefully...');
+    forcefulShutdown(metabase?.child);
+
+    return waitForMetabaseStatus(ServiceStatus.Stopped);
+  });
 }
 
 export function getMetabaseStatus(): ServiceStatus {
