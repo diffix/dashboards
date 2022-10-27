@@ -108,7 +108,7 @@
     "Select the protected entity identifier column": "Select the protected entity identifier column",
     "Public": "Public",
     "Personal": "Personal",
-    "Select a column or 'None'": "Select a column or 'None'",
+    "Select a column": "Select a column",
     "[Auto-generated row index column]": "[Auto-generated row index column]",
     "NOTICE:": "NOTICE:",
     "File will be imported into a public table. Data contained within will not be anonymized.": "File will be imported into a public table. Data contained within will not be anonymized.",

@@ -45,7 +45,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
             <Select
               className="AidSelectionStep-select"
               showSearch
-              placeholder={t("Select a column or 'None'")}
+              placeholder={t('Select a column')}
               optionFilterProp="children"
               onChange={(column: string) => setAidColumn(column)}
               value={aidColumn ? aidColumn : undefined}
