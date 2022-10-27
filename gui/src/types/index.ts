@@ -1,6 +1,7 @@
-import { RcFile } from 'antd/lib/upload';
-import { i18n } from 'i18next';
-import { PageId } from '../Docs';
+import type { RcFile } from 'antd/lib/upload';
+import type { EventEmitter } from 'events';
+import type { i18n } from 'i18next';
+import type { PageId } from '../Docs';
 
 // UI State
 
@@ -85,6 +86,7 @@ export {};
 declare global {
   interface Window {
     METABASE_PRELOAD_WEBPACK_ENTRY: string;
+    metabaseEvents: EventEmitter;
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
     onServiceStatusUpdate(name: ServiceName, status: ServiceStatus): void;
