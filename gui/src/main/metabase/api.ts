@@ -1,6 +1,7 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
 import { metabaseConfig, postgresConfig } from '../config';
-import { getUsername } from '../service-utils';
+import { delay, getUsername } from '../service-utils';
+import { getAppLanguage } from '../language';
 
 type RequestOptions = Partial<ClientRequestConstructorOptions> & {
   headers?: Record<string, string>;
@@ -94,10 +95,6 @@ function post(path: string, data: unknown) {
   }) as Promise<Record<string, unknown>>;
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function healthCheck(): Promise<boolean> {
   try {
     const response = await get('/api/health');
@@ -137,7 +134,7 @@ export async function setupMetabase(): Promise<Record<string, unknown>> {
     },
     database: null,
     invite: null,
-    prefs: { site_name: 'Open Diffix', site_locale: 'en', allow_tracking: 'false' },
+    prefs: { site_name: 'Open Diffix', site_locale: getAppLanguage(), allow_tracking: 'false' },
   });
 }
 

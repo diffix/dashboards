@@ -4,8 +4,9 @@ import path from 'path';
 import util from 'util';
 import { ServiceStatus } from '../../types';
 import { appDataLocation, appResourcesLocation, isWin, postgresConfig } from '../config';
-import { forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
+import { delay, forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
 import log from 'electron-log';
+import { isReachable } from './is-reachable';
 
 const asyncExecFile = util.promisify(execFile);
 
@@ -32,6 +33,19 @@ async function initdb() {
   forwardLogLines(setupLog.info, 'initdb:', initDb.stderr);
   forwardLogLines(setupLog.info, 'initdb:', initDb.stdout);
   isWin || fs.mkdirSync(socketPath, { recursive: true });
+}
+
+async function waitUntilReachable(): Promise<void> {
+  for (let i = 0; i < postgresConfig.connectAttempts; i++) {
+    const isReady = await isReachable(postgresConfig.port, postgresConfig.hostname);
+    if (isReady) {
+      return;
+    }
+
+    await delay(postgresConfig.connectTimeout / postgresConfig.connectAttempts);
+  }
+
+  throw new Error('Could not connect to PostgreSQL.');
 }
 
 async function psqlDetectPgDiffix() {
@@ -97,6 +111,9 @@ export async function setupPostgres(): Promise<void> {
 }
 
 export async function setupPgDiffix(): Promise<void> {
+  console.info('Waiting until PostgreSQL is ready...');
+  await waitUntilReachable();
+
   const hasPgDiffix = await psqlDetectPgDiffix();
   try {
     if (!hasPgDiffix) await psqlRunInitSQL();
