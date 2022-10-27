@@ -106,8 +106,8 @@
   },
   "AidSelectionStep": {
     "Select the protected entity identifier column": "Select the protected entity identifier column",
-    "Public": "Public",
-    "Personal": "Personal",
+    "Public table": "Public table",
+    "Personal table": "Personal table",
     "Select a column or 'None'": "Select a column or 'None'",
     "[Auto-generated row index column]": "[Auto-generated row index column]",
     "NOTICE:": "NOTICE:",
