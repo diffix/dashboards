@@ -1,4 +1,4 @@
-import { PromiseWithChild } from 'child_process';
+import { ChildProcessWithoutNullStreams } from 'child_process';
 import { parse } from 'csv-parse';
 import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
@@ -291,7 +291,7 @@ function setupApp() {
   app.on('will-quit', async (event) => {
     try {
       event.preventDefault();
-      await Promise.all([shutdownPostgres(), shutdownMetabase(metabase?.child)]);
+      await Promise.all([shutdownPostgres(), shutdownMetabase(metabase)]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -491,32 +491,32 @@ function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
   sendToRenderer('update_service_status', name, status);
 }
 
-let postgresql: PromiseWithChild<{ stdout: string; stderr: string }> | null = null;
-let metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null = null;
+let postgresql: ChildProcessWithoutNullStreams | null = null;
+let metabase: ChildProcessWithoutNullStreams | null = null;
 
 async function startServices() {
   await setupPostgres();
   postgresql = startPostgres();
 
-  postgresql.child.stderr?.on('data', async (data: string) => {
+  postgresql.stderr.on('data', async (data: string) => {
     forwardLogLines(log.info, 'postgres:', data);
   });
 
-  postgresql.child.on('close', (code) => {
+  postgresql.on('close', (code) => {
     console.error(`PostgreSQL exited with code ${code}.`);
     updateServiceStatus(ServiceName.PostgreSQL, ServiceStatus.Stopped);
   });
 
   metabase = startMetabase();
 
-  metabase.child.stdout?.on('data', async (data: string) => {
+  metabase.stdout.on('data', async (data: string) => {
     forwardLogLines(log.info, 'metabase:', data);
   });
-  metabase.child.stderr?.on('data', (data: string) => {
+  metabase.stderr.on('data', (data: string) => {
     forwardLogLines(log.warn, 'metabase:', data);
   });
 
-  metabase.child.on('close', (code) => {
+  metabase.on('close', (code) => {
     console.error(`Metabase exited with code ${code}.`);
     updateServiceStatus(ServiceName.Metabase, ServiceStatus.Stopped);
   });

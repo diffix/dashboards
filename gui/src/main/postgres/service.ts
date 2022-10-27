@@ -1,4 +1,4 @@
-import { execFile, execFileSync, PromiseWithChild } from 'child_process';
+import { ChildProcessWithoutNullStreams, execFile, execFileSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
@@ -124,14 +124,17 @@ export async function setupPgDiffix(): Promise<void> {
   }
 }
 
-export function startPostgres(): PromiseWithChild<{ stdout: string; stderr: string }> {
+export function startPostgres(): ChildProcessWithoutNullStreams {
   console.info('Starting PostgreSQL...');
   const socketArgs = isWin ? [] : ['-k', socketPath];
 
-  return asyncExecFile(
+  const postgresql = spawn(
     postgresPath,
     ['-p', postgresConfig.port.toString(), '-D', postgresConfig.dataDirectory].concat(socketArgs),
   );
+  postgresql.stdout.setEncoding('utf-8');
+  postgresql.stderr.setEncoding('utf-8');
+  return postgresql;
 }
 
 export async function shutdownPostgres(): Promise<void> {

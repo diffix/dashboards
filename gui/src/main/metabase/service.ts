@@ -1,4 +1,4 @@
-import { ChildProcess, execFile, PromiseWithChild } from 'child_process';
+import { ChildProcessWithoutNullStreams, execFile, spawn } from 'child_process';
 import fs from 'fs';
 import util from 'util';
 import { ServiceStatus } from '../../types';
@@ -15,12 +15,12 @@ let metabaseStatus = ServiceStatus.Starting;
 const setupLog = log.create(metabaseConfig.logId);
 setupLog.transports.file.fileName = metabaseConfig.logFileName;
 
-export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: string }> {
+export function startMetabase(): ChildProcessWithoutNullStreams {
   console.info('Starting Metabase...');
 
   fs.mkdirSync(metabaseConfig.pluginsDir, { recursive: true });
 
-  return asyncExecFile(metabaseConfig.executablePath, [], {
+  const metabase = spawn(metabaseConfig.executablePath, [], {
     env: {
       MB_DB_TYPE: 'postgres',
       MB_DB_DBNAME: postgresConfig.metadataDatabase,
@@ -38,9 +38,12 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
       MB_SEND_NEW_SSO_USER_ADMIN_EMAIL: 'false',
     },
   });
+  metabase.stderr.setEncoding('utf-8');
+  metabase.stdout.setEncoding('utf-8');
+  return metabase;
 }
 
-export async function shutdownMetabase(metabase?: ChildProcess): Promise<void> {
+export async function shutdownMetabase(metabase: ChildProcessWithoutNullStreams | null): Promise<void> {
   console.info('Shutting down Metabase...');
   if (isWin) {
     // This isn't graceful, but for packaged executables, the process isn't brought down.
