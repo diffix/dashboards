@@ -1,8 +1,9 @@
 import { ChildProcess, execFile, PromiseWithChild } from 'child_process';
 import fs from 'fs';
 import util from 'util';
+import path from 'path';
 import { ServiceStatus } from '../../types';
-import { isWin, metabaseConfig, postgresConfig } from '../config';
+import { isWin, metabaseConfig, postgresConfig, appResourcesLocation } from '../config';
 import { waitForServiceStatus } from '../service-utils';
 import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } from './api';
 import log from 'electron-log';
@@ -44,7 +45,7 @@ function gracefulShutdown(process: ChildProcess) {
   if (isWin) {
     // We send a Ctrl-C event to the Metabase process in order to do a graceful shutdown,
     // since signals don't work on Windows.
-    execFile('metabase/SendCtrlC.exe', [`${process.pid}`]);
+    execFile(path.join(appResourcesLocation, 'metabase', 'SendCtrlC'), [`${process.pid}`]);
   } else {
     process.kill();
   }
