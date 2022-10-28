@@ -1,4 +1,4 @@
-import { ConfigProvider, Tabs } from 'antd';
+import { ConfigProvider, Tabs, message } from 'antd';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
 import { find, findIndex } from 'lodash';
@@ -160,6 +160,7 @@ export const App: FunctionComponent = () => {
   }));
 
   window.onOpenDocs = (page) => docsFunctions.openDocs(page);
+  window.showMessage = (content) => message.success(content, 10);
 
   window.onServiceStatusUpdate = (name, status) =>
     updateState((state) => {

@@ -104,5 +104,6 @@ declare global {
     onOpenDocs: (page: PageId) => void;
     setMainWindowTitle: (title: string) => void;
     checkForUpdates: () => Promise<string | null>;
+    showMessage: (message: string) => void;
   }
 }
