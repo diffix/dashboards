@@ -23,8 +23,11 @@
         "Zoom Out": "Zoom Out",
         "Toggle Full Screen": "Toggle Full Screen"
       },
-      "Settings": {
-        "&Settings": "&Settings",
+      "Actions": {
+        "&Actions": "&Actions",
+        "Export Logs": "Export Logs",
+        "Logs exported successfully!": "Logs exported successfully!",
+        "Failed to export logs!": "Failed to export logs!",
         "Language": "Language"
       },
       "Help": {

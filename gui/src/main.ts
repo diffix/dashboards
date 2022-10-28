@@ -1,11 +1,12 @@
 import { PromiseWithChild } from 'child_process';
 import { parse } from 'csv-parse';
-import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell, dialog } from 'electron';
 import fetch from 'electron-fetch';
 import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
+import archiver from 'archiver';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 import semver from 'semver';
@@ -74,6 +75,28 @@ function openURL(url: string) {
   shell.openExternal(url);
 }
 
+async function exportLogs() {
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  const result = await dialog.showSaveDialog(mainWindow, {
+    filters: [{ name: 'Zip archive', extensions: ['zip'] }],
+  });
+
+  if (!result.filePath) return;
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  const output = fs.createWriteStream(result.filePath);
+
+  const t = i18n.getFixedT(null, null, 'App::Menu::Actions');
+  output.on('close', () => mainWindow.webContents.send('show_message', t('Logs exported successfully!')));
+  archive.on('error', (error) => dialog.showErrorBox(t('Failed to export logs!'), error.message));
+
+  archive.pipe(output);
+
+  archive.directory(app.getPath('logs'), false);
+
+  archive.finalize();
+}
+
 function setupMenu() {
   const t = i18n.getFixedT(null, null, 'App::Menu');
 
@@ -95,23 +118,14 @@ function setupMenu() {
   const template: MenuItemConstructorOptions[] = [
     ...(isMac ? [macAppMenu] : []),
     {
-      label: t('View::&View'),
-      submenu: [
-        { role: 'copy', label: t('View::Copy') },
-        { role: 'selectAll', label: t('View::Select All') },
-        { type: 'separator' },
-        { role: 'resetZoom', label: t('View::Actual Size') },
-        { role: 'zoomIn', label: t('View::Zoom In') },
-        { role: 'zoomOut', label: t('View::Zoom Out') },
-        { type: 'separator' },
-        { role: 'togglefullscreen', label: t('View::Toggle Full Screen') },
-      ],
-    },
-    {
-      label: t('Settings::&Settings'),
+      label: t('Actions::&Actions'),
       submenu: [
         {
-          label: t('Settings::Language'),
+          label: t('Actions::Export Logs'),
+          click: exportLogs,
+        },
+        {
+          label: t('Actions::Language'),
           submenu: [
             {
               label: 'English',
@@ -127,6 +141,19 @@ function setupMenu() {
             },
           ],
         },
+      ],
+    },
+    {
+      label: t('View::&View'),
+      submenu: [
+        { role: 'copy', label: t('View::Copy') },
+        { role: 'selectAll', label: t('View::Select All') },
+        { type: 'separator' },
+        { role: 'resetZoom', label: t('View::Actual Size') },
+        { role: 'zoomIn', label: t('View::Zoom In') },
+        { role: 'zoomOut', label: t('View::Zoom Out') },
+        { type: 'separator' },
+        { role: 'togglefullscreen', label: t('View::Toggle Full Screen') },
       ],
     },
     {
