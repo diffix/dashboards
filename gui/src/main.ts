@@ -87,7 +87,7 @@ async function exportLogs() {
   const output = fs.createWriteStream(result.filePath);
 
   const t = i18n.getFixedT(null, null, 'App::Menu::Actions');
-  output.on('close', () => mainWindow.webContents.send('show_message', t('Logs exported successfully!')));
+  output.on('close', () => sendToRenderer('show_message', t('Logs exported successfully!')));
   archive.on('error', (error) => dialog.showErrorBox(t('Failed to export logs!'), error.message));
 
   archive.pipe(output);
