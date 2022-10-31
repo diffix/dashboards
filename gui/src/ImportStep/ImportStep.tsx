@@ -37,7 +37,8 @@ async function importCSV(file: File, tableName: string, schema: TableSchema, aid
     return true;
   } catch (e) {
     console.error(e);
-    message.error({ content: t('Data import failed!'), key: file.path, duration: 10 });
+    const reason = String(e).substring(0, 1000);
+    message.error({ content: t('Data import failed: {{reason}}', { reason }), key: file.path, duration: 10 });
     return false;
   }
 }
