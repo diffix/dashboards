@@ -3,7 +3,12 @@ import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
 
 import './Metabase.css';
 
-export const Metabase: FunctionComponent = () => {
+export type MetabaseProps = {
+  refresh: boolean;
+  afterRefresh: () => void;
+};
+
+export const Metabase: FunctionComponent<MetabaseProps> = ({ refresh, afterRefresh }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const div = wrapperRef.current!;
@@ -21,31 +26,14 @@ export const Metabase: FunctionComponent = () => {
 
     const webview = div.querySelector('webview');
 
-    function handleRefresh() {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (webview as any).reload();
-    }
-
-    function subscribe() {
-      window.metabaseEvents.on('refresh', handleRefresh);
-    }
-
-    function unsubscribe() {
-      window.metabaseEvents.off('refresh', handleRefresh);
-    }
-
     webview!.addEventListener('dom-ready', () => {
-      // Make sure to listen only once because `dom-ready` can be raised multiple times.
-      unsubscribe();
-      subscribe();
-      // Uncomment for dev tools. Opens in a new window and can get annoying fast...
-      // (webview as any).openDevTools();
+      if (refresh) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (webview as any).reload();
+        afterRefresh();
+      }
     });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+  }, [refresh]);
 
   return <div className="Metabase" ref={wrapperRef}></div>;
 };

@@ -1,8 +1,9 @@
-import { ConfigProvider, Tabs, message } from 'antd';
+import { ConfigProvider, Tabs, message, Tooltip } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
 import { find, findIndex } from 'lodash';
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useCallback, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
@@ -28,6 +29,8 @@ type AdminPanelTab = CommonTabData & {
 
 type MetabaseTab = CommonTabData & {
   type: 'metabase';
+  stale: boolean;
+  willRefresh: boolean;
 };
 
 type DocsTab = CommonTabData & {
@@ -57,6 +60,8 @@ function newMetabaseTab(t: TFunc): TabInfo {
     id: (nextTabId++).toString(),
     title: t('Metabase'),
     type: 'metabase',
+    stale: false,
+    willRefresh: false,
   };
 }
 
@@ -140,6 +145,24 @@ export const App: FunctionComponent = () => {
     });
   }
 
+  function refreshTab(id: string) {
+    updateState((state) => {
+      const tab = find(state.tabs, { id }) as MetabaseTab;
+      tab.stale = false;
+      tab.willRefresh = true;
+    });
+  }
+
+  const markAsRefreshed = useCallback(
+    (id: string) => {
+      updateState((state) => {
+        const tab = find(state.tabs, { id }) as MetabaseTab;
+        tab.willRefresh = false;
+      });
+    },
+    [updateState],
+  );
+
   const docsFunctions = useStaticValue(() => ({
     openDocs(page: PageId, section: string | null = null) {
       updateState((state) => {
@@ -177,6 +200,30 @@ export const App: FunctionComponent = () => {
 
   const { tabs, activeTab, postgresql, metabase } = state;
 
+  useEffect(() => {
+    function makeMetabaseTabsStale() {
+      updateState((state) => {
+        state.tabs.forEach((tab) => {
+          if (tab.type == 'metabase') tab.stale = true;
+        });
+      });
+    }
+
+    function subscribe() {
+      window.metabaseEvents.on('refresh', makeMetabaseTabsStale);
+    }
+
+    function unsubscribe() {
+      window.metabaseEvents.off('refresh', makeMetabaseTabsStale);
+    }
+
+    subscribe();
+
+    return () => {
+      unsubscribe();
+    };
+  });
+
   return (
     <ConfigProvider locale={window.i18n.language === 'de' ? deDE : enUS}>
       <ImporterContext.Provider value={importer}>
@@ -184,11 +231,28 @@ export const App: FunctionComponent = () => {
           <div className="App">
             <Tabs type="editable-card" activeKey={activeTab} onChange={setActiveTab} onEdit={onEdit}>
               {tabs.map((tab) => (
-                <TabPane tab={tab.title} key={tab.id} closable={tab.type !== 'adminPanel'}>
+                <TabPane
+                  tab={
+                    tab.type === 'metabase' && tab.stale ? (
+                      <span>
+                        {tab.title}
+                        <Tooltip
+                          title={t('Refresh to reveal newly imported tables (currently running queries will abort)')}
+                        >
+                          <ReloadOutlined className="App-tab-pane-icon" onClick={() => refreshTab(tab.id)} />
+                        </Tooltip>
+                      </span>
+                    ) : (
+                      tab.title
+                    )
+                  }
+                  key={tab.id}
+                  closable={tab.type !== 'adminPanel'}
+                >
                   {tab.type === 'adminPanel' ? (
                     <AdminPanel isActive={activeTab === tab.id} postgresql={postgresql} metabase={metabase} />
                   ) : tab.type === 'metabase' ? (
-                    <Metabase />
+                    <Metabase refresh={tab.willRefresh} afterRefresh={() => markAsRefreshed(tab.id)} />
                   ) : (
                     <Docs
                       onTitleChange={(title) => setTitle(tab.id, title)}
