@@ -1,14 +1,12 @@
 import { ChildProcessWithoutNullStreams, execFile, spawn } from 'child_process';
 import fs from 'fs';
-import util from 'util';
+import path from 'path';
 import { ServiceStatus } from '../../types';
-import { isWin, metabaseConfig, postgresConfig } from '../config';
+import { isWin, metabaseConfig, postgresConfig, appResourcesLocation } from '../config';
 import { waitForServiceStatus } from '../service-utils';
 import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } from './api';
 import log from 'electron-log';
 import { cleanAppData } from '../postgres';
-
-const asyncExecFile = util.promisify(execFile);
 
 let metabaseStatus = ServiceStatus.Starting;
 
@@ -43,15 +41,37 @@ export function startMetabase(): ChildProcessWithoutNullStreams {
   return metabase;
 }
 
-export async function shutdownMetabase(metabase: ChildProcessWithoutNullStreams | null): Promise<void> {
-  console.info('Shutting down Metabase...');
+function gracefulShutdown(process: ChildProcessWithoutNullStreams) {
   if (isWin) {
-    // This isn't graceful, but for packaged executables, the process isn't brought down.
-    asyncExecFile('taskkill', ['/pid', `${metabase?.pid}`, '/f', '/t']);
+    // We send a Ctrl-C event to the Metabase process in order to do a graceful shutdown,
+    // since signals don't work on Windows.
+    execFile(path.join(appResourcesLocation, 'metabase', 'SendCtrlC'), [`${process.pid}`]);
   } else {
-    metabase?.kill();
+    process.kill();
   }
-  return waitForMetabaseStatus(ServiceStatus.Stopped);
+}
+
+function forcefulShutdown(process: ChildProcessWithoutNullStreams) {
+  if (isWin) {
+    // Metabase creates multiple processes, all of which have to be killed.
+    execFile('taskkill', ['/pid', `${process.pid}`, '/f', '/t']);
+  } else {
+    process.kill('SIGKILL');
+  }
+}
+
+export async function shutdownMetabase(metabase: ChildProcessWithoutNullStreams | null): Promise<void> {
+  if (!metabase) return;
+
+  console.info('Shutting down Metabase...');
+  gracefulShutdown(metabase);
+
+  return waitForMetabaseStatus(ServiceStatus.Stopped).catch(() => {
+    console.error('Metabase graceful shutdown failed! Stopping process forcefully...');
+    forcefulShutdown(metabase);
+
+    return waitForMetabaseStatus(ServiceStatus.Stopped);
+  });
 }
 
 export function getMetabaseStatus(): ServiceStatus {

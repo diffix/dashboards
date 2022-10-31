@@ -151,7 +151,7 @@ export async function shutdownPostgres(): Promise<void> {
   // On Windows, if we let the OS handle shutdown, it will not be graceful, and next start
   // is in recovery mode.
   // On Linux, `postgresql?.kill()` works fine, but the common `pg_ctl` is just as good.
-  asyncExecFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', postgresConfig.dataDirectory, 'stop']);
+  execFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', postgresConfig.dataDirectory, 'stop']);
   return waitForPostgresqlStatus(ServiceStatus.Stopped);
 }
 

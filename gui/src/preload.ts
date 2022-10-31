@@ -97,8 +97,6 @@ window.importCSV = (
     return ipcRenderer.invoke('import_csv', taskId, fileName, tableName, columns, aidColumns);
   });
 
-window.onOpenDocs = (_page) => {};
-
 window.setMainWindowTitle = (title: string) => {
   ipcRenderer.invoke('set_main_window_title', title);
 };
@@ -107,12 +105,17 @@ window.checkForUpdates = () => {
   return ipcRenderer.invoke('check_for_updates');
 };
 
+window.onOpenDocs = (_page) => {};
 ipcRenderer.on('open_docs', (_event, page) => {
   window.onOpenDocs(page);
 });
 
 window.metabaseEvents = new EventEmitter();
-
 ipcRenderer.on('metabase_event', (_event, eventName, ...args) => {
   window.metabaseEvents.emit(eventName, ...args);
+});
+
+window.showMessage = (_message) => {};
+ipcRenderer.on('show_message', (_event, message) => {
+  window.showMessage(message);
 });
