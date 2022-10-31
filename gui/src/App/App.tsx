@@ -3,7 +3,7 @@ import { ReloadOutlined } from '@ant-design/icons';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
 import { find, findIndex } from 'lodash';
-import React, { FunctionComponent, useCallback, useEffect } from 'react';
+import React, { FunctionComponent, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
@@ -30,7 +30,7 @@ type AdminPanelTab = CommonTabData & {
 type MetabaseTab = CommonTabData & {
   type: 'metabase';
   stale: boolean;
-  willRefresh: boolean;
+  refreshNonce: number;
 };
 
 type DocsTab = CommonTabData & {
@@ -61,7 +61,7 @@ function newMetabaseTab(t: TFunc): TabInfo {
     title: t('Metabase'),
     type: 'metabase',
     stale: false,
-    willRefresh: false,
+    refreshNonce: 0,
   };
 }
 
@@ -149,19 +149,9 @@ export const App: FunctionComponent = () => {
     updateState((state) => {
       const tab = find(state.tabs, { id }) as MetabaseTab;
       tab.stale = false;
-      tab.willRefresh = true;
+      tab.refreshNonce++;
     });
   }
-
-  const markAsRefreshed = useCallback(
-    (id: string) => {
-      updateState((state) => {
-        const tab = find(state.tabs, { id }) as MetabaseTab;
-        tab.willRefresh = false;
-      });
-    },
-    [updateState],
-  );
 
   const docsFunctions = useStaticValue(() => ({
     openDocs(page: PageId, section: string | null = null) {
@@ -222,7 +212,7 @@ export const App: FunctionComponent = () => {
     return () => {
       unsubscribe();
     };
-  });
+  }, [updateState]);
 
   return (
     <ConfigProvider locale={window.i18n.language === 'de' ? deDE : enUS}>
@@ -252,7 +242,7 @@ export const App: FunctionComponent = () => {
                   {tab.type === 'adminPanel' ? (
                     <AdminPanel isActive={activeTab === tab.id} postgresql={postgresql} metabase={metabase} />
                   ) : tab.type === 'metabase' ? (
-                    <Metabase refresh={tab.willRefresh} afterRefresh={() => markAsRefreshed(tab.id)} />
+                    <Metabase refreshNonce={tab.refreshNonce} />
                   ) : (
                     <Docs
                       onTitleChange={(title) => setTitle(tab.id, title)}

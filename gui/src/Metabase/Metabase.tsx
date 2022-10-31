@@ -4,11 +4,10 @@ import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
 import './Metabase.css';
 
 export type MetabaseProps = {
-  refresh: boolean;
-  afterRefresh: () => void;
+  refreshNonce: number;
 };
 
-export const Metabase: FunctionComponent<MetabaseProps> = ({ refresh, afterRefresh }) => {
+export const Metabase: FunctionComponent<MetabaseProps> = ({ refreshNonce }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const div = wrapperRef.current!;
@@ -23,17 +22,7 @@ export const Metabase: FunctionComponent<MetabaseProps> = ({ refresh, afterRefre
     div.innerHTML = `<webview ${Object.entries(webviewProps)
       .map(([key, value]) => `${key}=${JSON.stringify(value.toString())}`)
       .join(' ')} />`;
-
-    const webview = div.querySelector('webview');
-
-    webview!.addEventListener('dom-ready', () => {
-      if (refresh) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (webview as any).reload();
-        afterRefresh();
-      }
-    });
-  }, [refresh]);
+  }, [refreshNonce]);
 
   return <div className="Metabase" ref={wrapperRef}></div>;
 };
