@@ -449,7 +449,7 @@ function setupIPC() {
   ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) reading CSV ${fileName}.`);
-      const promise = () =>
+      const loadRecords = () =>
         new Promise<string[][]>((resolve, reject) => {
           const records: string[][] = [];
 
@@ -467,7 +467,7 @@ function setupIPC() {
             });
         });
 
-      const records = await promise();
+      const records = await loadRecords();
 
       const columns = records[0].map((name: string) => ({ name: name, type: 'text' } as TableColumn));
       const rowsPreview = records.slice(1, 101);
