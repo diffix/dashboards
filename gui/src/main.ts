@@ -1,11 +1,12 @@
 import { PromiseWithChild } from 'child_process';
 import { parse } from 'csv-parse';
-import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, session, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell, dialog } from 'electron';
 import fetch from 'electron-fetch';
 import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
+import archiver from 'archiver';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 import semver from 'semver';
@@ -67,12 +68,33 @@ i18n.use(i18nFsBackend).init({
 // App menu
 
 function openDocs(page: PageId) {
-  const mainWindow = BrowserWindow.getAllWindows()[0];
-  mainWindow?.webContents.send('open_docs', page);
+  sendToRenderer('open_docs', page);
 }
 
 function openURL(url: string) {
   shell.openExternal(url);
+}
+
+async function exportLogs() {
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  const result = await dialog.showSaveDialog(mainWindow, {
+    filters: [{ name: 'Zip archive', extensions: ['zip'] }],
+  });
+
+  if (!result.filePath) return;
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  const output = fs.createWriteStream(result.filePath);
+
+  const t = i18n.getFixedT(null, null, 'App::Menu::Actions');
+  output.on('close', () => sendToRenderer('show_message', t('Logs exported successfully!')));
+  archive.on('error', (error) => dialog.showErrorBox(t('Failed to export logs!'), error.message));
+
+  archive.pipe(output);
+
+  archive.directory(app.getPath('logs'), false);
+
+  archive.finalize();
 }
 
 function setupMenu() {
@@ -96,23 +118,14 @@ function setupMenu() {
   const template: MenuItemConstructorOptions[] = [
     ...(isMac ? [macAppMenu] : []),
     {
-      label: t('View::&View'),
-      submenu: [
-        { role: 'copy', label: t('View::Copy') },
-        { role: 'selectAll', label: t('View::Select All') },
-        { type: 'separator' },
-        { role: 'resetZoom', label: t('View::Actual Size') },
-        { role: 'zoomIn', label: t('View::Zoom In') },
-        { role: 'zoomOut', label: t('View::Zoom Out') },
-        { type: 'separator' },
-        { role: 'togglefullscreen', label: t('View::Toggle Full Screen') },
-      ],
-    },
-    {
-      label: t('Settings::&Settings'),
+      label: t('Actions::&Actions'),
       submenu: [
         {
-          label: t('Settings::Language'),
+          label: t('Actions::Export Logs'),
+          click: exportLogs,
+        },
+        {
+          label: t('Actions::Language'),
           submenu: [
             {
               label: 'English',
@@ -128,6 +141,19 @@ function setupMenu() {
             },
           ],
         },
+      ],
+    },
+    {
+      label: t('View::&View'),
+      submenu: [
+        { role: 'copy', label: t('View::Copy') },
+        { role: 'selectAll', label: t('View::Select All') },
+        { type: 'separator' },
+        { role: 'resetZoom', label: t('View::Actual Size') },
+        { role: 'zoomIn', label: t('View::Zoom In') },
+        { role: 'zoomOut', label: t('View::Zoom Out') },
+        { type: 'separator' },
+        { role: 'togglefullscreen', label: t('View::Toggle Full Screen') },
       ],
     },
     {
@@ -175,16 +201,6 @@ function registerProtocols() {
     const url = request.url.substring('docs://'.length);
     callback(path.join(appResourcesLocation, 'docs', i18n.language, url));
   });
-
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy':
-          "default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:* 127.0.0.1:* google.com *.google.com",
-      },
-    });
-  });
 }
 
 // Main window
@@ -226,6 +242,11 @@ function createWindow() {
 }
 
 // IPC
+
+function sendToRenderer(channel: string, ...args: unknown[]): void {
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  mainWindow?.webContents.send(channel, ...args);
+}
 
 const activeTasks = new Map<string, AbortController>();
 
@@ -297,7 +318,7 @@ function setupApp() {
   app.on('will-quit', async (event) => {
     try {
       event.preventDefault();
-      await Promise.all([shutdownPostgres(), shutdownMetabase(metabase?.child)]);
+      await shutdownMetabase(metabase).finally(() => shutdownPostgres());
     } catch (e) {
       console.error(e);
     } finally {
@@ -315,10 +336,16 @@ function setupApp() {
 function setupI18n() {
   i18n.on('languageChanged', (lng) => {
     setupMenu();
-    const mainWindow = BrowserWindow.getAllWindows()[0];
-    mainWindow?.webContents.send('language_changed', lng);
+    sendToRenderer('language_changed', lng);
   });
+}
 
+async function syncTables(): Promise<void> {
+  await syncMetabaseSchema();
+  sendToRenderer('metabase_event', 'refresh');
+}
+
+function setupIPC() {
   ipcMain.on('cancel_task', async (_event, taskId: string) => {
     console.info(`Cancelling task ${taskId}.`);
     const controller = activeTasks.get(taskId);
@@ -329,9 +356,7 @@ function setupI18n() {
       console.info(`Task ${taskId} not found.`);
     }
   });
-}
 
-function setupIPC() {
   ipcMain.handle('load_tables', async (_event, taskId: string) => {
     const client = new Client(connectionConfig);
     await client.connect();
@@ -369,7 +394,7 @@ function setupIPC() {
 
       try {
         await client.query(`DROP TABLE public."${tableName}";`);
-        await syncMetabaseSchema();
+        await syncTables();
       } finally {
         client.end();
       }
@@ -410,7 +435,7 @@ function setupIPC() {
           }
           await client.query(`GRANT SELECT ON "${tableName}" TO "${postgresConfig.trustedUser}"`);
           await client.query(`COMMIT`);
-          await syncMetabaseSchema();
+          await syncTables();
         } catch (err) {
           await client.query(`ROLLBACK`);
           throw err;
@@ -495,8 +520,7 @@ function updateServiceStatus(name: ServiceName, status: ServiceStatus) {
       break;
   }
 
-  const mainWindow = BrowserWindow.getAllWindows()[0];
-  mainWindow?.webContents.send('update_service_status', name, status);
+  sendToRenderer('update_service_status', name, status);
 }
 
 let postgresql: PromiseWithChild<{ stdout: string; stderr: string }> | null = null;

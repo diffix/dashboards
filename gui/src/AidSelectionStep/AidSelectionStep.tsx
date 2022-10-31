@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Alert, Divider, Select, Switch, Typography } from 'antd';
+import { Alert, Divider, Radio, RadioChangeEvent, Select, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
 import { ROW_INDEX_COLUMN } from '../constants';
@@ -23,7 +23,8 @@ export type AidSelectionStepData = {
 export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema, children }) => {
   const t = useT('AidSelectionStep');
   const [aidColumn, setAidColumn] = useState('');
-  const [publicTable, setPublicTable] = useState(false);
+  const [publicTableToggle, setPublicTableToggle] = useState<'personal' | 'public'>('personal');
+  const publicTable = publicTableToggle === 'public';
 
   return (
     <>
@@ -31,16 +32,16 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
         <AdminPanelNavAnchor step={AdminPanelNavStep.AidSelection} status={aidColumn ? 'done' : 'active'} />
         <Title level={3}>{t('Select the protected entity identifier column')}</Title>
         <div className="AidSelectionStep-container">
-          <Switch
-            className="AidSelectionStep-switch"
-            title="Make table public"
-            checked={publicTable}
-            onChange={(selected) => {
-              setPublicTable(selected);
+          <Radio.Group
+            className="AidSelectionStep-radio-group"
+            value={publicTableToggle}
+            onChange={(e: RadioChangeEvent) => {
+              setPublicTableToggle(e.target.value);
             }}
-            checkedChildren={t('Public')}
-            unCheckedChildren={t('Personal')}
-          />
+          >
+            <Radio.Button value="personal">{t('Personal table')}</Radio.Button>
+            <Radio.Button value="public">{t('Public table')}</Radio.Button>
+          </Radio.Group>
           {publicTable ? null : (
             <Select
               className="AidSelectionStep-select"

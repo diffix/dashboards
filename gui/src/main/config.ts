@@ -6,9 +6,7 @@ import { productName } from '../../package.json';
 export const isWin = process.platform === 'win32';
 export const isMac = process.platform === 'darwin';
 
-export const appDataLocation = isWin
-  ? path.join(app.getPath('appData'), 'Local', productName, 'data')
-  : path.join(app.getPath('appData'), productName, 'data');
+export const appDataLocation = path.join(app.getPath('userData'), 'data');
 export const appResourcesLocation = path.join(app.getAppPath(), app.isPackaged ? '..' : '.');
 
 // Some of these need to be kept in sync with `init.sql`.
