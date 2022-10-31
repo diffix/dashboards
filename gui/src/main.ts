@@ -394,6 +394,7 @@ function setupIPC() {
         const columnsSQL = columns.map((column) => `${column.name} ${column.type}`).join(',');
 
         try {
+          await client.query(`BEGIN`);
           // TODO: should we worry about (accidental) SQL-injection here?
           await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
@@ -408,9 +409,10 @@ function setupIPC() {
             await client.query(`CALL diffix.mark_public('"${tableName}"');`);
           }
           await client.query(`GRANT SELECT ON "${tableName}" TO "${postgresConfig.trustedUser}"`);
+          await client.query(`COMMIT`);
           await syncMetabaseSchema();
         } catch (err) {
-          await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
+          await client.query(`ROLLBACK`);
           throw err;
         } finally {
           client.end();
