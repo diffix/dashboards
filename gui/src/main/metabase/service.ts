@@ -1,6 +1,5 @@
-import { ChildProcess, execFile, PromiseWithChild } from 'child_process';
+import { ChildProcessWithoutNullStreams, execFile, spawn } from 'child_process';
 import fs from 'fs';
-import util from 'util';
 import path from 'path';
 import { ServiceStatus } from '../../types';
 import { isWin, metabaseConfig, postgresConfig, appResourcesLocation } from '../config';
@@ -9,19 +8,17 @@ import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } fr
 import log from 'electron-log';
 import { cleanAppData } from '../postgres';
 
-const asyncExecFile = util.promisify(execFile);
-
 let metabaseStatus = ServiceStatus.Starting;
 
 const setupLog = log.create(metabaseConfig.logId);
 setupLog.transports.file.fileName = metabaseConfig.logFileName;
 
-export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: string }> {
+export function startMetabase(): ChildProcessWithoutNullStreams {
   console.info('Starting Metabase...');
 
   fs.mkdirSync(metabaseConfig.pluginsDir, { recursive: true });
 
-  return asyncExecFile(metabaseConfig.executablePath, [], {
+  const metabase = spawn(metabaseConfig.executablePath, [], {
     env: {
       MB_DB_TYPE: 'postgres',
       MB_DB_DBNAME: postgresConfig.metadataDatabase,
@@ -39,9 +36,12 @@ export function startMetabase(): PromiseWithChild<{ stdout: string; stderr: stri
       MB_SEND_NEW_SSO_USER_ADMIN_EMAIL: 'false',
     },
   });
+  metabase.stderr.setEncoding('utf-8');
+  metabase.stdout.setEncoding('utf-8');
+  return metabase;
 }
 
-function gracefulShutdown(process: ChildProcess) {
+function gracefulShutdown(process: ChildProcessWithoutNullStreams) {
   if (isWin) {
     // We send a Ctrl-C event to the Metabase process in order to do a graceful shutdown,
     // since signals don't work on Windows.
@@ -51,7 +51,7 @@ function gracefulShutdown(process: ChildProcess) {
   }
 }
 
-function forcefulShutdown(process: ChildProcess) {
+function forcefulShutdown(process: ChildProcessWithoutNullStreams) {
   if (isWin) {
     // Metabase creates multiple processes, all of which have to be killed.
     execFile('taskkill', ['/pid', `${process.pid}`, '/f', '/t']);
@@ -60,21 +60,15 @@ function forcefulShutdown(process: ChildProcess) {
   }
 }
 
-export async function shutdownMetabase(
-  metabase: PromiseWithChild<{ stdout: string; stderr: string }> | null,
-): Promise<void> {
-  const child = metabase?.child;
-  if (!child) return;
-
-  // Metabase always terminates with a non-zero exit code, so ignore any future exceptions.
-  metabase?.catch(() => null);
+export async function shutdownMetabase(metabase: ChildProcessWithoutNullStreams | null): Promise<void> {
+  if (!metabase) return;
 
   console.info('Shutting down Metabase...');
-  gracefulShutdown(metabase?.child);
+  gracefulShutdown(metabase);
 
   return waitForMetabaseStatus(ServiceStatus.Stopped).catch(() => {
     console.error('Metabase graceful shutdown failed! Stopping process forcefully...');
-    forcefulShutdown(metabase?.child);
+    forcefulShutdown(metabase);
 
     return waitForMetabaseStatus(ServiceStatus.Stopped);
   });

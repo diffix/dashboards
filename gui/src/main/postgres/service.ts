@@ -1,4 +1,4 @@
-import { execFile, execFileSync, PromiseWithChild } from 'child_process';
+import { ChildProcessWithoutNullStreams, execFile, ExecFileException, execFileSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
@@ -6,7 +6,6 @@ import { ServiceStatus } from '../../types';
 import { appDataLocation, appResourcesLocation, isWin, postgresConfig } from '../config';
 import { delay, forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
 import log from 'electron-log';
-import { isReachable } from './is-reachable';
 
 const asyncExecFile = util.promisify(execFile);
 
@@ -15,6 +14,7 @@ const postgresBinPath = execFileSync(pgConfigPath, ['--bindir'], { timeout: 5000
 const postgresPath = path.join(postgresBinPath, 'postgres');
 const psqlPath = path.join(postgresBinPath, 'psql');
 const initdbPath = path.join(postgresBinPath, 'initdb');
+const pgIsReadyPath = path.join(postgresBinPath, 'pg_isready');
 const socketPath = path.join(postgresConfig.dataDirectory, 'socket');
 
 const initPgDiffixScriptName = 'init.sql';
@@ -36,10 +36,19 @@ async function initdb() {
 }
 
 async function waitUntilReachable(): Promise<void> {
+  const socketArgs = isWin ? [] : ['-h', `${socketPath}`];
   for (let i = 0; i < postgresConfig.connectAttempts; i++) {
-    const isReady = await isReachable(postgresConfig.port, postgresConfig.hostname);
-    if (isReady) {
+    try {
+      await asyncExecFile(
+        pgIsReadyPath,
+        ['-U', `${getUsername()}`, '-d', 'postgres', '-p', postgresConfig.port.toString()].concat(socketArgs),
+      );
       return;
+    } catch (err) {
+      if ((err as ExecFileException).code == 3) {
+        console.error('pg_isready failed to check if PostgreSQL is ready');
+        throw err;
+      }
     }
 
     await delay(postgresConfig.connectTimeout / postgresConfig.connectAttempts);
@@ -124,14 +133,17 @@ export async function setupPgDiffix(): Promise<void> {
   }
 }
 
-export function startPostgres(): PromiseWithChild<{ stdout: string; stderr: string }> {
+export function startPostgres(): ChildProcessWithoutNullStreams {
   console.info('Starting PostgreSQL...');
   const socketArgs = isWin ? [] : ['-k', socketPath];
 
-  return asyncExecFile(
+  const postgresql = spawn(
     postgresPath,
     ['-p', postgresConfig.port.toString(), '-D', postgresConfig.dataDirectory].concat(socketArgs),
   );
+  postgresql.stdout.setEncoding('utf-8');
+  postgresql.stderr.setEncoding('utf-8');
+  return postgresql;
 }
 
 export async function shutdownPostgres(): Promise<void> {
