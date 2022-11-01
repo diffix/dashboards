@@ -3,6 +3,7 @@ import React, { FunctionComponent, useEffect } from 'react';
 import { AdminPanelNavAnchor, AdminPanelNavStep } from '../AdminPanel';
 import { getT, useT } from '../shared';
 import { File, TableSchema } from '../types';
+import { PREVIEW_ROWS_COUNT } from '../constants';
 import { DataPreviewTable } from './DataPreviewTable';
 import { useSchema } from './use-schema';
 
@@ -36,8 +37,8 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
             <Title level={3}>{t('Successfully loaded {{fileName}}', { fileName: schema.value.file.name })}</Title>
             <div className="mb-1">
               <Text>{t('Here is what the data looks like:')}</Text>
-              {schema.value.rowsPreview.length === 1000 && (
-                <Text type="secondary"> {t('(only the first 1000 rows are shown)')}</Text>
+              {schema.value.rowsPreview.length === PREVIEW_ROWS_COUNT && (
+                <Text type="secondary"> {t('(only the first {{count}} rows are shown)', { count: PREVIEW_ROWS_COUNT })}</Text>
               )}
             </div>
             <DataPreviewTable schema={schema.value} />

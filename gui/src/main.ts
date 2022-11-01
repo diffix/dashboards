@@ -12,7 +12,7 @@ import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 import semver from 'semver';
 import stream from 'stream';
-import { i18nConfig, ROW_INDEX_COLUMN } from './constants';
+import { i18nConfig, ROW_INDEX_COLUMN, PREVIEW_ROWS_COUNT } from './constants';
 import { PageId } from './Docs';
 import { appResourcesLocation, isMac, postgresConfig } from './main/config';
 import {
@@ -467,7 +467,7 @@ function setupIPC() {
       for await (const line of lineReader) {
         if (line.length === 0) continue;
 
-        if (rows.length > 1000) break;
+        if (rows.length === PREVIEW_ROWS_COUNT) break;
 
         if (!separator) {
           // If we got a separator line, extract separator value and skip it.

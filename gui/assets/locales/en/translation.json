@@ -105,7 +105,8 @@
     "Loading schema": "Loading schema",
     "Successfully loaded {{fileName}}": "Successfully loaded {{fileName}}",
     "Here is what the data looks like:": "Here is what the data looks like:",
-    "Loaded {{fileName}}": "Loaded {{fileName}}"
+    "Loaded {{fileName}}": "Loaded {{fileName}}",
+    "(only the first {{count}} rows are shown)": "(only the first {{count}} rows are shown)"
   },
   "AidSelectionStep": {
     "Select the protected entity identifier column": "Select the protected entity identifier column",
