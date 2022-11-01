@@ -38,7 +38,10 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
             <div className="mb-1">
               <Text>{t('Here is what the data looks like:')}</Text>
               {schema.value.rowsPreview.length === PREVIEW_ROWS_COUNT && (
-                <Text type="secondary"> {t('(only the first {{count}} rows are shown)', { count: PREVIEW_ROWS_COUNT })}</Text>
+                <Text type="secondary">
+                  {' '}
+                  {t('(only the first {{count}} rows are shown)', { count: PREVIEW_ROWS_COUNT })}
+                </Text>
               )}
             </div>
             <DataPreviewTable schema={schema.value} />
