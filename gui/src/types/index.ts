@@ -57,13 +57,6 @@ export type LoadResponse = {
   rows: string[][];
 };
 
-export type Response = LoadResponse;
-
-export type ResultColumn = {
-  name: string;
-  type: ColumnType;
-};
-
 export type ResultRow = Value[];
 
 export type Value = boolean | number | string | null;
