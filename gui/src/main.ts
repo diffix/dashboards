@@ -1,8 +1,9 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import { parse } from 'csv-parse';
+import * as csv from 'csv-string';
 import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell, dialog } from 'electron';
 import fetch from 'electron-fetch';
 import fs from 'fs';
+import readline from 'readline';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
@@ -449,30 +450,28 @@ function setupIPC() {
   ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) reading CSV ${fileName}.`);
-      const loadRecords = () =>
-        new Promise<string[][]>((resolve, reject) => {
-          const records: string[][] = [];
 
-          stream
-            .addAbortSignal(signal, fs.createReadStream(fileName))
-            .pipe(parse({ to_line: 1001 }))
-            .on('data', function (record) {
-              records.push(record);
-            })
-            .on('end', function () {
-              resolve(records);
-            })
-            .on('error', function (err) {
-              reject(err);
-            });
-        });
+      const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
+      const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
-      const records = await loadRecords();
+      let headers: string[] = [];
+      const rows: string[][] = [];
 
-      const columns = records[0].map((name: string) => ({ name: name, type: 'text' } as TableColumn));
-      const rowsPreview = records.slice(1, 101);
+      for await (const line of lineReader) {
+        if (rows.length > 1000) break;
 
-      return { columns: columns, rows: rowsPreview };
+        if (headers.length === 0) {
+          headers = csv.fetch(line);
+          continue;
+        }
+
+        rows.push(csv.fetch(line));
+      }
+
+      lineReader.close();
+      fileStream.close();
+
+      return { headers, rows };
     }),
   );
 

@@ -53,8 +53,8 @@ export type ImportedTable = { key: string; name: string; aidColumns: string[] };
 // Query results
 
 export type LoadResponse = {
-  columns: ResultColumn[];
-  rows: ResultRow[];
+  headers: string[];
+  rows: string[][];
 };
 
 export type Response = LoadResponse;

@@ -141,7 +141,7 @@
     "antd": "^4.16.9",
     "archiver": "^5.3.1",
     "classnames": "^2.3.1",
-    "csv": "^6.2.0",
+    "csv-string": "^4.1.1",
     "electron-fetch": "^1.7.4",
     "electron-log": "^4.4.8",
     "electron-squirrel-startup": "^1.0.0",
