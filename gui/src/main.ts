@@ -447,6 +447,12 @@ function setupIPC() {
     },
   );
 
+  function parseCsvSeparatorLine(line: string) {
+    const regex = /^"?sep=(.?)"?$/gi;
+    const matches = regex.exec(line);
+    return matches && (matches[1] as ReturnType<typeof csv.detect>);
+  }
+
   ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) reading CSV ${fileName}.`);
@@ -461,7 +467,14 @@ function setupIPC() {
       for await (const line of lineReader) {
         if (rows.length > 1000) break;
 
-        if (separator === null) separator = csv.detect(line);
+        if (!separator) {
+          // If we got a separator line, extract separator value and skip it.
+          separator = parseCsvSeparatorLine(line);
+          if (separator) continue;
+
+          // Auto-detect separator from headers line.
+          separator = csv.detect(line);
+        }
 
         if (headers.length === 0) {
           headers = csv.fetch(line, separator);
