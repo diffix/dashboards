@@ -465,6 +465,8 @@ function setupIPC() {
       const rows: string[][] = [];
 
       for await (const line of lineReader) {
+        if (line.length === 0) continue;
+
         if (rows.length > 1000) break;
 
         if (!separator) {
