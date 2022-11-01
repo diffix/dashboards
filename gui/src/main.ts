@@ -454,18 +454,21 @@ function setupIPC() {
       const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
       const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
+      let separator = null;
       let headers: string[] = [];
       const rows: string[][] = [];
 
       for await (const line of lineReader) {
         if (rows.length > 1000) break;
 
+        if (separator === null) separator = csv.detect(line);
+
         if (headers.length === 0) {
-          headers = csv.fetch(line);
+          headers = csv.fetch(line, separator);
           continue;
         }
 
-        rows.push(csv.fetch(line));
+        rows.push(csv.fetch(line, separator));
       }
 
       lineReader.close();
