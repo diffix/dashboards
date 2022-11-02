@@ -23,54 +23,54 @@ export type AidSelectionStepData = {
 export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema, children }) => {
   const t = useT('ImportDataTab::AidSelectionStep');
   const [aidColumn, setAidColumn] = useState('');
-  const [publicTableToggle, setPublicTableToggle] = useState<'personal' | 'public'>('personal');
-  const publicTable = publicTableToggle === 'public';
+  const [protectedEntity, setProtectedEntity] = useState<'onePerRow' | 'multipleRows' | 'none'>('multipleRows');
+  const publicTable = protectedEntity === 'none';
+  const perRow = protectedEntity === 'onePerRow';
+  const perAIDColumns = protectedEntity === 'multipleRows';
 
   return (
     <>
       <div className="AidSelectionStep import-data-step">
         <ImportDataNavAnchor step={ImportDataNavStep.AidSelection} status={aidColumn ? 'done' : 'active'} />
-        <Title level={3}>{t('Select the protected entity identifier column')}</Title>
+        <Title level={3}>{t('Select the protected entity identifier')}</Title>
         <div className="AidSelectionStep-container">
           <Radio.Group
             className="AidSelectionStep-radio-group"
-            value={publicTableToggle}
+            value={protectedEntity}
             onChange={(e: RadioChangeEvent) => {
-              setPublicTableToggle(e.target.value);
+              setProtectedEntity(e.target.value);
             }}
           >
-            <Radio.Button value="personal">{t('Personal table')}</Radio.Button>
-            <Radio.Button value="public">{t('Public table')}</Radio.Button>
+            <Radio.Button value="personal">{t('One row per protected entity')}</Radio.Button>
+            <Radio.Button value="multipleRows">{t('Multiple rows per protected entity')}</Radio.Button>
+            <Radio.Button value="public">{t('None (data is not personal)')}</Radio.Button>
           </Radio.Group>
-          {publicTable ? null : (
+          {perAIDColumns ? (
             <Select
               className="AidSelectionStep-select"
               showSearch
-              placeholder={t('Select a column')}
+              placeholder={t('Select the protected entity ID column')}
               optionFilterProp="children"
               onChange={(column: string) => setAidColumn(column)}
               value={aidColumn ? aidColumn : undefined}
               filterOption={true}
               disabled={publicTable}
             >
-              <Option key={-1} value={ROW_INDEX_COLUMN}>
-                {t('[Auto-generated row index column]')}
-              </Option>
               {schema.columns.map((column, index) => (
                 <Option key={index} value={column.name}>
                   {column.name}
                 </Option>
               ))}
             </Select>
-          )}
-          {aidColumn == ROW_INDEX_COLUMN && !publicTable ? (
+          ) : null}
+          {perRow ? (
             <Alert
               className="AidSelectionStep-notice"
               message={
                 <>
                   <strong>{t('CAUTION:')}</strong>{' '}
                   {t(
-                    'When using the auto-generated index as identifier, you must ensure that each individual row from the input file represents a unique entity.',
+                    'You must ensure that each individual row from the input file represents a unique protected entity.',
                   )}
                 </>
               }
@@ -97,10 +97,10 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
       </div>
       <div className="AidSelectionStep-reserved-space">
         {/* Render next step */}
-        {(aidColumn || publicTable) && (
+        {(perRow || publicTable || aidColumn) && (
           <>
             <Divider />
-            {children({ aidColumns: publicTable ? [] : [aidColumn] })}
+            {children({ aidColumns: publicTable ? [] : perRow ? [ROW_INDEX_COLUMN] : [aidColumn] })}
           </>
         )}
       </div>
