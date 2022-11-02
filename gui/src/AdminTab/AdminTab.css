@@ -1,0 +1,21 @@
+.AdminTab {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.AdminTab-service {
+  font-size: 1.5em;
+}
+
+.AdminTab-service-starting {
+  color: orange;
+}
+
+.AdminTab-service-running {
+  color: green;
+}
+
+.AdminTab-service-stopped {
+  color: red;
+}

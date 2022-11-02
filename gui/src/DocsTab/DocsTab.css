@@ -1,0 +1,30 @@
+.DocsTab-sidebar > .ant-anchor-wrapper {
+  max-height: none !important;
+}
+
+.DocsTab-sidebar > .ant-anchor-wrapper > .ant-anchor > .ant-anchor-link:last-child {
+  padding-bottom: 0;
+}
+
+.DocsTab-sidebar > .ant-anchor-wrapper > .ant-anchor > .ant-anchor-link > .ant-anchor-link-title {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.DocsTab-nav-link {
+  margin-left: 2px;
+}
+
+.DocsTab-content {
+  padding: 0 0 96px 0;
+  overflow-y: auto;
+}
+
+.DocsTab-content > .Markdown {
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+.DocsTab-content > .Markdown > :first-child {
+  padding-top: 32px;
+}

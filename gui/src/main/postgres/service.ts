@@ -1,11 +1,11 @@
 import { ChildProcessWithoutNullStreams, execFile, ExecFileException, execFileSync, spawn } from 'child_process';
+import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
 import { ServiceStatus } from '../../types';
 import { appDataLocation, appResourcesLocation, isWin, postgresConfig } from '../config';
 import { delay, forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
-import log from 'electron-log';
 
 const asyncExecFile = util.promisify(execFile);
 

@@ -1,4 +1,3 @@
-import { createContext, useContext } from 'react';
 import { ColumnType, File, ImportedTable, Importer, TableColumn, TableSchema, Task } from '../types';
 import { runTask } from './utils';
 
@@ -68,9 +67,3 @@ class DiffixImporter implements Importer {
 }
 
 export const importer = new DiffixImporter();
-
-export const ImporterContext = createContext<Importer>(importer);
-
-export function useImporter(): Importer {
-  return useContext(ImporterContext);
-}
