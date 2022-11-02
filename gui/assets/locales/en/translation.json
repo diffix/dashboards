@@ -1,8 +1,10 @@
 {
   "App": {
     "Admin Panel": "Admin Panel",
+    "Metabase": "Metabase",
     "Documentation": "Documentation",
     "Diffix Dashboards": "Diffix Dashboards",
+    "Refresh to reveal newly imported tables (currently running queries will abort)": "Refresh to reveal newly imported tables (currently running queries will abort)",
 
     "Menu": {
       "AppMenu": {
@@ -87,7 +89,8 @@
     "Services": "Services"
   },
   "TableListStep": {
-    "Imported tables": "Imported tables"
+    "Imported tables": "Imported tables",
+    "{{tableName}} removed!": "{{tableName}} removed!"
   },
   "FileLoadStep": {
     "Click or drag a file to this area": "Click or drag a file to this area",
