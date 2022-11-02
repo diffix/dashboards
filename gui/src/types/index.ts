@@ -1,7 +1,7 @@
 import type { RcFile } from 'antd/lib/upload';
 import type { EventEmitter } from 'events';
 import type { i18n } from 'i18next';
-import type { PageId } from '../Docs';
+import type { PageId } from '../DocsTab';
 
 // UI State
 

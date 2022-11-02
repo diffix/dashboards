@@ -45,7 +45,7 @@
     }
   },
   "Sidebar": {
-    "AdminPanelNavSteps": {
+    "ImportDataNavSteps": {
       "Services": "Services",
       "View status of depending services": "View status of depending services",
       "Table List": "Table List",
@@ -85,7 +85,7 @@
       "Use the data preview to confirm that the data was loaded correctly.": "Use the data preview to confirm that the data was loaded correctly."
     }
   },
-  "AdminPanel": {
+  "AdminTab": {
     "Services": "Services"
   },
   "TableListStep": {

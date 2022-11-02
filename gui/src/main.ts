@@ -1,20 +1,22 @@
+import archiver from 'archiver';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import * as csv from 'csv-string';
-import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell, dialog } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
+import log from 'electron-log';
 import fs from 'fs';
-import readline from 'readline';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
-import archiver from 'archiver';
 import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
+import readline from 'readline';
 import semver from 'semver';
 import stream from 'stream';
-import { i18nConfig, ROW_INDEX_COLUMN, PREVIEW_ROWS_COUNT } from './constants';
-import { PageId } from './Docs';
+import { i18nConfig, PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from './constants';
+import { PageId } from './DocsTab';
 import { appResourcesLocation, isMac, postgresConfig } from './main/config';
+import { getAppLanguage } from './main/language';
 import {
   getMetabaseStatus,
   initializeMetabase,
@@ -31,10 +33,8 @@ import {
   shutdownPostgres,
   startPostgres,
 } from './main/postgres';
-import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
-import log from 'electron-log';
 import { forwardLogLines } from './main/service-utils';
-import { getAppLanguage } from './main/language';
+import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
 
 const connectionConfig = {
   database: postgresConfig.tablesDatabase,

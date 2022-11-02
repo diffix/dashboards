@@ -1,12 +1,12 @@
 import { ChildProcessWithoutNullStreams, execFile, spawn } from 'child_process';
+import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
 import { ServiceStatus } from '../../types';
-import { isWin, metabaseConfig, postgresConfig, appResourcesLocation } from '../config';
+import { appResourcesLocation, isWin, metabaseConfig, postgresConfig } from '../config';
+import { cleanAppData } from '../postgres';
 import { waitForServiceStatus } from '../service-utils';
 import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } from './api';
-import log from 'electron-log';
-import { cleanAppData } from '../postgres';
 
 let metabaseStatus = ServiceStatus.Starting;
 

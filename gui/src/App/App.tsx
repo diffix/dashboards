@@ -1,5 +1,5 @@
-import { ConfigProvider, Tabs, message, Tooltip } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
+import { ConfigProvider, message, Tabs, Tooltip } from 'antd';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
 import { find, findIndex } from 'lodash';
@@ -7,13 +7,13 @@ import React, { FunctionComponent, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
-import { AdminPanel } from '../AdminPanel';
-import { Docs, DocsFunctionsContext, PageId } from '../Docs';
-import { Metabase } from '../Metabase';
-import { getT, importer, ImporterContext, TFunc, useStaticValue, useT } from '../shared';
-import { ServiceName, ServiceStatus } from '../types';
+import { AdminTab } from '../AdminTab';
+import { DocsFunctionsContext, DocsTab, PageId } from '../DocsTab';
+import { MetabaseTab } from '../MetabaseTab';
+import { getT, importer, ImporterContext, TableListProvider, TFunc, useStaticValue, useT } from '../shared';
 import { useCheckUpdates } from './use-check-updates';
 
+import { ImportDataTab } from '../ImportDataTab';
 import './App.css';
 
 const { TabPane } = Tabs;
@@ -23,39 +23,49 @@ type CommonTabData = {
   title: string;
 };
 
-type AdminPanelTab = CommonTabData & {
-  type: 'adminPanel';
+type AdminTabData = CommonTabData & {
+  type: 'admin';
 };
 
-type MetabaseTab = CommonTabData & {
+type ImportDataTabData = CommonTabData & {
+  type: 'import';
+};
+
+type MetabaseTabData = CommonTabData & {
   type: 'metabase';
   stale: boolean;
   refreshNonce: number;
 };
 
-type DocsTab = CommonTabData & {
+type DocsTabData = CommonTabData & {
   type: 'docs';
   page: PageId;
   section: string | null;
   scrollInvalidator: number; // Triggers a scroll when changed
 };
 
-type TabInfo = AdminPanelTab | MetabaseTab | DocsTab;
+type TabData = AdminTabData | ImportDataTabData | MetabaseTabData | DocsTabData;
 
 type AppState = {
-  tabs: TabInfo[];
+  tabs: TabData[];
   activeTab: string;
-  postgresql: ServiceStatus;
-  metabase: ServiceStatus;
 };
 
 let nextTabId = 1;
 
-function openAdminPanelTab(t: TFunc): TabInfo {
-  return { id: (nextTabId++).toString(), title: t('Admin Panel'), type: 'adminPanel' };
+function newAdminTab(t: TFunc): TabData {
+  return { id: (nextTabId++).toString(), title: t('Admin Panel'), type: 'admin' };
 }
 
-function newMetabaseTab(t: TFunc): TabInfo {
+function newImportDataTab(t: TFunc): TabData {
+  return {
+    id: (nextTabId++).toString(),
+    title: t('Import Data'),
+    type: 'import',
+  };
+}
+
+function newMetabaseTab(t: TFunc): TabData {
   return {
     id: (nextTabId++).toString(),
     title: t('Metabase'),
@@ -65,7 +75,7 @@ function newMetabaseTab(t: TFunc): TabInfo {
   };
 }
 
-function newDocsTab(page: PageId, section: string | null, t: TFunc): TabInfo {
+function newDocsTab(page: PageId, section: string | null, t: TFunc): TabData {
   return {
     id: (nextTabId++).toString(),
     title: t('Documentation'),
@@ -89,12 +99,10 @@ function setWindowTitle(state: AppState) {
 export const App: FunctionComponent = () => {
   const t = useT('App');
   const [state, updateState] = useImmer(() => {
-    const initialTab = openAdminPanelTab(t);
+    const initialTabs = [newAdminTab(t), newImportDataTab(t)];
     return {
-      tabs: [initialTab],
-      activeTab: initialTab.id,
-      postgresql: window.getServicesStatus(ServiceName.PostgreSQL),
-      metabase: window.getServicesStatus(ServiceName.Metabase),
+      tabs: initialTabs,
+      activeTab: initialTabs[0].id,
     };
   });
 
@@ -147,7 +155,7 @@ export const App: FunctionComponent = () => {
 
   function refreshTab(id: string) {
     updateState((state) => {
-      const tab = find(state.tabs, { id }) as MetabaseTab;
+      const tab = find(state.tabs, { id }) as MetabaseTabData;
       tab.stale = false;
       tab.refreshNonce++;
     });
@@ -156,7 +164,7 @@ export const App: FunctionComponent = () => {
   const docsFunctions = useStaticValue(() => ({
     openDocs(page: PageId, section: string | null = null) {
       updateState((state) => {
-        const existingTab = state.tabs.find((t) => t.type === 'docs') as DocsTab | undefined;
+        const existingTab = state.tabs.find((t) => t.type === 'docs') as DocsTabData | undefined;
         if (existingTab) {
           existingTab.page = page;
           existingTab.section = section;
@@ -175,20 +183,7 @@ export const App: FunctionComponent = () => {
   window.onOpenDocs = (page) => docsFunctions.openDocs(page);
   window.showMessage = (content) => message.success(content, 10);
 
-  window.onServiceStatusUpdate = (name, status) =>
-    updateState((state) => {
-      switch (name) {
-        case ServiceName.PostgreSQL:
-          state.postgresql = status;
-          break;
-
-        case ServiceName.Metabase:
-          state.metabase = status;
-          break;
-      }
-    });
-
-  const { tabs, activeTab, postgresql, metabase } = state;
+  const { tabs, activeTab } = state;
 
   useEffect(() => {
     function makeMetabaseTabsStale() {
@@ -218,51 +213,55 @@ export const App: FunctionComponent = () => {
     <ConfigProvider locale={window.i18n.language === 'de' ? deDE : enUS}>
       <ImporterContext.Provider value={importer}>
         <DocsFunctionsContext.Provider value={docsFunctions}>
-          <div className="App">
-            <Tabs type="editable-card" activeKey={activeTab} onChange={setActiveTab} onEdit={onEdit}>
-              {tabs.map((tab) => (
-                <TabPane
-                  tab={
-                    tab.type === 'metabase' && tab.stale ? (
-                      <span>
-                        {tab.title}
-                        <Tooltip
-                          title={t('Refresh to reveal newly imported tables (currently running queries will abort)')}
-                        >
-                          <ReloadOutlined className="App-tab-pane-icon" onClick={() => refreshTab(tab.id)} />
-                        </Tooltip>
-                      </span>
+          <TableListProvider>
+            <div className="App">
+              <Tabs type="editable-card" activeKey={activeTab} onChange={setActiveTab} onEdit={onEdit}>
+                {tabs.map((tab) => (
+                  <TabPane
+                    tab={
+                      tab.type === 'metabase' && tab.stale ? (
+                        <span>
+                          {tab.title}
+                          <Tooltip
+                            title={t('Refresh to reveal newly imported tables (currently running queries will abort)')}
+                          >
+                            <ReloadOutlined className="App-tab-pane-icon" onClick={() => refreshTab(tab.id)} />
+                          </Tooltip>
+                        </span>
+                      ) : (
+                        tab.title
+                      )
+                    }
+                    key={tab.id}
+                    closable={tab.type !== 'admin'}
+                  >
+                    {tab.type === 'admin' ? (
+                      <AdminTab />
+                    ) : tab.type === 'import' ? (
+                      <ImportDataTab isActive={tab.id === activeTab} />
+                    ) : tab.type === 'metabase' ? (
+                      <MetabaseTab refreshNonce={tab.refreshNonce} />
                     ) : (
-                      tab.title
-                    )
-                  }
-                  key={tab.id}
-                  closable={tab.type !== 'adminPanel'}
-                >
-                  {tab.type === 'adminPanel' ? (
-                    <AdminPanel isActive={activeTab === tab.id} postgresql={postgresql} metabase={metabase} />
-                  ) : tab.type === 'metabase' ? (
-                    <Metabase refreshNonce={tab.refreshNonce} />
-                  ) : (
-                    <Docs
-                      onTitleChange={(title) => setTitle(tab.id, title)}
-                      page={tab.page}
-                      onPageChange={(page) =>
-                        updateState((state) => {
-                          const docsTab = find(state.tabs, { id: tab.id }) as DocsTab;
-                          docsTab.page = page;
-                          docsTab.section = null;
-                          docsTab.scrollInvalidator++;
-                        })
-                      }
-                      section={tab.section}
-                      scrollInvalidator={tab.scrollInvalidator}
-                    />
-                  )}
-                </TabPane>
-              ))}
-            </Tabs>
-          </div>
+                      <DocsTab
+                        onTitleChange={(title) => setTitle(tab.id, title)}
+                        page={tab.page}
+                        onPageChange={(page) =>
+                          updateState((state) => {
+                            const docsTab = find(state.tabs, { id: tab.id }) as DocsTabData;
+                            docsTab.page = page;
+                            docsTab.section = null;
+                            docsTab.scrollInvalidator++;
+                          })
+                        }
+                        section={tab.section}
+                        scrollInvalidator={tab.scrollInvalidator}
+                      />
+                    )}
+                  </TabPane>
+                ))}
+              </Tabs>
+            </div>
+          </TableListProvider>
         </DocsFunctionsContext.Provider>
       </ImporterContext.Provider>
     </ConfigProvider>

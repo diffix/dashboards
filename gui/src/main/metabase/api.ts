@@ -1,7 +1,7 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
 import { metabaseConfig, postgresConfig } from '../config';
-import { delay, getUsername } from '../service-utils';
 import { getAppLanguage } from '../language';
+import { delay, getUsername } from '../service-utils';
 
 type RequestOptions = Partial<ClientRequestConstructorOptions> & {
   headers?: Record<string, string>;
