@@ -1,8 +1,9 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import { parse } from 'csv-parse';
+import * as csv from 'csv-string';
 import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell, dialog } from 'electron';
 import fetch from 'electron-fetch';
 import fs from 'fs';
+import readline from 'readline';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
@@ -11,7 +12,7 @@ import { Client } from 'pg';
 import { from } from 'pg-copy-streams';
 import semver from 'semver';
 import stream from 'stream';
-import { i18nConfig, ROW_INDEX_COLUMN } from './constants';
+import { i18nConfig, ROW_INDEX_COLUMN, PREVIEW_ROWS_COUNT } from './constants';
 import { PageId } from './Docs';
 import { appResourcesLocation, isMac, postgresConfig } from './main/config';
 import {
@@ -446,33 +447,49 @@ function setupIPC() {
     },
   );
 
+  function parseCsvSeparatorLine(line: string) {
+    const regex = /^"?sep=(.)"?$/i;
+    const matches = line.match(regex);
+    return matches && (matches[1] as ReturnType<typeof csv.detect>);
+  }
+
   ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) reading CSV ${fileName}.`);
-      const promise = () =>
-        new Promise<string[][]>((resolve, reject) => {
-          const records: string[][] = [];
 
-          stream
-            .addAbortSignal(signal, fs.createReadStream(fileName))
-            .pipe(parse({ to_line: 1001 }))
-            .on('data', function (record) {
-              records.push(record);
-            })
-            .on('end', function () {
-              resolve(records);
-            })
-            .on('error', function (err) {
-              reject(err);
-            });
-        });
+      const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
+      const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
-      const records = await promise();
+      let separator = null;
+      let headers: string[] = [];
+      const rows: string[][] = [];
 
-      const columns = records[0].map((name: string) => ({ name: name, type: 'text' } as TableColumn));
-      const rowsPreview = records.slice(1, 101);
+      for await (const line of lineReader) {
+        if (line.length === 0) continue;
 
-      return { columns: columns, rows: rowsPreview };
+        if (rows.length === PREVIEW_ROWS_COUNT) break;
+
+        if (!separator) {
+          // If we got a separator line, extract separator value and skip it.
+          separator = parseCsvSeparatorLine(line);
+          if (separator) continue;
+
+          // Auto-detect separator from headers line.
+          separator = csv.detect(line);
+        }
+
+        if (headers.length === 0) {
+          headers = csv.fetch(line, separator);
+          continue;
+        }
+
+        rows.push(csv.fetch(line, separator));
+      }
+
+      lineReader.close();
+      fileStream.close();
+
+      return { headers, rows };
     }),
   );
 

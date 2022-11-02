@@ -51,10 +51,12 @@ class DiffixImporter implements Importer {
     return runTask(async (signal) => {
       const result = await window.readCSV(file.path, signal);
 
-      const types = this.detectColumnTypes(result.columns.length, result.rows as string[][]);
-      for (let index = 0; index < result.columns.length; index++) result.columns[index].type = types[index];
+      const types = this.detectColumnTypes(result.headers.length, result.rows);
+      const columns = types.map((type, index) => {
+        return { name: result.headers[index], type };
+      });
 
-      return { file, columns: result.columns, rowsPreview: result.rows };
+      return { file, columns, rowsPreview: result.rows };
     });
   }
 
