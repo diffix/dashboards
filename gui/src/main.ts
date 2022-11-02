@@ -448,7 +448,7 @@ function setupIPC() {
   );
 
   function parseCsvSeparatorLine(line: string) {
-    const regex = /^"?sep=(.?)"?$/i;
+    const regex = /^"?sep=(.)"?$/i;
     const matches = regex.exec(line);
     return matches && (matches[1] as ReturnType<typeof csv.detect>);
   }
