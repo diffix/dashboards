@@ -9,6 +9,8 @@ export type MetabaseProps = {
 
 export const Metabase: FunctionComponent<MetabaseProps> = ({ refreshNonce }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const refreshRef = useRef(() => {});
+
   useEffect(() => {
     const div = wrapperRef.current!;
 
@@ -22,6 +24,19 @@ export const Metabase: FunctionComponent<MetabaseProps> = ({ refreshNonce }) => 
     div.innerHTML = `<webview ${Object.entries(webviewProps)
       .map(([key, value]) => `${key}=${JSON.stringify(value.toString())}`)
       .join(' ')} />`;
+
+    const webview = div.querySelector('webview');
+
+    webview!.addEventListener('did-attach', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      refreshRef.current = () => (webview as any).reload();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (refreshNonce > 0) {
+      refreshRef.current();
+    }
   }, [refreshNonce]);
 
   return <div className="Metabase" ref={wrapperRef}></div>;
