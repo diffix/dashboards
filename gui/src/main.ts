@@ -268,26 +268,6 @@ async function runTask<T>(taskId: string, runner: (signal: AbortSignal) => Promi
   }
 }
 
-function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tableName: string) {
-  return new Promise<void>((resolve, reject) => {
-    const pgStream = stream.addAbortSignal(
-      signal,
-      client.query(from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER true)`)),
-    );
-    const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
-    fileStream.on('error', (err) => {
-      reject(err);
-    });
-    pgStream.on('error', (err) => {
-      reject(err);
-    });
-    pgStream.on('finish', (res) => {
-      resolve(res);
-    });
-    fileStream.pipe(pgStream);
-  });
-}
-
 function setupLog() {
   // Makes `electron-log` handle all `console.xyz` logging invocations.
   Object.assign(console, log.functions);
@@ -433,6 +413,25 @@ function setupIPC() {
     fileStream.close();
   }
 
+  async function insertRowsFromCsvFile(client: Client, signal: AbortSignal, fileName: string, tableName: string) {
+    let rowIndex = -1; // First row contains the headers.
+
+    await parseCsv(signal, fileName, (row) => {
+      rowIndex++;
+      if (rowIndex === 0) return true; // Skip headers.
+
+      const paramIndexes = Array.from(row.keys())
+        .map((i) => `$${i + 1}`)
+        .join(', ');
+      client.query(`INSERT INTO "${tableName}" VALUES (${paramIndexes})`, row, (error) => {
+        if (error) throw error;
+      });
+      return true;
+    });
+
+    console.info(`Inserted ${rowIndex} rows into table "${tableName}".`);
+  }
+
   ipcMain.handle(
     'import_csv',
     async (
@@ -455,7 +454,7 @@ function setupIPC() {
           // TODO: should we worry about (accidental) SQL-injection here?
           await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
-          await copyFromFile(client, signal, fileName, tableName);
+          await insertRowsFromCsvFile(client, signal, fileName, tableName);
           if (aidColumns.length > 0) {
             if (aidColumns.includes(ROW_INDEX_COLUMN)) {
               await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${ROW_INDEX_COLUMN}" SERIAL`);
