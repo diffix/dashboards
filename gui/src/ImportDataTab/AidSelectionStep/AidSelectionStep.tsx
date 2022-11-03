@@ -41,9 +41,9 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
               setProtectedEntity(e.target.value);
             }}
           >
-            <Radio.Button value="personal">{t('One row per protected entity')}</Radio.Button>
+            <Radio.Button value="onePerRow">{t('One row per protected entity')}</Radio.Button>
             <Radio.Button value="multipleRows">{t('Multiple rows per protected entity')}</Radio.Button>
-            <Radio.Button value="public">{t('None (data is not personal)')}</Radio.Button>
+            <Radio.Button value="none">{t('None (data is not personal)')}</Radio.Button>
           </Radio.Group>
           {perAIDColumns ? (
             <Select
