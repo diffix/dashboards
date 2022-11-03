@@ -402,6 +402,37 @@ function setupIPC() {
     });
   });
 
+  function parseCsvSeparatorLine(line: string) {
+    const regex = /^"?sep=(.)"?$/i;
+    const matches = line.match(regex);
+    return matches && (matches[1] as ReturnType<typeof csv.detect>);
+  }
+
+  async function parseCsv(signal: AbortSignal, fileName: string, processRow: (row: string[]) => boolean) {
+    const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
+    const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+
+    let separator = null;
+
+    for await (const line of lineReader) {
+      if (line.length === 0) continue;
+
+      if (!separator) {
+        // If we got a separator line, extract separator value and skip it.
+        separator = parseCsvSeparatorLine(line);
+        if (separator) continue;
+
+        // Auto-detect separator from headers line.
+        separator = csv.detect(line);
+      }
+
+      if (!processRow(csv.fetch(line, separator))) break;
+    }
+
+    lineReader.close();
+    fileStream.close();
+  }
+
   ipcMain.handle(
     'import_csv',
     async (
@@ -447,47 +478,23 @@ function setupIPC() {
     },
   );
 
-  function parseCsvSeparatorLine(line: string) {
-    const regex = /^"?sep=(.)"?$/i;
-    const matches = line.match(regex);
-    return matches && (matches[1] as ReturnType<typeof csv.detect>);
-  }
-
   ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) reading CSV ${fileName}.`);
 
-      const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
-      const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-      let separator = null;
-      let headers: string[] = [];
+      let headers: string[] | null = null;
       const rows: string[][] = [];
 
-      for await (const line of lineReader) {
-        if (line.length === 0) continue;
+      await parseCsv(signal, fileName, (row) => {
+        if (rows.length === PREVIEW_ROWS_COUNT) return false;
 
-        if (rows.length === PREVIEW_ROWS_COUNT) break;
+        if (headers === null) headers = row;
+        else rows.push(row);
 
-        if (!separator) {
-          // If we got a separator line, extract separator value and skip it.
-          separator = parseCsvSeparatorLine(line);
-          if (separator) continue;
+        return true;
+      });
 
-          // Auto-detect separator from headers line.
-          separator = csv.detect(line);
-        }
-
-        if (headers.length === 0) {
-          headers = csv.fetch(line, separator);
-          continue;
-        }
-
-        rows.push(csv.fetch(line, separator));
-      }
-
-      lineReader.close();
-      fileStream.close();
+      if (headers === null) throw 'CSV parsing error: input file is empty!';
 
       return { headers, rows };
     }),
