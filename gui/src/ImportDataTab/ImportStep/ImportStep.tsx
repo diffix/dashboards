@@ -1,6 +1,8 @@
 import { Button, Form, Input, message, Typography } from 'antd';
 import path from 'path';
 import React, { FunctionComponent, useState } from 'react';
+import snakecase from '@stdlib/string-snakecase';
+import { postgresReservedKeywords } from '../../constants';
 import { importer, TFunc, useInvalidateTableList, useT, useTableList } from '../../shared';
 import { File, TableSchema } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
@@ -41,13 +43,24 @@ async function importCSV(file: File, tableName: string, schema: TableSchema, aid
   }
 }
 
+// Produces a table name which will not require surrounding in double-quotes in PostgreSQL.
+function fixTableName(name: string) {
+  const snakeCaseName = snakecase(name);
+  return postgresReservedKeywords.includes(snakeCaseName) ? '_' + snakeCaseName : snakeCaseName;
+}
+
+// Checks whether a table name will not require surrounding in double-quotes in PostgreSQL.
+function tableNameFixed(name: string) {
+  return name == fixTableName(name);
+}
+
 export const ImportStep: FunctionComponent<ImportProps> = ({ file, schema, aidColumns, removeFile }) => {
   const t = useT('ImportDataTab::ImportStep');
   const tableList = useTableList();
   const invalidateTableList = useInvalidateTableList();
 
   const fileName = file.name;
-  const [tableName, setTableName] = useState(path.parse(fileName).name);
+  const [tableName, setTableName] = useState(fixTableName(path.parse(fileName).name));
   const tableExists = tableList.map((table) => table.name).includes(tableName);
 
   return (
@@ -59,8 +72,17 @@ export const ImportStep: FunctionComponent<ImportProps> = ({ file, schema, aidCo
           <Form.Item
             label={t('Table name')}
             hasFeedback
-            validateStatus={tableExists ? 'warning' : ''}
-            help={tableExists ? `${tableName} already exists, will be overwritten` : null}
+            validateStatus={tableExists || !tableNameFixed(tableName) ? 'warning' : ''}
+            help={
+              tableExists
+                ? t('{{tableName}} already exists, will be overwritten', { tableName })
+                : !tableNameFixed(tableName)
+                ? t('{{tableName}} will require double-quotes in SQL, try {{fixedTableName}} instead', {
+                    tableName,
+                    fixedTableName: fixTableName(tableName),
+                  })
+                : null
+            }
             name="tableName"
             rules={[{ required: true }]}
           >

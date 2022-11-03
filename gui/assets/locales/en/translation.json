@@ -125,6 +125,8 @@
   "ImportStep": {
     "Import": "Import",
     "Table name": "Table name",
+    "{{tableName}} already exists, will be overwritten": "{{tableName}} already exists, will be overwritten",
+    "{{tableName}} will require double-quotes in SQL, try {{fixedTableName}} instead": "{{tableName}} will require double-quotes in SQL, try {{fixedTableName}} instead",
     "Importing {{fileName}}...": "Importing {{fileName}}...",
     "{{fileName}} imported successfully!": "{{fileName}} imported successfully!",
     "Data import failed: {{reason}}": "Data import failed: {{reason}}"
