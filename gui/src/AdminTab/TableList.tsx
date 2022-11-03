@@ -1,6 +1,7 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { message, Table, Typography } from 'antd';
 import React, { FunctionComponent, useEffect } from 'react';
+import { ROW_INDEX_COLUMN } from '../constants';
 import { importer, TFunc, useInvalidateTableList, useT, useTableList } from '../shared';
 
 import './TableList.css';
@@ -31,6 +32,18 @@ async function removeTable(tableName: string, invalidateTableList: () => void, t
   }
 }
 
+function renderAidColumns(aidColumns: string[], t: TFunc) {
+  if (aidColumns.length == 0) {
+    return t('None');
+  } else if (aidColumns.length == 1 && aidColumns[0] == ROW_INDEX_COLUMN) {
+    return t('Per Row');
+  } else if (aidColumns.length == 1) {
+    return t('Column: {{column}}', { column: aidColumns[0] });
+  } else {
+    return t('Columns: {{columns}}', { columns: aidColumns.join(', ') });
+  }
+}
+
 export const TableList: FunctionComponent = () => {
   const t = useT('AdminTab::TableList');
   const tableList = useTableList();
@@ -54,10 +67,10 @@ export const TableList: FunctionComponent = () => {
       ),
     },
     {
-      title: 'AID columns',
+      title: 'Protected entities',
       dataIndex: 'aidColumns',
       key: 'aidColumns',
-      render: (aidColumns: string[]) => aidColumns.join(', '),
+      render: (aidColumns: string[]) => renderAidColumns(aidColumns, t),
     },
   ];
 
