@@ -9,7 +9,6 @@ import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
 import { Client } from 'pg';
-import { from } from 'pg-copy-streams';
 import readline from 'readline';
 import semver from 'semver';
 import stream from 'stream';
