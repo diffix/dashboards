@@ -1,7 +1,7 @@
 import { Button, Form, Input, message, Typography } from 'antd';
+import { snakeCase } from 'lodash';
 import path from 'path';
 import React, { FunctionComponent, useState } from 'react';
-import snakecase from '@stdlib/string-snakecase';
 import { postgresReservedKeywords } from '../../constants';
 import { importer, TFunc, useInvalidateTableList, useT, useTableList } from '../../shared';
 import { File, TableSchema } from '../../types';
@@ -45,7 +45,7 @@ async function importCSV(file: File, tableName: string, schema: TableSchema, aid
 
 // Produces a table name which will not require surrounding in double-quotes in PostgreSQL.
 function fixTableName(name: string) {
-  const snakeCaseName = snakecase(name);
+  const snakeCaseName = snakeCase(name);
   return postgresReservedKeywords.includes(snakeCaseName) ? '_' + snakeCaseName : snakeCaseName;
 }
 

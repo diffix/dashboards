@@ -138,7 +138,6 @@
   },
   "dependencies": {
     "@rehooks/component-size": "^1.0.3",
-    "@stdlib/string-snakecase": "^0.0.2",
     "antd": "^4.16.9",
     "archiver": "^5.3.1",
     "classnames": "^2.3.1",
