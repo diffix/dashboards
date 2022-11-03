@@ -41,8 +41,9 @@ export type IntegerColumn = { name: string; type: 'integer' };
 export type RealColumn = { name: string; type: 'real' };
 export type TextColumn = { name: string; type: 'text' };
 export type BooleanColumn = { name: string; type: 'boolean' };
+export type TimestampColumn = { name: string; type: 'timestamp' };
 
-export type TableColumn = IntegerColumn | RealColumn | TextColumn | BooleanColumn;
+export type TableColumn = IntegerColumn | RealColumn | TextColumn | BooleanColumn | TimestampColumn;
 
 export type ColumnType = TableColumn['type'];
 
@@ -59,7 +60,7 @@ export type LoadResponse = {
 
 export type ResultRow = Value[];
 
-export type Value = boolean | number | string | null;
+export type Value = boolean | number | string | Date | null;
 
 // API
 

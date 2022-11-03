@@ -5,11 +5,16 @@ class DiffixImporter implements Importer {
   private static booleanRE = /^(?:true|false|0|1)$/i;
   private static integerRE = /^-?\d{1,20}$/;
   private static realRE = /^-?\d{1,20}(?:\.\d{1,20})?$/;
+  // Source: https://stackoverflow.com/a/3143231, extended with a subset of PostgreSQL-admissible formats.
+  // This is widely advised against, but there doesn't seem to be any viable approximation of the PostgreSQL
+  // format in the packages I've explored.
+  private static timestampRE =
+    /(\d{4}-[01]\d-[0-3]\d(T| )[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)?)|(\d{4}-[01]\d-[0-3]\d(T| )[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)?)|(\d{4}-[01]\d-[0-3]\d(T| )[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)?)|(\d{4}-[01]\d-[0-3]\d(T| )?([+-][0-2]\d:[0-5]\d|Z)?)/;
 
   private detectColumnTypes(columnsCount: number, rows: string[][]): ColumnType[] {
     const typesInfo = Array(columnsCount)
       .fill(null)
-      .map(() => ({ isEmpty: true, isBoolean: true, isInteger: true, isReal: true }));
+      .map(() => ({ isEmpty: true, isBoolean: true, isInteger: true, isReal: true, isTimestamp: true }));
 
     for (const row of rows) {
       for (let index = 0; index < row.length; index++) {
@@ -21,6 +26,7 @@ class DiffixImporter implements Importer {
           typeInfo.isBoolean &&= DiffixImporter.booleanRE.test(value);
           typeInfo.isInteger &&= DiffixImporter.integerRE.test(value);
           typeInfo.isReal &&= DiffixImporter.realRE.test(value);
+          typeInfo.isTimestamp &&= DiffixImporter.timestampRE.test(value);
         }
       }
     }
@@ -30,6 +36,7 @@ class DiffixImporter implements Importer {
       if (info.isBoolean) return 'boolean';
       if (info.isInteger) return 'integer';
       if (info.isReal) return 'real';
+      if (info.isTimestamp) return 'timestamp';
       return 'text';
     });
   }
