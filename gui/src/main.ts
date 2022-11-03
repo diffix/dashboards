@@ -373,8 +373,10 @@ function setupIPC() {
         allTables.rows.forEach((row) => ret.push({ key: row.tablename, name: row.tablename, aidColumns: [] }));
 
         const aids = await client.query(
-          `SELECT tablename, objname FROM pg_catalog.pg_tables, diffix.show_labels() ` +
-            `WHERE objname LIKE ('public."' || tablename || '".%') AND tableowner='${adminUser}' AND label='aid';`,
+          'SELECT tablename, objname FROM pg_catalog.pg_tables, diffix.show_labels() ' +
+            "WHERE objname ~ ('public\\.\\\"?' || tablename || '\\\"?\\..*') AND" +
+            `      tableowner='${adminUser}' AND ` +
+            "      label='aid';",
         );
         aids.rows.forEach((row) =>
           ret.find(({ name }) => name == row.tablename)?.aidColumns.push(row.objname.split('.').at(-1)),
