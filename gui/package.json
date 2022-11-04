@@ -149,6 +149,7 @@
     "i18next": "^21.8.14",
     "i18next-fs-backend": "^1.1.4",
     "immer": "^9.0.5",
+    "jotai": "^1.9.1",
     "lodash": "^4.17.21",
     "mdast-util-to-string": "^3.1.0",
     "mdast-util-toc": "^6.1.0",
