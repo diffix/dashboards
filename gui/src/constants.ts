@@ -19,6 +19,8 @@ export const METABASE_PORT = 20433;
 
 export const PREVIEW_ROWS_COUNT = 1000;
 
+export const TOAST_DURATION = 5; // in seconds
+
 // Source: `SELECT word FROM pg_get_keywords() WHERE catdesc = 'reserved';`.
 export const postgresReservedKeywords = [
   'all',

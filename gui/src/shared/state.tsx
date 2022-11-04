@@ -21,7 +21,6 @@ export const TableListProvider: FunctionComponent = ({ children }) => {
     const task = importer.loadTables();
     task.result
       .then((tableList) => {
-        console.log({ tableList });
         if (!canceled) {
           setTableList(tableList);
         }
