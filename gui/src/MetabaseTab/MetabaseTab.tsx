@@ -28,7 +28,6 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce 
     const webview = div.querySelector('webview');
 
     webview!.addEventListener('did-attach', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       refreshRef.current = () => (webview as any).reload();
     });
   }, []);
