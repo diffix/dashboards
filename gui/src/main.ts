@@ -1,17 +1,20 @@
 import archiver from 'archiver';
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import * as csv from 'csv-string';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
 import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
 import log from 'electron-log';
-import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
-import path from 'path';
-import { Client } from 'pg';
-import readline from 'readline';
-import semver from 'semver';
+import * as csv from 'csv-string';
 import stream from 'stream';
+import readline from 'readline';
+import events from 'events';
+import pg from 'pg';
+import pgCopyStreams from 'pg-copy-streams';
+import semver from 'semver';
 import { i18nConfig, PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from './constants';
 import { PageId } from './DocsTab';
 import { appResourcesLocation, isMac, postgresConfig } from './main/config';
@@ -34,6 +37,8 @@ import {
 } from './main/postgres';
 import { forwardLogLines } from './main/service-utils';
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
+
+const finished = util.promisify(stream.finished);
 
 const connectionConfig = {
   database: postgresConfig.tablesDatabase,
@@ -338,7 +343,7 @@ function setupIPC() {
   });
 
   ipcMain.handle('load_tables', async (_event, taskId: string) => {
-    const client = new Client(connectionConfig);
+    const client = new pg.Client(connectionConfig);
     await client.connect();
     return runTask(taskId, async (_signal) => {
       console.info(`(${taskId}) Loading imported tables.`);
@@ -367,7 +372,7 @@ function setupIPC() {
   });
 
   ipcMain.handle('remove_table', async (_event, taskId: string, tableName: string) => {
-    const client = new Client(connectionConfig);
+    const client = new pg.Client(connectionConfig);
     await client.connect();
     return runTask(taskId, async (_signal) => {
       console.info(`(${taskId}) Removing imported table.`);
@@ -387,7 +392,7 @@ function setupIPC() {
     return matches && (matches[1] as ReturnType<typeof csv.detect>);
   }
 
-  async function parseCsv(signal: AbortSignal, fileName: string, processRow: (row: string[]) => boolean) {
+  async function* csvFileRows(signal: AbortSignal, fileName: string) {
     const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
     const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
@@ -405,30 +410,25 @@ function setupIPC() {
         separator = csv.detect(line);
       }
 
-      if (!processRow(csv.fetch(line, separator))) break;
+      yield csv.fetch(line, separator);
     }
 
     lineReader.close();
     fileStream.close();
   }
 
-  async function insertRowsFromCsvFile(client: Client, signal: AbortSignal, fileName: string, tableName: string) {
-    let rowIndex = -1; // First row contains the headers.
+  async function copyRowsFromCsvFile(client: pg.Client, signal: AbortSignal, fileName: string, tableName: string) {
+    const pgStream = stream.addAbortSignal(
+      signal,
+      client.query(pgCopyStreams.from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER true)`)),
+    );
 
-    await parseCsv(signal, fileName, (row) => {
-      rowIndex++;
-      if (rowIndex === 0) return true; // Skip headers.
+    for await (const row of csvFileRows(signal, fileName)) {
+      if (!pgStream.write(csv.stringify(row))) await events.once(pgStream, 'drain'); // Handle backpressure
+    }
 
-      const paramIndexes = Array.from(row.keys())
-        .map((i) => `$${i + 1}`)
-        .join(', ');
-      client.query(`INSERT INTO "${tableName}" VALUES (${paramIndexes})`, row, (error) => {
-        if (error) throw error;
-      });
-      return true;
-    });
-
-    console.info(`Inserted ${rowIndex} rows into table "${tableName}".`);
+    pgStream.end();
+    await finished(pgStream);
   }
 
   ipcMain.handle(
@@ -441,7 +441,7 @@ function setupIPC() {
       columns: TableColumn[],
       aidColumns: string[],
     ) => {
-      const client = new Client(connectionConfig);
+      const client = new pg.Client(connectionConfig);
       await client.connect();
       return runTask(taskId, async (signal) => {
         console.info(`(${taskId}) copying CSV ${fileName}.`);
@@ -453,7 +453,7 @@ function setupIPC() {
           // TODO: should we worry about (accidental) SQL-injection here?
           await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
-          await insertRowsFromCsvFile(client, signal, fileName, tableName);
+          await copyRowsFromCsvFile(client, signal, fileName, tableName);
           if (aidColumns.length > 0) {
             if (aidColumns.includes(ROW_INDEX_COLUMN)) {
               await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${ROW_INDEX_COLUMN}" SERIAL`);
@@ -483,14 +483,12 @@ function setupIPC() {
       let headers: string[] | null = null;
       const rows: string[][] = [];
 
-      await parseCsv(signal, fileName, (row) => {
-        if (rows.length === PREVIEW_ROWS_COUNT) return false;
+      for await (const row of csvFileRows(signal, fileName)) {
+        if (rows.length === PREVIEW_ROWS_COUNT) break;
 
         if (headers === null) headers = row;
         else rows.push(row);
-
-        return true;
-      });
+      }
 
       if (headers === null) throw 'CSV parsing error: input file is empty!';
 
