@@ -65,8 +65,6 @@ export const columnSorter =
       case 'text':
         return (a as string).localeCompare(b as string);
       case 'timestamp':
-        a = new Date(a as string);
-        b = new Date(b as string);
-        return a == b ? 0 : a > b ? 1 : -1;
+        return new Date(a as string).getTime() - new Date(b as string).getTime();
     }
   };
