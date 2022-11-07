@@ -20,6 +20,7 @@ module.exports = {
   },
   plugins: [...plugins, new NodePolyfillPlugin()],
   resolve: {
+    conditionNames: ['import', 'module', 'require', 'default'],
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],
   },
 };

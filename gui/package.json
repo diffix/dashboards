@@ -70,9 +70,9 @@
       ],
       "hooks": "require:forge.hooks.js",
       "plugins": [
-        [
-          "@electron-forge/plugin-webpack",
-          {
+        {
+          "name": "@electron-forge/plugin-webpack",
+          "config": {
             "mainConfig": "./webpack.main.config.js",
             "renderer": {
               "config": "./webpack.renderer.config.js",
@@ -97,17 +97,17 @@
             "port": 3001,
             "loggerPort": 9001
           }
-        ]
+        }
       ]
     }
   },
   "devDependencies": {
-    "@electron-forge/cli": "6.0.0-beta.59",
-    "@electron-forge/maker-deb": "6.0.0-beta.59",
-    "@electron-forge/maker-rpm": "6.0.0-beta.59",
-    "@electron-forge/maker-squirrel": "6.0.0-beta.59",
-    "@electron-forge/maker-zip": "6.0.0-beta.59",
-    "@electron-forge/plugin-webpack": "6.0.0-beta.59",
+    "@electron-forge/cli": "^6.0.0",
+    "@electron-forge/maker-deb": "^6.0.0",
+    "@electron-forge/maker-rpm": "^6.0.0",
+    "@electron-forge/maker-squirrel": "^6.0.0",
+    "@electron-forge/maker-zip": "^6.0.0",
+    "@electron-forge/plugin-webpack": "^6.0.0",
     "@electron-forge/publisher-github": "^6.0.0-beta.59",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "@types/archiver": "^5.3.1",
@@ -129,12 +129,12 @@
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-react": "^7.24.0",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "fork-ts-checker-webpack-plugin": "^6.2.13",
+    "fork-ts-checker-webpack-plugin": "^7.2.13",
     "node-loader": "^2.0.0",
     "prettier": "^2.3.2",
     "style-loader": "^3.2.1",
-    "ts-loader": "^9.2.4",
-    "typescript": "^4.4.4"
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.8.4"
   },
   "dependencies": {
     "@rehooks/component-size": "^1.0.3",
@@ -149,10 +149,11 @@
     "i18next": "^21.8.14",
     "i18next-fs-backend": "^1.1.4",
     "immer": "^9.0.5",
+    "jotai": "^1.9.1",
     "lodash": "^4.17.21",
     "mdast-util-to-string": "^3.1.0",
     "mdast-util-toc": "^6.1.0",
-    "node-polyfill-webpack-plugin": "^1.1.4",
+    "node-polyfill-webpack-plugin": "^2.0.1",
     "pg": "^8.8.0",
     "pg-copy-streams": "^6.0.4",
     "pg-native": "^3.0.1",

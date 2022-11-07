@@ -10,7 +10,7 @@ module.exports = [
   },
   {
     test: /\.(m?js|node)$/,
-    exclude: excludeModules(['react-markdown']),
+    exclude: excludeModules(['react-markdown', 'jotai']),
     parser: { amd: false },
     use: {
       loader: '@marshallofsound/webpack-asset-relocator-loader',
@@ -24,9 +24,6 @@ module.exports = [
     exclude: /(node_modules|\.webpack)/,
     use: {
       loader: 'ts-loader',
-      options: {
-        transpileOnly: true,
-      },
     },
   },
 ];

@@ -1,36 +1,13 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { message, Table, Typography } from 'antd';
-import React, { FunctionComponent, useEffect } from 'react';
+import { Table, Typography } from 'antd';
+import React, { FunctionComponent } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
-import { importer, TFunc, useInvalidateTableList, useT, useTableList } from '../shared';
+import { TFunc, useT } from '../shared';
+import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
 
 import './TableList.css';
 
 const { Title } = Typography;
-
-async function removeTable(tableName: string, invalidateTableList: () => void, t: TFunc) {
-  message.loading({
-    content: t('Removing table {{tableName}}...', { tableName }),
-    key: tableName,
-    duration: 0,
-  });
-
-  try {
-    const task = importer.removeTable(tableName);
-    await task.result;
-    message.success({
-      content: t('{{tableName}} removed!', { tableName }),
-      key: tableName,
-      duration: 10,
-    });
-    invalidateTableList();
-    return true;
-  } catch (e) {
-    console.error(e);
-    message.error({ content: t('Table removal failed!'), key: tableName, duration: 10 });
-    return false;
-  }
-}
 
 function renderAidColumns(aidColumns: string[], t: TFunc) {
   if (aidColumns.length == 0) {
@@ -46,13 +23,10 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
 
 export const TableList: FunctionComponent = () => {
   const t = useT('AdminTab::TableList');
-  const tableList = useTableList();
-  const invalidateTableList = useInvalidateTableList();
-
-  useEffect(() => {
-    // Fetch on first mount.
-    invalidateTableList();
-  }, [invalidateTableList]);
+  const tableListLodable = useTableListLoadable();
+  const tableList = useCachedLoadable(tableListLodable, []);
+  const tableListIsLoading = useIsLoading(tableListLodable);
+  const { removeTable } = useTableActions();
 
   const columns = [
     {
@@ -62,7 +36,7 @@ export const TableList: FunctionComponent = () => {
       render: (text: string) => (
         <div className="TableList name-column">
           {text}
-          <DeleteOutlined onClick={() => removeTable(text, invalidateTableList, t)} />
+          <DeleteOutlined onClick={() => removeTable(text)} />
         </div>
       ),
     },
@@ -77,7 +51,7 @@ export const TableList: FunctionComponent = () => {
   return (
     <div className="TableList">
       <Title level={3}>{t('Imported tables')}</Title>
-      <Table columns={columns} dataSource={tableList} />
+      <Table columns={columns} dataSource={tableList} loading={tableListIsLoading} />
     </div>
   );
 };

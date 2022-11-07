@@ -4,18 +4,18 @@
   padding: 32px;
 }
 
-.AdminTab-service {
+.AdminTab .AdminTab-service {
   font-size: 1.5em;
 }
 
-.AdminTab-service-starting {
+.AdminTab .AdminTab-service-starting {
   color: orange;
 }
 
-.AdminTab-service-running {
+.AdminTab .AdminTab-service-running {
   color: green;
 }
 
-.AdminTab-service-stopped {
+.AdminTab .AdminTab-service-stopped {
   color: red;
 }

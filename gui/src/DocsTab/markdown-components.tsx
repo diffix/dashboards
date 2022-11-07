@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Divider, Typography } from 'antd';
 import classNames from 'classnames';
 import React, { FunctionComponent } from 'react';
@@ -44,9 +46,7 @@ const SectionLink: FunctionComponent<SectionLinkProps> = ({ className, section, 
 };
 
 // Removes annoying `onClick` type mismatch error and discards the `node` prop.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function wrap<TArgs>(fn: (props: TArgs & { onClick: any }) => JSX.Element) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (({ node: _, ...props }: any) => fn(props)) as (args: TArgs) => JSX.Element;
 }
 

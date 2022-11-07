@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isEqual, noop } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TFunction, useTranslation } from 'react-i18next';
 import { i18nConfig } from '../constants';
@@ -55,4 +55,26 @@ export function usePrevious<T>(value: T): T | undefined {
     ref.current = value;
   }, [value]);
   return ref.current;
+}
+
+export type UnmountListener = {
+  hasUnmounted: boolean;
+  onUnmount: () => void;
+};
+
+export function useUnmountListener(): UnmountListener {
+  const listener = useStaticValue<UnmountListener>(() => ({
+    hasUnmounted: false,
+    onUnmount: noop,
+  }));
+
+  useEffect(() => {
+    return () => {
+      listener.hasUnmounted = true;
+      listener.onUnmount();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return listener;
 }

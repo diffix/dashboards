@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { FunctionComponent, useEffect, useRef } from 'react';
 import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
 
@@ -17,7 +19,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce 
     const webviewProps = {
       partition: METABASE_SESSION_NAME,
       src: `http://localhost:${METABASE_PORT}`,
-      preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
+      // preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
       webpreferences: 'contextIsolation=false',
     };
 
@@ -28,7 +30,6 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce 
     const webview = div.querySelector('webview');
 
     webview!.addEventListener('did-attach', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       refreshRef.current = () => (webview as any).reload();
     });
   }, []);
