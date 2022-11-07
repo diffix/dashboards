@@ -1,26 +1,19 @@
-import { CheckCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
-import { Space, Typography } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { useT } from '../shared';
-import { ServiceName, ServiceStatus } from '../types';
+import { ServiceName } from '../types';
+import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';
 
 import './AdminTab.css';
 
-const { Title } = Typography;
+export type AdminTabProps = {
+  onOpenMetabaseTab: () => void;
+  onOpenmportDataTab: () => void;
+};
 
-function statusToIcon(status: ServiceStatus) {
-  switch (status) {
-    case ServiceStatus.Starting:
-      return <SyncOutlined spin className="AdminTab-service AdminTab-service-starting" />;
-    case ServiceStatus.Running:
-      return <CheckCircleOutlined className="AdminTab-service AdminTab-service-running" />;
-    case ServiceStatus.Stopped:
-      return <CloseCircleOutlined className="AdminTab-service AdminTab-service-stopped" />;
-  }
-}
-
-export const AdminTab: FunctionComponent = () => {
+export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, onOpenmportDataTab }) => {
   const t = useT('AdminTab');
 
   const [postgresqlStatus, setPostgresqlStatus] = useState(() => window.getServicesStatus(ServiceName.PostgreSQL));
@@ -39,18 +32,23 @@ export const AdminTab: FunctionComponent = () => {
 
   return (
     <div className="AdminTab">
-      <Title level={3}>{t('Services')}</Title>
-      <Space size="large">
-        <Space>
-          {statusToIcon(postgresqlStatus)}
-          <Title level={4}>PostgreSQL</Title>
-        </Space>
-        <Space>
-          {statusToIcon(metabaseStatus)}
-          <Title level={4}>Metabase</Title>
-        </Space>
-      </Space>
-      <TableList />
+      <div className="AdminTab-content">
+        <div className="AdminTab-header">
+          <Button onClick={onOpenMetabaseTab} type="primary" size="large">
+            {t('New Metabase Tab')}
+          </Button>
+          <div className="AdminTab-services">
+            <ServiceStatusCard status={postgresqlStatus}>PostgreSQL</ServiceStatusCard>
+            <ServiceStatusCard status={metabaseStatus}>Metabase</ServiceStatusCard>
+          </div>
+        </div>
+        <div className="AdminTab-tables">
+          <TableList />
+          <Button onClick={onOpenmportDataTab} size="large" icon={<PlusOutlined />}>
+            {t('Import Table')}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

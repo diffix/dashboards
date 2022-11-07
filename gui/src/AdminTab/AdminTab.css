@@ -1,21 +1,31 @@
 .AdminTab {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.AdminTab-content {
   max-width: 1024px;
   margin: 0 auto;
-  padding: 32px;
+  padding: 64px 32px;
 }
 
-.AdminTab .AdminTab-service {
-  font-size: 1.5em;
+.AdminTab-header {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.AdminTab .AdminTab-service-starting {
-  color: orange;
+.AdminTab-services {
+  display: flex;
+  gap: 24px;
 }
 
-.AdminTab .AdminTab-service-running {
-  color: green;
+.AdminTab-services-space {
+  flex-grow: 1;
 }
 
-.AdminTab .AdminTab-service-stopped {
-  color: red;
+.AdminTab-tables {
+  margin-top: 48px;
 }

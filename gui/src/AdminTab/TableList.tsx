@@ -50,7 +50,7 @@ export const TableList: FunctionComponent = () => {
 
   return (
     <div className="TableList">
-      <Title level={3}>{t('Imported tables')}</Title>
+      <Title level={3}>{t('Imported Tables')}</Title>
       <Table columns={columns} dataSource={tableList} loading={tableListIsLoading} />
     </div>
   );

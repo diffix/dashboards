@@ -99,7 +99,7 @@ function setWindowTitle(state: AppState) {
 export const App: FunctionComponent = () => {
   const t = useT('App');
   const [state, updateState] = useImmer(() => {
-    const initialTabs = [newAdminTab(t), newImportDataTab(t)];
+    const initialTabs = [newAdminTab(t)];
     return {
       tabs: initialTabs,
       activeTab: initialTabs[0].id,
@@ -134,6 +134,24 @@ export const App: FunctionComponent = () => {
         });
         return;
     }
+  }
+
+  function openMetabaseTab() {
+    updateState((state) => {
+      const metabaseTab = newMetabaseTab(t);
+      state.tabs.push(metabaseTab);
+      state.activeTab = metabaseTab.id;
+      setWindowTitle(state);
+    });
+  }
+
+  function openImportDataTab() {
+    updateState((state) => {
+      const importDataTab = newImportDataTab(t);
+      state.tabs.push(importDataTab);
+      state.activeTab = importDataTab.id;
+      setWindowTitle(state);
+    });
   }
 
   function setActiveTab(id: string) {
@@ -234,7 +252,7 @@ export const App: FunctionComponent = () => {
                 closable={tab.type !== 'admin'}
               >
                 {tab.type === 'admin' ? (
-                  <AdminTab />
+                  <AdminTab onOpenMetabaseTab={openMetabaseTab} onOpenmportDataTab={openImportDataTab} />
                 ) : tab.type === 'import' ? (
                   <ImportDataTab isActive={tab.id === activeTab} />
                 ) : tab.type === 'metabase' ? (
