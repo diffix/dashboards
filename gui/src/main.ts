@@ -417,9 +417,10 @@ function setupIPC() {
       const client = new Client(connectionConfig);
       await client.connect();
       return runTask(taskId, async (signal) => {
-        console.info(`(${taskId}) copying CSV ${fileName}.`);
+        console.info(`(${taskId}) copying CSV "${fileName}" to "${tableName}".`);
 
-        const columnsSQL = columns.map((column) => `${column.name} ${column.type}`).join(',');
+        const columnsSQL = columns.map((column) => `${column.name} ${column.type}`).join(', ');
+        console.info(`Table schema: ${columnsSQL}.`);
 
         try {
           await client.query(`BEGIN`);
