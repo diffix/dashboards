@@ -64,5 +64,7 @@ export const columnSorter =
         return (a as number) - (b as number);
       case 'text':
         return (a as string).localeCompare(b as string);
+      case 'timestamp':
+        return new Date(a as string).getTime() - new Date(b as string).getTime();
     }
   };
