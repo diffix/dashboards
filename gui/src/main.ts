@@ -419,7 +419,7 @@ function setupIPC() {
       return runTask(taskId, async (signal) => {
         console.info(`(${taskId}) copying CSV "${fileName}" to "${tableName}".`);
 
-        const columnsSQL = columns.map((column) => `${column.name} ${column.type}`).join(', ');
+        const columnsSQL = columns.map((column) => `"${column.name}" ${column.type}`).join(', ');
         console.info(`Table schema: ${columnsSQL}.`);
 
         try {
