@@ -8,6 +8,8 @@ export type Loadable<Value> =
   | { state: 'hasError'; error: unknown }
   | { state: 'hasData'; data: Awaited<Value> };
 
+export const LOADING_STATE: Loadable<any> = { state: 'loading' };
+
 export function useCachedLoadable<Value>(loadable: Loadable<Value>, initialData: Value): Value {
   const ref = useRef(initialData);
   if (loadable.state === 'hasData') {
