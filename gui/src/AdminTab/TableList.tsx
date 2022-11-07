@@ -1,13 +1,13 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Table, Typography } from 'antd';
+import { Button, Popconfirm, Table, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
 import { TFunc, useT } from '../shared';
 import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
-
-import './TableList.css';
+import { ImportedTable } from '../types';
 
 const { Title } = Typography;
+const { Column } = Table;
 
 function renderAidColumns(aidColumns: string[], t: TFunc) {
   if (aidColumns.length == 0) {
@@ -28,30 +28,35 @@ export const TableList: FunctionComponent = () => {
   const tableListIsLoading = useIsLoading(tableListLodable);
   const { removeTable } = useTableActions();
 
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string) => (
-        <div className="TableList name-column">
-          {text}
-          <DeleteOutlined onClick={() => removeTable(text)} />
-        </div>
-      ),
-    },
-    {
-      title: 'Protected entities',
-      dataIndex: 'aidColumns',
-      key: 'aidColumns',
-      render: (aidColumns: string[]) => renderAidColumns(aidColumns, t),
-    },
-  ];
-
   return (
     <div className="TableList">
       <Title level={3}>{t('Imported Tables')}</Title>
-      <Table columns={columns} dataSource={tableList} loading={tableListIsLoading} />
+      <Table dataSource={tableList} loading={tableListIsLoading}>
+        <Column title={t('Name')} dataIndex="name" key="name" />
+        <Column
+          title={t('Protected entities')}
+          dataIndex="aidColumns"
+          key="aidColumns"
+          render={(aidColumns: string[]) => renderAidColumns(aidColumns, t)}
+        />
+        <Column
+          key="actions"
+          align="right"
+          render={(_: unknown, table: ImportedTable) => (
+            <Popconfirm
+              title={t('Are you sure you want to delete this table?')}
+              placement="topRight"
+              onConfirm={() => removeTable(table.name)}
+              okText={t('Delete')}
+              cancelText={t('Cancel')}
+            >
+              <Button type="text" shape="circle">
+                <DeleteOutlined />
+              </Button>
+            </Popconfirm>
+          )}
+        />
+      </Table>
     </div>
   );
 };
