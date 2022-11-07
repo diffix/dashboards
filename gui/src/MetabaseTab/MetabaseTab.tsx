@@ -17,7 +17,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce 
     const webviewProps = {
       partition: METABASE_SESSION_NAME,
       src: `http://localhost:${METABASE_PORT}`,
-      preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
+      // preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
       webpreferences: 'contextIsolation=false',
     };
 
