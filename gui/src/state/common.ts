@@ -8,6 +8,7 @@ export type Loadable<Value> =
   | { state: 'hasError'; error: unknown }
   | { state: 'hasData'; data: Awaited<Value> };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const LOADING_STATE: Loadable<any> = { state: 'loading' };
 
 export function useCachedLoadable<Value>(loadable: Loadable<Value>, initialData: Value): Value {

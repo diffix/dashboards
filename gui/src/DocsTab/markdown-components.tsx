@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Divider, Typography } from 'antd';
 import classNames from 'classnames';
 import React, { FunctionComponent } from 'react';

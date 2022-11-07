@@ -1,5 +1,6 @@
 import { ColumnType, ComputedData, RowData, RowDataIndex, Task, Value } from '../types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const inProgressState: ComputedData<any> = { state: 'in_progress' };
 
 export function delay(ms: number): Promise<void> {
