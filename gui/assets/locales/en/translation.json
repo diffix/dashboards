@@ -107,7 +107,8 @@
   "Docs": {
     "Anonymization": "Anonymization",
     "Documentation": "Documentation",
-    "Changelog": "Changelog"
+    "Changelog": "Changelog",
+    "License": "License"
   },
   "SchemaLoadStep": {
     "Loading schema": "Loading schema",

@@ -12,6 +12,8 @@ import changelogSource from '../../CHANGELOG.md';
 import anonymizationSourceDe from '../../docs/de/anonymization.md';
 import anonymizationSourceEn from '../../docs/en/anonymization.md';
 
+import licenseSource from '../../LICENSE.md';
+
 const { Link } = Anchor;
 const { Title } = Typography;
 
@@ -30,6 +32,14 @@ const docsPages = [
     source: {
       en: changelogSource,
       de: changelogSource,
+    },
+  },
+  {
+    id: 'license',
+    title: 'License',
+    source: {
+      en: licenseSource,
+      de: licenseSource,
     },
   },
 ] as const;
