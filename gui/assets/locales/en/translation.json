@@ -108,7 +108,8 @@
     "Anonymization": "Anonymization",
     "Documentation": "Documentation",
     "Changelog": "Changelog",
-    "License": "License"
+    "License": "License",
+    "Licenses of Dependencies": "Licenses of Dependencies"
   },
   "SchemaLoadStep": {
     "Loading schema": "Loading schema",

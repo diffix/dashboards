@@ -13,6 +13,7 @@ import anonymizationSourceDe from '../../docs/de/anonymization.md';
 import anonymizationSourceEn from '../../docs/en/anonymization.md';
 
 import licenseSource from '../../LICENSE.md';
+import licenseDependenciesSource from '../../LICENSES_DEPENDENCIES.md';
 
 const { Link } = Anchor;
 const { Title } = Typography;
@@ -40,6 +41,14 @@ const docsPages = [
     source: {
       en: licenseSource,
       de: licenseSource,
+    },
+  },
+  {
+    id: 'licenseDependencies',
+    title: 'Licenses of Dependencies',
+    source: {
+      en: licenseDependenciesSource,
+      de: licenseDependenciesSource,
     },
   },
 ] as const;
