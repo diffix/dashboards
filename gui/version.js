@@ -23,3 +23,4 @@ function replaceInFile(path, match, replacement) {
 }
 
 replaceInFile('CHANGELOG.md', '### Next version', `### Version ${version}`);
+replaceInFile('LICENSE.md', /__Diffix Dashboards \d+\.\d+\.\d+__/, `__Diffix Dashboards ${version}__`);

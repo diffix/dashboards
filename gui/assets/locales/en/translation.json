@@ -132,7 +132,9 @@
   "DocsTab": {
     "Anonymization": "Anonymization",
     "Documentation": "Documentation",
-    "Changelog": "Changelog"
+    "Changelog": "Changelog",
+    "License": "License",
+    "Licenses of Dependencies": "Licenses of Dependencies"
   },
   "messages": {
     "importer": {

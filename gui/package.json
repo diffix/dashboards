@@ -15,7 +15,7 @@
     "check-format": "prettier --check .",
     "format": "prettier --write .",
     "preversion": "node version.js check",
-    "version": "node version.js update && git add CHANGELOG.md",
+    "version": "node version.js update && git add LICENSE.md CHANGELOG.md",
     "postversion": "git push --follow-tags && echo Release commit created, tagged and pushed!"
   },
   "keywords": [],

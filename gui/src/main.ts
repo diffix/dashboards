@@ -168,6 +168,10 @@ function setupMenu() {
           label: t('Help::Changelog'),
           click: () => openDocs('changelog'),
         },
+        {
+          label: t('Help::License'),
+          click: () => openDocs('license'),
+        },
         { type: 'separator' },
         {
           label: t('Help::Learn More'),
