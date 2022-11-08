@@ -261,23 +261,23 @@ const ImportDataNavSteps = React.memo<{ steps: ImportDataNavStepState[]; focused
       >
         <Step
           status={status(ImportDataNavStep.CsvImport)}
-          title={mapText(t('CSV Import'), focusedStep === ImportDataNavStep.CsvImport)}
+          title={mapText(t('Select File'), focusedStep === ImportDataNavStep.CsvImport)}
           description={t('Load data from CSV')}
         />
         <Step
           status={status(ImportDataNavStep.DataPreview)}
           title={mapText(t('Data Preview'), focusedStep === ImportDataNavStep.DataPreview)}
-          description={t('Preview contents of file')}
+          description={t('Preview contents of the file')}
         />
         <Step
           status={status(ImportDataNavStep.AidSelection)}
-          title={mapText(t('ID Selection'), focusedStep === ImportDataNavStep.AidSelection)}
-          description={t('Select the entity identifier column')}
+          title={mapText(t('Protected Entity'), focusedStep === ImportDataNavStep.AidSelection)}
+          description={t('Identify the protected entity in the data')}
         />
         <Step
           status={status(ImportDataNavStep.Import)}
-          title={mapText(t('Import'), focusedStep === ImportDataNavStep.Import)}
-          description={t('Finalize import')}
+          title={mapText(t('Table Name'), focusedStep === ImportDataNavStep.Import)}
+          description={t('Select table name and finalize import')}
         />
       </Steps>
     );
