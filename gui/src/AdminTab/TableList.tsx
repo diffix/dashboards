@@ -1,5 +1,5 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Table } from 'antd';
+import { Button, Table } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
 import { TFunc, useT } from '../shared';
@@ -41,17 +41,9 @@ export const TableList: FunctionComponent = () => {
           key="actions"
           align="right"
           render={(_: unknown, table: ImportedTable) => (
-            <Popconfirm
-              title={t('Are you sure you want to delete this table?')}
-              placement="topRight"
-              onConfirm={() => removeTable(table.name)}
-              okText={t('Delete')}
-              cancelText={t('Cancel')}
-            >
-              <Button type="text" shape="circle">
-                <DeleteOutlined />
-              </Button>
-            </Popconfirm>
+            <Button type="text" shape="circle" onClick={() => removeTable(table.name)}>
+              <DeleteOutlined />
+            </Button>
           )}
         />
       </Table>
