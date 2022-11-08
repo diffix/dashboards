@@ -43,3 +43,8 @@ body {
 .text-center {
   text-align: center;
 }
+
+.ant-message {
+  bottom: 20px;
+  top: initial;
+}
