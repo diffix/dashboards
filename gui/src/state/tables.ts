@@ -53,7 +53,7 @@ export const useTableActions = actions<TableActions>((_get, set) => {
         const t = getT('messages::tables');
 
         message.loading({
-          content: t('Removing table {{tableName}}...', { tableName }),
+          content: t('Removing table {{tableName}}', { tableName }),
           key: tableName,
           duration: 0,
         });
@@ -61,7 +61,7 @@ export const useTableActions = actions<TableActions>((_get, set) => {
         try {
           await window.removeTable(tableName, signal);
           message.success({
-            content: t('Table {{tableName}} removed.', { tableName }),
+            content: t('Table {{tableName}} removed', { tableName }),
             key: tableName,
             duration: TOAST_DURATION,
           });
@@ -69,7 +69,7 @@ export const useTableActions = actions<TableActions>((_get, set) => {
           return true;
         } catch (e) {
           console.error(e);
-          message.error({ content: t('Table removal failed.'), key: tableName, duration: TOAST_DURATION });
+          message.error({ content: t('Table removal failed'), key: tableName, duration: TOAST_DURATION });
           return false;
         }
       });
@@ -81,7 +81,7 @@ export const useTableActions = actions<TableActions>((_get, set) => {
 
         const fileName = file.name;
         message.loading({
-          content: t('Importing {{fileName}}...', { fileName }),
+          content: t('Importing {{fileName}}', { fileName }),
           key: file.path,
           duration: 0,
         });
@@ -89,7 +89,7 @@ export const useTableActions = actions<TableActions>((_get, set) => {
         try {
           await window.importCSV(file.path, tableName, schema.columns, aidColumns, signal);
           message.success({
-            content: t('{{fileName}} imported successfully!', { fileName }),
+            content: t('{{fileName}} imported successfully', { fileName }),
             key: file.path,
             duration: TOAST_DURATION,
           });
