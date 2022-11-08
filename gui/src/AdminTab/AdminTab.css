@@ -1,21 +1,47 @@
 .AdminTab {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.AdminTab-content {
   max-width: 1024px;
   margin: 0 auto;
-  padding: 32px;
+  padding: 64px 32px;
 }
 
-.AdminTab .AdminTab-service {
-  font-size: 1.5em;
+.AdminTab-header {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.AdminTab .AdminTab-service-starting {
-  color: orange;
+.AdminTab-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 2em;
+  font-weight: 600;
+  color: #2c90d1;
 }
 
-.AdminTab .AdminTab-service-running {
-  color: green;
+.AdminTab-services {
+  display: flex;
+  gap: 24px;
 }
 
-.AdminTab .AdminTab-service-stopped {
-  color: red;
+.AdminTab-tables {
+  margin-top: 32px;
+}
+
+.AdminTab-tables-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.AdminTab-tables > .AdminTab-tables-header > * {
+  margin: 0;
 }

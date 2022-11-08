@@ -1,26 +1,22 @@
-import { CheckCircleOutlined, CloseCircleOutlined, SyncOutlined } from '@ant-design/icons';
-import { Space, Typography } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Button, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { useT } from '../shared';
-import { ServiceName, ServiceStatus } from '../types';
+import { ServiceName } from '../types';
+import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';
 
 import './AdminTab.css';
+import logo from './logo.png';
 
 const { Title } = Typography;
 
-function statusToIcon(status: ServiceStatus) {
-  switch (status) {
-    case ServiceStatus.Starting:
-      return <SyncOutlined spin className="AdminTab-service AdminTab-service-starting" />;
-    case ServiceStatus.Running:
-      return <CheckCircleOutlined className="AdminTab-service AdminTab-service-running" />;
-    case ServiceStatus.Stopped:
-      return <CloseCircleOutlined className="AdminTab-service AdminTab-service-stopped" />;
-  }
-}
+export type AdminTabProps = {
+  onOpenMetabaseTab: () => void;
+  onOpenmportDataTab: () => void;
+};
 
-export const AdminTab: FunctionComponent = () => {
+export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenmportDataTab }) => {
   const t = useT('AdminTab');
 
   const [postgresqlStatus, setPostgresqlStatus] = useState(() => window.getServicesStatus(ServiceName.PostgreSQL));
@@ -39,18 +35,27 @@ export const AdminTab: FunctionComponent = () => {
 
   return (
     <div className="AdminTab">
-      <Title level={3}>{t('Services')}</Title>
-      <Space size="large">
-        <Space>
-          {statusToIcon(postgresqlStatus)}
-          <Title level={4}>PostgreSQL</Title>
-        </Space>
-        <Space>
-          {statusToIcon(metabaseStatus)}
-          <Title level={4}>Metabase</Title>
-        </Space>
-      </Space>
-      <TableList />
+      <div className="AdminTab-content">
+        <div className="AdminTab-header">
+          <div className="AdminTab-logo">
+            <img src={logo} height="40" />
+            {t('Diffix Dashboards')}
+          </div>
+          <div className="AdminTab-services">
+            <ServiceStatusCard status={postgresqlStatus}>PostgreSQL</ServiceStatusCard>
+            <ServiceStatusCard status={metabaseStatus}>Metabase</ServiceStatusCard>
+          </div>
+        </div>
+        <div className="AdminTab-tables">
+          <div className="AdminTab-tables-header">
+            <Title level={3}>{t('Imported Tables')}</Title>
+            <Button onClick={onOpenmportDataTab} type="ghost" size="large" icon={<PlusOutlined />}>
+              {t('Import Table')}
+            </Button>
+          </div>
+          <TableList />
+        </div>
+      </div>
     </div>
   );
 };

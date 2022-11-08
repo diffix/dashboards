@@ -1,4 +1,4 @@
-import { ReloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { ConfigProvider, message, Tabs, Tooltip } from 'antd';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
@@ -99,7 +99,7 @@ function setWindowTitle(state: AppState) {
 export const App: FunctionComponent = () => {
   const t = useT('App');
   const [state, updateState] = useImmer(() => {
-    const initialTabs = [newAdminTab(t), newImportDataTab(t)];
+    const initialTabs = [newAdminTab(t)];
     return {
       tabs: initialTabs,
       activeTab: initialTabs[0].id,
@@ -134,6 +134,24 @@ export const App: FunctionComponent = () => {
         });
         return;
     }
+  }
+
+  function openMetabaseTab() {
+    updateState((state) => {
+      const metabaseTab = newMetabaseTab(t);
+      state.tabs.push(metabaseTab);
+      state.activeTab = metabaseTab.id;
+      setWindowTitle(state);
+    });
+  }
+
+  function openImportDataTab() {
+    updateState((state) => {
+      const importDataTab = newImportDataTab(t);
+      state.tabs.push(importDataTab);
+      state.activeTab = importDataTab.id;
+      setWindowTitle(state);
+    });
   }
 
   function setActiveTab(id: string) {
@@ -209,11 +227,30 @@ export const App: FunctionComponent = () => {
     };
   }, [updateState]);
 
+  function hasMetabaseTab() {
+    return tabs.some((t) => t.type === 'metabase');
+  }
+
   return (
     <ConfigProvider locale={window.i18n.language === 'de' ? deDE : enUS}>
       <DocsFunctionsContext.Provider value={docsFunctions}>
         <div className="App">
-          <Tabs type="editable-card" activeKey={activeTab} onChange={setActiveTab} onEdit={onEdit}>
+          <Tabs
+            addIcon={
+              hasMetabaseTab() ? (
+                <PlusOutlined />
+              ) : (
+                <>
+                  <PlusOutlined />
+                  <span style={{ marginLeft: '4px' }}>{t('New Metabase Tab')}</span>
+                </>
+              )
+            }
+            type="editable-card"
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            onEdit={onEdit}
+          >
             {tabs.map((tab) => (
               <TabPane
                 tab={
@@ -234,7 +271,7 @@ export const App: FunctionComponent = () => {
                 closable={tab.type !== 'admin'}
               >
                 {tab.type === 'admin' ? (
-                  <AdminTab />
+                  <AdminTab onOpenMetabaseTab={openMetabaseTab} onOpenmportDataTab={openImportDataTab} />
                 ) : tab.type === 'import' ? (
                   <ImportDataTab isActive={tab.id === activeTab} />
                 ) : tab.type === 'metabase' ? (
