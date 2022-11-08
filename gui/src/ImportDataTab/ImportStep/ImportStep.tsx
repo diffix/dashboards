@@ -19,11 +19,10 @@ type ImportProps = {
   removeFile: () => void;
 };
 
-const startsWithNumberRE = /^[0-9].*/;
 // Produces a table name which will not require surrounding in double-quotes in PostgreSQL.
 function fixTableName(name: string) {
   const snakeCaseName = snakeCase(name);
-  const prependUnderscore = postgresReservedKeywords.includes(snakeCaseName) || startsWithNumberRE.test(snakeCaseName);
+  const prependUnderscore = postgresReservedKeywords.includes(snakeCaseName) || /^\d/.test(snakeCaseName);
   return prependUnderscore ? '_' + snakeCaseName : snakeCaseName;
 }
 
@@ -39,9 +38,12 @@ export const ImportStep: FunctionComponent<ImportProps> = ({ file, schema, aidCo
   const tableList = useTableListCached();
   const { importCSV } = useTableActions();
 
-  const filePath = file.name;
-  const fileName = path.parse(filePath).name;
-  const [tableName, setTableName] = useState(tableNameFixable(fileName) ? fixTableName(fileName) : fileName);
+  const [tableName, setTableName] = useState(() => {
+    const filePath = file.name;
+    const fileName = path.parse(filePath).name;
+    return tableNameFixable(fileName) ? fixTableName(fileName) : fileName;
+  });
+
   const tableExists = tableList.map((table) => table.name).includes(tableName);
 
   const [isImporting, setIsImporting] = useState(false);
