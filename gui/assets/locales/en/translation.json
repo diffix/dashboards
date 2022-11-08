@@ -3,6 +3,7 @@
     "Admin Panel": "Admin Panel",
     "Metabase": "Metabase",
     "Import Data": "Import Data",
+    "New Metabase Tab": "New Metabase Tab",
     "Documentation": "Documentation",
     "Diffix Dashboards": "Diffix Dashboards",
     "Refresh to reveal newly imported tables (currently running queries will abort)": "Refresh to reveal newly imported tables (currently running queries will abort)",
@@ -47,8 +48,11 @@
   },
   "AdminTab": {
     "Services": "Services",
+    "Diffix Dashboards": "Diffix Dashboards",
+    "Imported Tables": "Imported Tables",
+    "Import Table": "Import Table",
     "TableList": {
-      "Imported tables": "Imported tables",
+      "Name": "Name",
       "Protected entities": "Protected entities",
       "None": "None",
       "Per Row": "Per Row",
