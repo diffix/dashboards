@@ -87,16 +87,23 @@ export const useTableActions = actions<TableActions>((_get, set) => {
         });
 
         try {
-          await window.importCSV(file.path, tableName, schema.columns, aidColumns, signal);
-          message.success({
-            content: t('{{fileName}} imported successfully', { fileName }),
-            key: file.path,
-            duration: TOAST_DURATION,
-          });
-          invalidateTableList();
-          return true;
+          const { aborted } = await window.importCSV(file.path, tableName, schema.columns, aidColumns, signal);
+          if (aborted) {
+            message.info({
+              content: t('Import aborted'),
+              key: file.path,
+              duration: TOAST_DURATION,
+            });
+          } else {
+            message.success({
+              content: t('{{fileName}} imported successfully', { fileName }),
+              key: file.path,
+              duration: TOAST_DURATION,
+            });
+            invalidateTableList();
+          }
+          return !aborted;
         } catch (e) {
-          // TODO: Handle cancellation.
           console.error(e);
           const reason = String(e).substring(0, 1000);
           message.error({
