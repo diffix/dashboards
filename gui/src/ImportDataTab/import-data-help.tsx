@@ -1,7 +1,6 @@
 import { Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { Trans } from 'react-i18next';
-import { DocsLink } from '../DocsTab';
 import { TFunc, useT as useBaseT } from '../shared';
 import { ImportDataNavStep, useNavState } from './import-data-nav';
 
@@ -23,13 +22,11 @@ function CsvImportHelp() {
   const t = useT('CsvImportHelp');
   return (
     <div>
-      <Title level={4}>{t('CSV Import')}</Title>
+      <Title level={4}>{t('Select File')}</Title>
       <Paragraph t={t}>
-        <strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).
+        <strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text, numeric and
+        timestamp).
         <br />
-        <DocsLink page="anonymization" section="load-table-from-csv">
-          Click here for details.
-        </DocsLink>
       </Paragraph>
     </div>
   );
@@ -49,13 +46,17 @@ function AidSelectionHelp() {
   const t = useT('AidSelectionHelp');
   return (
     <div>
-      <Title level={4}>{t('ID Selection')}</Title>
+      <Title level={4}>{t('Protected Entity')}</Title>
       <Paragraph t={t}>
         <strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.
       </Paragraph>
       <Paragraph t={t}>
         If the data has one row per person (or other <em>protected entity</em>), then no entity identifier column need
-        be selected. Otherwise, select a column containing a unique ID per protected entity. TODO: link docs
+        be selected. Otherwise, select a column containing a unique ID per protected entity.
+      </Paragraph>
+      <Paragraph t={t}>
+        If the data is not associated with any protected entities, it can be imported into a public table. Such data
+        will not be anonymized.
       </Paragraph>
     </div>
   );
@@ -65,8 +66,12 @@ function ImportHelp() {
   const t = useT('ImportHelp');
   return (
     <div>
-      <Title level={4}>{t('Import')}</Title>
-      <Paragraph t={t}>Finalize import into the database. TODO: link docs</Paragraph>
+      <Title level={4}>{t('Table Name')}</Title>
+      <Paragraph t={t}>Select a name for the imported table.</Paragraph>
+      <Paragraph t={t}>
+        <strong>Diffix Dashboards</strong> will propose a name based on the CSV file name, adjusting it to match the
+        requirements of the underlying database. You may override the proposed name.
+      </Paragraph>
     </div>
   );
 }

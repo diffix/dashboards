@@ -1,12 +1,11 @@
 import { FileDoneOutlined, FileOutlined } from '@ant-design/icons';
-import { Divider, Typography, Upload } from 'antd';
+import { Divider, Upload } from 'antd';
 import React, { FunctionComponent, useCallback, useState } from 'react';
 import { useT } from '../../shared';
 import { File } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 
 const { Dragger } = Upload;
-const { Title } = Typography;
 
 export type FileLoadStepProps = {
   children: (data: FileLoadStepData) => React.ReactNode;
@@ -36,7 +35,6 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
     <>
       <div className="FileLoadStep import-data-step">
         <ImportDataNavAnchor step={ImportDataNavStep.CsvImport} status={file ? 'done' : 'active'} />
-        <Title level={3}>{t('Import table')}</Title>
         <Dragger
           accept=".csv,.tsv,.txt"
           fileList={[]}
@@ -50,7 +48,7 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
           showUploadList={false}
         >
           <p className="ant-upload-drag-icon">{lastCompletedImport ? <FileDoneOutlined /> : <FileOutlined />}</p>
-          <p className="ant-upload-text">{t('From CSV file')}</p>
+          <p className="ant-upload-text">{t('Select CSV file')}</p>
           <p className="ant-upload-hint">{dragPromptText}</p>
         </Dragger>
       </div>

@@ -63,39 +63,29 @@
   "ImportDataTab": {
     "Sidebar": {
       "ImportDataNavSteps": {
-        "Services": "Services",
-        "View status of depending services": "View status of depending services",
-        "Table List": "Table List",
-        "Inspect and manage imported tables": "Inspect and manage imported tables",
-        "CSV Import": "CSV Import",
+        "Select File": "Select File",
         "Load data from CSV": "Load data from CSV",
         "Data Preview": "Data Preview",
-        "Preview contents of file": "Preview contents of file",
-        "ID Selection": "ID Selection",
-        "Select the entity identifier column": "Select the entity identifier column",
-        "Import": "Import",
-        "Finalize import": "Finalize import"
-      },
-      "TableListHelp": {
-        "Table List": "Table List",
-        "Inspect and manage the imported tables.<br/><2>Click here for details.</2>": "Inspect and manage the imported tables.<br/><2>Click here for details.</2>"
-      },
-      "ServicesHelp": {
-        "Services": "Services",
-        "View status of depending services.<br/><2>Click here for details.</2>": "View status of depending services.<br/><2>Click here for details.</2>"
+        "Preview contents of the file": "Preview contents of the file",
+        "Protected Entity": "Protected Entity",
+        "Identify the protected entity in the data": "Identify the protected entity in the data",
+        "Table Name": "Table Name",
+        "Select table name and finalize import": "Select table name and finalize import"
       },
       "AidSelectionHelp": {
-        "ID Selection": "ID Selection",
+        "Protected Entity": "Protected Entity",
         "<strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.": "<strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.",
-        "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. TODO: link docs": "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity. TODO: link docs"
+        "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity.": "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity.",
+        "If the data is not associated with any protected entities, it can be imported into a public table. Such data will not be anonymized.": "If the data is not associated with any protected entities, it can be imported into a public table. Such data will not be anonymized."
       },
       "ImportHelp": {
-        "Import": "Import",
-        "Finalize import into the database. TODO: link docs": "Finalize import into the database. TODO: link docs"
+        "Table Name": "Table Name",
+        "Select a name for the imported table.": "Select a name for the imported table.",
+        "<strong>Diffix Dashboards</strong> will propose a name based on the CSV file name, adjusting it to match the requirements of the underlying database. You may override the proposed name.": "<strong>Diffix Dashboards</strong> will propose a name based on the CSV file name, adjusting it to match the requirements of the underlying database. You may override the proposed name."
       },
       "CsvImportHelp": {
-        "CSV Import": "CSV Import",
-        "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).<br/><3>Click here for details.</3>": "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text and numeric).<br/><3>Click here for details.</3>"
+        "Select File": "Select File",
+        "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text, numeric and timestamp).": "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text, numeric and timestamp)."
       },
       "DataPreviewHelp": {
         "Data Preview": "Data Preview",
@@ -104,8 +94,7 @@
     },
     "FileLoadStep": {
       "Click or drag a file to this area": "Click or drag a file to this area",
-      "Import table": "Import table",
-      "From CSV file": "From CSV file",
+      "Select CSV file": "Select CSV file",
       "{{lastCompletedImport}} imported successfully. Click or drag another file to this area": "{{lastCompletedImport}} imported successfully. Click or drag another file to this area"
     },
     "SchemaLoadStep": {
@@ -120,13 +109,13 @@
       "One row per protected entity": "One row per protected entity",
       "Multiple rows per protected entity": "Multiple rows per protected entity",
       "Select the protected entity ID column": "Select the protected entity ID column",
-      "[Auto-generated row index column]": "[Auto-generated row index column]",
       "NOTICE:": "NOTICE:",
       "File will be imported into a public table. Data contained within will not be anonymized.": "File will be imported into a public table. Data contained within will not be anonymized.",
       "CAUTION:": "CAUTION:",
       "You must ensure that each individual row from the input file represents a unique protected entity.": "You must ensure that each individual row from the input file represents a unique protected entity."
     },
     "ImportStep": {
+      "Select a name for the table": "Select a name for the table",
       "Import": "Import",
       "Table name": "Table name",
       "{{tableName}} already exists, will be overwritten": "{{tableName}} already exists, will be overwritten",
