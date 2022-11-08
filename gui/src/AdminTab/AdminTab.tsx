@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button } from 'antd';
+import { Button, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { useT } from '../shared';
 import { ServiceName } from '../types';
@@ -7,13 +7,16 @@ import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';
 
 import './AdminTab.css';
+import logo from './logo.png';
+
+const { Title } = Typography;
 
 export type AdminTabProps = {
   onOpenMetabaseTab: () => void;
   onOpenmportDataTab: () => void;
 };
 
-export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, onOpenmportDataTab }) => {
+export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenmportDataTab }) => {
   const t = useT('AdminTab');
 
   const [postgresqlStatus, setPostgresqlStatus] = useState(() => window.getServicesStatus(ServiceName.PostgreSQL));
@@ -34,19 +37,23 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, 
     <div className="AdminTab">
       <div className="AdminTab-content">
         <div className="AdminTab-header">
-          <Button onClick={onOpenMetabaseTab} type="primary" size="large">
-            {t('New Metabase Tab')}
-          </Button>
+          <div className="AdminTab-logo">
+            <img src={logo} height="40" />
+            {t('Diffix Dashboards')}
+          </div>
           <div className="AdminTab-services">
             <ServiceStatusCard status={postgresqlStatus}>PostgreSQL</ServiceStatusCard>
             <ServiceStatusCard status={metabaseStatus}>Metabase</ServiceStatusCard>
           </div>
         </div>
         <div className="AdminTab-tables">
+          <div className="AdminTab-tables-header">
+            <Title level={3}>{t('Imported Tables')}</Title>
+            <Button onClick={onOpenmportDataTab} type="ghost" size="large" icon={<PlusOutlined />}>
+              {t('Import Table')}
+            </Button>
+          </div>
           <TableList />
-          <Button onClick={onOpenmportDataTab} size="large" icon={<PlusOutlined />}>
-            {t('Import Table')}
-          </Button>
         </div>
       </div>
     </div>

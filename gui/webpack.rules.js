@@ -26,4 +26,8 @@ module.exports = [
       loader: 'ts-loader',
     },
   },
+  {
+    test: /\.(svg|gif|icns|ico|jpg|png|otf|eot|woff|woff2|ttf)$/,
+    type: 'asset/resource',
+  },
 ];

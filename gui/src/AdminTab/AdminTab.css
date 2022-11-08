@@ -17,15 +17,31 @@
   align-items: center;
 }
 
+.AdminTab-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 2em;
+  font-weight: 600;
+  color: #2c90d1;
+}
+
 .AdminTab-services {
   display: flex;
   gap: 24px;
 }
 
-.AdminTab-services-space {
-  flex-grow: 1;
+.AdminTab-tables {
+  margin-top: 32px;
 }
 
-.AdminTab-tables {
-  margin-top: 48px;
+.AdminTab-tables-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.AdminTab-tables > .AdminTab-tables-header > * {
+  margin: 0;
 }

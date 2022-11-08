@@ -1,12 +1,11 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Button, Popconfirm, Table, Typography } from 'antd';
+import { Button, Popconfirm, Table } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
 import { TFunc, useT } from '../shared';
 import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
 import { ImportedTable } from '../types';
 
-const { Title } = Typography;
 const { Column } = Table;
 
 function renderAidColumns(aidColumns: string[], t: TFunc) {
@@ -30,7 +29,6 @@ export const TableList: FunctionComponent = () => {
 
   return (
     <div className="TableList">
-      <Title level={3}>{t('Imported Tables')}</Title>
       <Table dataSource={tableList} loading={tableListIsLoading}>
         <Column title={t('Name')} dataIndex="name" key="name" />
         <Column
