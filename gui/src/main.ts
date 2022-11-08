@@ -446,10 +446,15 @@ function setupIPC() {
           await syncTables();
         } catch (err) {
           await client.query(`ROLLBACK`);
-          throw err;
+          if ((err as Error)?.name === 'AbortError') {
+            return { aborted: true };
+          } else {
+            throw err;
+          }
         } finally {
           client.end();
         }
+        return { aborted: false };
       });
     },
   );

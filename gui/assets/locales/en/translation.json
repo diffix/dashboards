@@ -141,7 +141,8 @@
       "Loaded {{fileName}}": "Loaded {{fileName}}",
       "Importing {{fileName}}": "Importing {{fileName}}",
       "{{fileName}} imported successfully": "{{fileName}} imported successfully",
-      "Data import failed: {{reason}}": "Data import failed: {{reason}}"
+      "Data import failed: {{reason}}": "Data import failed: {{reason}}",
+      "Import aborted": "Import aborted"
     },
     "tables": {
       "Removing table {{tableName}}": "Removing table {{tableName}}",
