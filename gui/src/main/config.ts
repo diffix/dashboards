@@ -35,8 +35,8 @@ export const metabaseConfig = {
   siteName: productName,
   adminEmail: 'admin@open-diffix.org',
   adminPassword: 'diffix',
-  directDataSourceName: 'Direct Data',
-  anonymizedDataSourceName: 'Anonymized Data',
+  directDataSourceName: 'Direct Access',
+  anonymizedDataSourceName: 'Anonymized Access',
   sessionName: METABASE_SESSION_NAME,
   executablePath: isWin
     ? path.join(appResourcesLocation, 'metabase', 'metabase')
