@@ -1,11 +1,11 @@
 import { message } from 'antd';
-import { atom } from 'jotai';
+import { atom, useSetAtom } from 'jotai';
 import { abortableAtom, loadable, useAtomValue } from 'jotai/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TOAST_DURATION } from '../constants';
 import { getT, runTask } from '../shared';
 import { ColumnType, File, ImportedTable, TableSchema, Task } from '../types';
-import { actions, Loadable, LOADING_STATE, useCachedLoadable } from './common';
+import { Loadable, LOADING_STATE, useCachedLoadable } from './common';
 
 // State
 
@@ -40,83 +40,87 @@ export interface TableActions {
   importCSV(file: File, tableName: string, schema: TableSchema, aidColumns: string[]): Task<boolean>;
 }
 
-export const useTableActions = actions<TableActions>((_get, set) => {
-  function invalidateTableList() {
-    set($tableListInvalidator, (x) => x + 1);
-  }
+export function useTableActions(): TableActions {
+  const setInvalidator = useSetAtom($tableListInvalidator);
 
-  return {
-    invalidateTableList,
+  return useMemo(() => {
+    function invalidateTableList() {
+      setInvalidator((x) => x + 1);
+    }
 
-    removeTable(tableName) {
-      return runTask(async (signal) => {
-        const t = getT('messages::tables');
+    return {
+      invalidateTableList,
 
-        message.loading({
-          content: t('Removing table {{tableName}}', { tableName }),
-          key: tableName,
-          duration: 0,
-        });
+      removeTable(tableName) {
+        return runTask(async (signal) => {
+          const t = getT('messages::tables');
 
-        try {
-          await window.removeTable(tableName, signal);
-          message.success({
-            content: t('Table {{tableName}} removed', { tableName }),
+          message.loading({
+            content: t('Removing table {{tableName}}', { tableName }),
             key: tableName,
-            duration: TOAST_DURATION,
+            duration: 0,
           });
-          invalidateTableList();
-          return true;
-        } catch (e) {
-          console.error(e);
-          message.error({ content: t('Table removal failed'), key: tableName, duration: TOAST_DURATION });
-          return false;
-        }
-      });
-    },
 
-    importCSV(file, tableName, schema, aidColumns) {
-      return runTask(async (signal) => {
-        const t = getT('messages::importer');
-
-        const fileName = file.name;
-        message.loading({
-          content: t('Importing {{fileName}}', { fileName }),
-          key: file.path,
-          duration: 0,
-        });
-
-        try {
-          const { aborted } = await window.importCSV(file.path, tableName, schema.columns, aidColumns, signal);
-          if (aborted) {
-            message.info({
-              content: t('Import aborted'),
-              key: file.path,
-              duration: TOAST_DURATION,
-            });
-          } else {
+          try {
+            await window.removeTable(tableName, signal);
             message.success({
-              content: t('{{fileName}} imported successfully', { fileName }),
-              key: file.path,
+              content: t('Table {{tableName}} removed', { tableName }),
+              key: tableName,
               duration: TOAST_DURATION,
             });
             invalidateTableList();
+            return true;
+          } catch (e) {
+            console.error(e);
+            message.error({ content: t('Table removal failed'), key: tableName, duration: TOAST_DURATION });
+            return false;
           }
-          return !aborted;
-        } catch (e) {
-          console.error(e);
-          const reason = String(e).substring(0, 1000);
-          message.error({
-            content: t('Data import failed: {{reason}}', { reason }),
+        });
+      },
+
+      importCSV(file, tableName, schema, aidColumns) {
+        return runTask(async (signal) => {
+          const t = getT('messages::importer');
+
+          const fileName = file.name;
+          message.loading({
+            content: t('Importing {{fileName}}', { fileName }),
             key: file.path,
-            duration: TOAST_DURATION,
+            duration: 0,
           });
-          return false;
-        }
-      });
-    },
-  };
-});
+
+          try {
+            const { aborted } = await window.importCSV(file.path, tableName, schema.columns, aidColumns, signal);
+            if (aborted) {
+              message.info({
+                content: t('Import aborted'),
+                key: file.path,
+                duration: TOAST_DURATION,
+              });
+            } else {
+              message.success({
+                content: t('{{fileName}} imported successfully', { fileName }),
+                key: file.path,
+                duration: TOAST_DURATION,
+              });
+              invalidateTableList();
+            }
+            return !aborted;
+          } catch (e) {
+            console.error(e);
+            const reason = String(e).substring(0, 1000);
+            message.error({
+              content: t('Data import failed: {{reason}}', { reason }),
+              key: file.path,
+              duration: TOAST_DURATION,
+            });
+            return false;
+          }
+        });
+      },
+    };
+  }, [setInvalidator]);
+}
 
 // useSchema
 
