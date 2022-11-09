@@ -1,18 +1,20 @@
 import archiver from 'archiver';
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import * as csv from 'csv-string';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
 import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
 import log from 'electron-log';
-import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
-import path from 'path';
-import { Client } from 'pg';
-import { from } from 'pg-copy-streams';
-import readline from 'readline';
-import semver from 'semver';
+import * as csv from 'csv-string';
 import stream from 'stream';
+import readline from 'readline';
+import events from 'events';
+import pg from 'pg';
+import pgCopyStreams from 'pg-copy-streams';
+import semver from 'semver';
 import { i18nConfig, PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from './constants';
 import { PageId } from './DocsTab';
 import { appResourcesLocation, isMac, postgresConfig } from './main/config';
@@ -35,6 +37,8 @@ import {
 } from './main/postgres';
 import { forwardLogLines } from './main/service-utils';
 import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
+
+const finished = util.promisify(stream.finished);
 
 const connectionConfig = {
   database: postgresConfig.tablesDatabase,
@@ -272,26 +276,6 @@ async function runTask<T>(taskId: string, runner: (signal: AbortSignal) => Promi
   }
 }
 
-function copyFromFile(client: Client, signal: AbortSignal, fileName: string, tableName: string) {
-  return new Promise<void>((resolve, reject) => {
-    const pgStream = stream.addAbortSignal(
-      signal,
-      client.query(from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER true)`)),
-    );
-    const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
-    fileStream.on('error', (err) => {
-      reject(err);
-    });
-    pgStream.on('error', (err) => {
-      reject(err);
-    });
-    pgStream.on('finish', (res) => {
-      resolve(res);
-    });
-    fileStream.pipe(pgStream);
-  });
-}
-
 function setupLog() {
   // Makes `electron-log` handle all `console.xyz` logging invocations.
   Object.assign(console, log.functions);
@@ -363,7 +347,7 @@ function setupIPC() {
   });
 
   ipcMain.handle('load_tables', async (_event, taskId: string) => {
-    const client = new Client(connectionConfig);
+    const client = new pg.Client(connectionConfig);
     await client.connect();
     return runTask(taskId, async (_signal) => {
       console.info(`(${taskId}) Loading imported tables.`);
@@ -394,7 +378,7 @@ function setupIPC() {
   });
 
   ipcMain.handle('remove_table', async (_event, taskId: string, tableName: string) => {
-    const client = new Client(connectionConfig);
+    const client = new pg.Client(connectionConfig);
     await client.connect();
     return runTask(taskId, async (_signal) => {
       console.info(`(${taskId}) Removing imported table.`);
@@ -408,6 +392,51 @@ function setupIPC() {
     });
   });
 
+  function parseCsvSeparatorLine(line: string) {
+    const regex = /^"?sep=(.)"?$/i;
+    const matches = line.match(regex);
+    return matches && (matches[1] as ReturnType<typeof csv.detect>);
+  }
+
+  async function* csvFileRows(signal: AbortSignal, fileName: string) {
+    const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
+    const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+
+    let separator = null;
+
+    for await (const line of lineReader) {
+      if (line.length === 0) continue;
+
+      if (!separator) {
+        // If we got a separator line, extract separator value and skip it.
+        separator = parseCsvSeparatorLine(line);
+        if (separator) continue;
+
+        // Auto-detect separator from headers line.
+        separator = csv.detect(line);
+      }
+
+      yield csv.fetch(line, separator);
+    }
+
+    lineReader.close();
+    fileStream.close();
+  }
+
+  async function copyRowsFromCsvFile(client: pg.Client, signal: AbortSignal, fileName: string, tableName: string) {
+    const pgStream = stream.addAbortSignal(
+      signal,
+      client.query(pgCopyStreams.from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER true)`)),
+    );
+
+    for await (const row of csvFileRows(signal, fileName)) {
+      if (!pgStream.write(csv.stringify(row))) await events.once(pgStream, 'drain'); // Handle backpressure
+    }
+
+    pgStream.end();
+    await finished(pgStream);
+  }
+
   ipcMain.handle(
     'import_csv',
     async (
@@ -418,7 +447,7 @@ function setupIPC() {
       columns: TableColumn[],
       aidColumns: string[],
     ) => {
-      const client = new Client(connectionConfig);
+      const client = new pg.Client(connectionConfig);
       await client.connect();
       return runTask(taskId, async (signal) => {
         console.info(`(${taskId}) copying CSV "${fileName}" to "${tableName}".`);
@@ -431,7 +460,7 @@ function setupIPC() {
           // TODO: should we worry about (accidental) SQL-injection here?
           await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
-          await copyFromFile(client, signal, fileName, tableName);
+          await copyRowsFromCsvFile(client, signal, fileName, tableName);
           if (aidColumns.length > 0) {
             if (aidColumns.includes(ROW_INDEX_COLUMN)) {
               await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${ROW_INDEX_COLUMN}" SERIAL`);
@@ -459,47 +488,21 @@ function setupIPC() {
     },
   );
 
-  function parseCsvSeparatorLine(line: string) {
-    const regex = /^"?sep=(.)"?$/i;
-    const matches = line.match(regex);
-    return matches && (matches[1] as ReturnType<typeof csv.detect>);
-  }
-
   ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
     runTask(taskId, async (signal) => {
       console.info(`(${taskId}) reading CSV ${fileName}.`);
 
-      const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
-      const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-      let separator = null;
-      let headers: string[] = [];
+      let headers: string[] | null = null;
       const rows: string[][] = [];
 
-      for await (const line of lineReader) {
-        if (line.length === 0) continue;
-
+      for await (const row of csvFileRows(signal, fileName)) {
         if (rows.length === PREVIEW_ROWS_COUNT) break;
 
-        if (!separator) {
-          // If we got a separator line, extract separator value and skip it.
-          separator = parseCsvSeparatorLine(line);
-          if (separator) continue;
-
-          // Auto-detect separator from headers line.
-          separator = csv.detect(line);
-        }
-
-        if (headers.length === 0) {
-          headers = csv.fetch(line, separator);
-          continue;
-        }
-
-        rows.push(csv.fetch(line, separator));
+        if (headers === null) headers = row;
+        else rows.push(row);
       }
 
-      lineReader.close();
-      fileStream.close();
+      if (headers === null) throw 'CSV parsing error: input file is empty!';
 
       return { headers, rows };
     }),
