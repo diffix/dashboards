@@ -108,7 +108,7 @@ under an Open Source License, as stated in this License.
 
 ## Change License
 
-### The PostgreSQL License
+**The PostgreSQL License**
 
 Copyright (c) **2022, Max Planck Gesellschaft (MPG)**
 
