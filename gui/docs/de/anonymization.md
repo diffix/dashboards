@@ -1,3 +1,0 @@
-# Anonymization
-
-TBD
