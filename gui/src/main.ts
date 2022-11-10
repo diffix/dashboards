@@ -166,7 +166,7 @@ function setupMenu() {
       submenu: [
         {
           label: t('Help::Documentation'),
-          click: () => openDocs('anonymization'),
+          click: () => openDocs('operation'),
         },
         {
           label: t('Help::Changelog'),

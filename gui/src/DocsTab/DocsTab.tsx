@@ -9,8 +9,8 @@ import './DocsTab.css';
 
 import changelogSource from '../../CHANGELOG.md';
 
-import anonymizationSourceDe from '../../docs/de/anonymization.md';
 import anonymizationSourceEn from '../../docs/en/anonymization.md';
+import operationSourceEn from '../../docs/en/operation.md';
 
 import licenseSource from '../../LICENSE.md';
 import licenseDependenciesSource from '../../LICENSES_DEPENDENCIES.md';
@@ -20,11 +20,21 @@ const { Title } = Typography;
 
 const docsPages = [
   {
+    id: 'operation',
+    title: 'Operation',
+    source: {
+      en: operationSourceEn,
+      // TODO: defaulting to `en` for now, translate
+      de: operationSourceEn,
+    },
+  },
+  {
     id: 'anonymization',
     title: 'Anonymization',
     source: {
       en: anonymizationSourceEn,
-      de: anonymizationSourceDe,
+      // TODO: defaulting to `en` for now, translate
+      de: anonymizationSourceEn,
     },
   },
   {
