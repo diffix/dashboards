@@ -2,7 +2,7 @@
 
 > To report feature requests or problem, please contact us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org).
 
-**Diffix Dashboards** main purpose is to allow exploration of anonymized data using a typical Business Intelligence tool like Metabase.
+**Diffix Dashboards'** purpose is to allow anonymized analysis of data using Metabase, an easy to use Business Intelligence (BI) tool.
 
 With **Diffix Dashboards** you will be able to pick one or more CSV files containing personal data, and transform them into Metabase-driven
 summaries and charts in a way which ensures GDPR-compliant anonymity. For details on the anonymization procedure itself see [Anonymization](anonymization.md).
@@ -77,12 +77,11 @@ You can use all the features of Metabase without restrictions or use it to compa
 
 ### Metabase and Diffix
 
-This section lists a few notable differences between the regular Metabase experience and the one you'll have with **Diffix Dashboards**.
+This section lists a few notable differences between the regular Metabase experience and the one you will have with **Diffix Dashboards**.
 
 **No login** - **Diffix Dashboards** arranges a Metabase session for you, so you don't have to register or login.
-**CAUTION**: **Diffix Dashboards** assumes it connects to a local instance of Metabase server, and as such it provides
-no guarantees it would function correctly or be secure when connecting to a remote Metabase instance, or if the local Metabase instance
-is connected to from a remote location.
+
+**Local data** - all the data and dashboards are local and cannot be collaborated on remotely.
 
 **Limitations of automatic data exploration tools** - **Diffix Dashboards** operates using **Diffix Fir** anonymization software
 (see [Anonymization](anonymization.md) for more details) and because of that it limits the SQL features available to the user. When
@@ -93,4 +92,4 @@ we will be happy to discuss your use case and help. Use `Direct access` instead 
 ## Troubleshooting
 
 If you find **Diffix Dashboards** doing something unexpected, you can export the logs collected by using the menu function `Actions -> Export Logs`.
-Review them to ensure they do not contain any personal data and send to [feedback@open-diffix.org](mailto:feedback@open-diffix.org).
+Review them to ensure they do not contain any personal data and send them to [feedback@open-diffix.org](mailto:feedback@open-diffix.org).

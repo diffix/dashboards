@@ -1,12 +1,16 @@
 # Anonymization
 
-**Diffix Dashboards** uses **Diffix Fir** as its underlying anonymization mechanism (inside the included `pg_diffix` tool). Prior versions of **Diffix** were developed by the **Max Planck Institute for Software Systems (MPI-SWS)** and **Aircloak GmbH**. **Diffix Fir** is developed by **MPI-SWS** and the **[Open Diffix project](https://open-diffix.org)**. **Diffix Fir** is strong enough to satisfy the GDPR definition of anonymization as non-personal data.
+**Diffix Dashboards** relies on its [**`pg_diffix`** component](https://github.com/diffix/pg_diffix) (a PostgreSQL extension) to
+anonymize data, which uses **Diffix Fir** as its underlying anonymization mechanism. Prior versions of **Diffix** were developed
+by the **Max Planck Institute for Software Systems (MPI-SWS)** and **Aircloak GmbH**. **Diffix Fir** is developed by **MPI-SWS**
+and the **[Open Diffix project](https://open-diffix.org)**. **Diffix Fir** is strong enough to satisfy the GDPR definition of
+anonymization as non-personal data.
 
 > This page gives an overview of **Diffix Fir**. The preceding version [Diffix Elm specification](https://arxiv.org/abs/2201.04351) provides a complete description, including a security analysis and guidance for making a risk assessment. If you would like help in getting approval from your **Data Protection Officer (DPO)** or **Data Protection Authority (DPA)**, please contact us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org).
 
-**Diffix Dashboards** main purpose is to allow exploration of anonymized data using a typical Business Intelligence (BI) tool like Metabase.
-If your intent is to anonymize and release personal data, try [**Diffix for Desktop**](https://github.com/diffix/desktop) instead.
-If you like **Diffix Dashboards** but your specific use case is different, please contact us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org).
+**Diffix Dashboards'** purpose is to allow anonymized analysis of data using Metabase, an easy to use Business Intelligence (BI) tool.
+If you like **Diffix Dashboards** but you find it is missing some specific features your use case requires, please contact
+us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org).
 
 ## Disclaimer
 
@@ -15,7 +19,7 @@ data and are trusted to protect the original data.
 **Diffix Dashboards** protects against _accidental_ release of personal
 data. In other words, when used simply to provide useful data, and not
 with an explicit and willful intent to generate a non-anonymous output,
-the exported CSV of **Diffix Dashboards** is anonymous. Having said that,
+the analysis results of **Diffix Dashboards** are anonymous. Having said that,
 there are two types of output sequences that can lead to personal data
 being released. [These are listed](#output-sequences-to-avoid) at the end of this section.
 
@@ -56,7 +60,7 @@ As a general rule, noise and suppression force analysts to generalize. If data i
 ## Output sequences to avoid
 
 The following two output sequences must be avoided to ensure that the
-CSV exports of **Diffix Dashboards** are anonymous. Note that a user
+analysis results of **Diffix Dashboards** are anonymous. Note that a user
 acting as normal would have no reason to accidentally generate these output
 sequences.
 
