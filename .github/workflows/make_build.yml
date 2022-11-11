@@ -18,18 +18,15 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
       - name: Build services
         run: npm run build-win
-        working-directory: ./gui
       - name: Add pg_config to PATH # Needed for building `node-libpq`
-        run: echo "$env:GITHUB_WORKSPACE\gui\pgsql\bin" >> $env:GITHUB_PATH
+        run: echo "$env:GITHUB_WORKSPACE\pgsql\bin" >> $env:GITHUB_PATH
       - name: Install node libraries
         run: npm install
-        working-directory: ./gui
       - name: Make setup package
         run: npm run make
-        working-directory: ./gui
       - name: Upload setup package
         uses: actions/upload-artifact@v3
         with:
           name: Windows
-          path: gui/out/make/squirrel.windows/x64/*
+          path: out/make/squirrel.windows/x64/*
           retention-days: 15
