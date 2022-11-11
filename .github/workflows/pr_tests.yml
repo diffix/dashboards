@@ -14,10 +14,7 @@ jobs:
           node-version: 16
       - name: Install GUI dependencies
         run: npm install
-        working-directory: ./gui
       - name: Check GUI files format
         run: npm run check-format
-        working-directory: ./gui
       - name: Run GUI linter
         run: npm run lint
-        working-directory: ./gui
