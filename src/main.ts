@@ -411,7 +411,8 @@ function setupIPC() {
         separator = csv.detect(line);
       }
 
-      yield csv.fetch(line, separator);
+      const row = csv.fetch(line, separator).map((value) => (value == '\\n' ? '' : value));
+      yield row;
     }
 
     lineReader.close();
