@@ -1,7 +1,4 @@
-import { ColumnType, ComputedData, RowData, RowDataIndex, Task, Value } from '../types';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const inProgressState: ComputedData<any> = { state: 'in_progress' };
+import { ColumnType, RowData, RowDataIndex, Task, Value } from '../types';
 
 export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
