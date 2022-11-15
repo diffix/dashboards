@@ -147,11 +147,11 @@ export async function logIn(): Promise<Record<string, unknown>> {
   });
 }
 
-export async function addDataSources(): Promise<Record<string, unknown>> {
-  function conn(name: string, user: string, password: string) {
+export async function addDataSources(): Promise<Array<Record<string, unknown>>> {
+  function conn(access: 'direct' | 'anonymized', user: string, password: string) {
     return {
       engine: 'postgres',
-      name,
+      name: access === 'direct' ? metabaseConfig.directDataSourceName : metabaseConfig.anonymizedDataSourceName,
       details: {
         host: postgresConfig.hostname,
         port: postgresConfig.port,
@@ -162,19 +162,18 @@ export async function addDataSources(): Promise<Record<string, unknown>> {
         ssl: false,
         'tunnel-enabled': false,
         'advanced-options': false,
+        'let-user-control-scheduling': true,
       },
-      is_full_sync: true,
+      refingerprint: null,
+      is_full_sync: access === 'direct',
+      is_on_demand: access === 'direct',
     };
   }
 
-  await post(
-    '/api/database',
-    conn(metabaseConfig.directDataSourceName, postgresConfig.adminUser, postgresConfig.adminPassword),
-  );
-  return post(
-    '/api/database',
-    conn(metabaseConfig.anonymizedDataSourceName, postgresConfig.trustedUser, postgresConfig.trustedPassword),
-  );
+  return [
+    await post('/api/database', conn('direct', postgresConfig.adminUser, postgresConfig.adminPassword)),
+    await post('/api/database', conn('anonymized', postgresConfig.trustedUser, postgresConfig.trustedPassword)),
+  ];
 }
 
 export async function hasUserSetup(): Promise<boolean> {
