@@ -1,11 +1,12 @@
 import { FileDoneOutlined, FileOutlined } from '@ant-design/icons';
-import { Divider, Upload } from 'antd';
+import { Divider, Upload, Radio, RadioChangeEvent, Typography } from 'antd';
 import React, { FunctionComponent, useCallback, useState } from 'react';
 import { useT } from '../../shared';
-import { File } from '../../types';
+import { NumberFormat, ParseOptions, File } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 
 const { Dragger } = Upload;
+const { Text } = Typography;
 
 export type FileLoadStepProps = {
   children: (data: FileLoadStepData) => React.ReactNode;
@@ -13,12 +14,16 @@ export type FileLoadStepProps = {
 
 export type FileLoadStepData = {
   file: File;
+  parseOptions: ParseOptions;
   removeFile: () => void;
 };
 
 export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children }) => {
   const t = useT('ImportDataTab::FileLoadStep');
   const [file, setFile] = useState<File | null>(null);
+  const [numberFormat, setNumberFormat] = useState(
+    window.i18n.language === 'en' ? NumberFormat.English : NumberFormat.German,
+  );
   const [lastCompletedImport, setLastCompletedImport] = useState('');
   const removeFile = useCallback(() => {
     file && setLastCompletedImport(file.name);
@@ -51,12 +56,26 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
           <p className="ant-upload-text">{t('Select CSV file')}</p>
           <p className="ant-upload-hint">{dragPromptText}</p>
         </Dragger>
+        <br />
+        <div>
+          <Text>{t('Number format:')}</Text>{' '}
+          <Radio.Group
+            size="small"
+            value={numberFormat}
+            onChange={(e: RadioChangeEvent) => {
+              setNumberFormat(e.target.value);
+            }}
+          >
+            <Radio.Button value={NumberFormat.English}>{t('English')}</Radio.Button>
+            <Radio.Button value={NumberFormat.German}>{t('German')}</Radio.Button>
+          </Radio.Group>
+        </div>
       </div>
       {/* Render next step */}
       {file && (
         <>
           <Divider />
-          {children({ file, removeFile })}
+          {children({ file, parseOptions: { numberFormat }, removeFile })}
         </>
       )}
     </>
