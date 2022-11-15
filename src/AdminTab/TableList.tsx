@@ -29,12 +29,11 @@ export const TableList: FunctionComponent = () => {
 
   return (
     <div className="TableList">
-      <Table dataSource={tableList} loading={tableListIsLoading}>
-        <Column title={t('Name')} dataIndex="name" key="name" />
+      <Table dataSource={tableList} loading={tableListIsLoading} rowKey="name">
+        <Column title={t('Name')} dataIndex="name" />
         <Column
           title={t('Protected entities')}
           dataIndex="aidColumns"
-          key="aidColumns"
           render={(aidColumns: string[]) => renderAidColumns(aidColumns, t)}
         />
         <Column
