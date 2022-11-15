@@ -25,12 +25,18 @@ export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive 
         </Layout.Sidebar>
         <Layout.Content className="ImportDataTab-content">
           <FileLoadStep>
-            {({ file, removeFile }) => (
-              <SchemaLoadStep file={file}>
+            {({ file, parseOptions, removeFile }) => (
+              <SchemaLoadStep file={file} parseOptions={parseOptions}>
                 {({ schema }) => (
                   <AidSelectionStep schema={schema}>
                     {({ aidColumns }) => (
-                      <ImportStep schema={schema} file={file} aidColumns={aidColumns} removeFile={removeFile} />
+                      <ImportStep
+                        schema={schema}
+                        file={file}
+                        parseOptions={parseOptions}
+                        aidColumns={aidColumns}
+                        removeFile={removeFile}
+                      />
                     )}
                   </AidSelectionStep>
                 )}

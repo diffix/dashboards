@@ -21,6 +21,15 @@ export enum ServiceName {
   Metabase,
 }
 
+export enum NumberFormat {
+  English,
+  German,
+}
+
+export type ParseOptions = {
+  numberFormat: NumberFormat;
+};
+
 // Schema
 
 export type RowDataIndex = number;
@@ -68,7 +77,13 @@ export type Importer = {
   loadTables(): Task<ImportedTable[]>;
   removeTable(tableName: string): Task<void>;
   loadSchema(file: File): Task<TableSchema>;
-  importCSV(file: File, tableName: string, columns: TableColumn[], aidColumns: string[]): Task<boolean>;
+  importCSV(
+    file: File,
+    parseOptions: ParseOptions,
+    tableName: string,
+    columns: TableColumn[],
+    aidColumns: string[],
+  ): Task<boolean>;
 };
 
 export type Task<T> = {
@@ -94,6 +109,7 @@ declare global {
     readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;
     importCSV(
       fileName: string,
+      parseOptions: ParseOptions,
       tableName: string,
       columns: TableColumn[],
       aidColumns: string[],

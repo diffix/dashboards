@@ -36,7 +36,15 @@ import {
   startPostgres,
 } from './main/postgres';
 import { forwardLogLines } from './main/service-utils';
-import { ImportedTable, ServiceName, ServiceStatus, TableColumn } from './types';
+import {
+  NumberFormat,
+  ImportedTable,
+  ParseOptions,
+  ServiceName,
+  ServiceStatus,
+  TableColumn,
+  ColumnType,
+} from './types';
 
 const finished = util.promisify(stream.finished);
 
@@ -419,18 +427,36 @@ function setupIPC() {
     fileStream.close();
   }
 
-  async function copyRowsFromCsvFile(client: pg.Client, signal: AbortSignal, fileName: string, tableName: string) {
+  async function copyRowsFromCsvFile(
+    client: pg.Client,
+    signal: AbortSignal,
+    fileName: string,
+    fieldProcessors: ((_: string) => string)[],
+    tableName: string,
+  ) {
     const pgStream = stream.addAbortSignal(
       signal,
-      client.query(pgCopyStreams.from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER true)`)),
+      client.query(pgCopyStreams.from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER false)`)),
     );
 
+    let isHeader = true;
     for await (const row of csvFileRows(signal, fileName)) {
-      if (!pgStream.write(csv.stringify(row))) await events.once(pgStream, 'drain'); // Handle backpressure
+      if (isHeader) {
+        isHeader = false;
+        continue;
+      }
+      const line = csv.stringify(row.map((value, index) => fieldProcessors[index](value)));
+      if (!pgStream.write(line)) await events.once(pgStream, 'drain'); // Handle backpressure
     }
 
     pgStream.end();
     await finished(pgStream);
+  }
+
+  function getFieldProcessor(type: ColumnType, parseOptions: ParseOptions) {
+    if (parseOptions.numberFormat === NumberFormat.German && type === 'real')
+      return (field: string) => field.replace(',', '.');
+    return (field: string) => field;
   }
 
   ipcMain.handle(
@@ -439,6 +465,7 @@ function setupIPC() {
       _event,
       taskId: string,
       fileName: string,
+      parseOptions: ParseOptions,
       tableName: string,
       columns: TableColumn[],
       aidColumns: string[],
@@ -451,12 +478,14 @@ function setupIPC() {
         const columnsSQL = columns.map((column) => `"${column.name}" ${column.type}`).join(', ');
         console.info(`Table schema: ${columnsSQL}.`);
 
+        const fieldProcessors = columns.map((column) => getFieldProcessor(column.type, parseOptions));
+
         try {
           await client.query(`BEGIN`);
           // TODO: should we worry about (accidental) SQL-injection here?
           await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
           await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
-          await copyRowsFromCsvFile(client, signal, fileName, tableName);
+          await copyRowsFromCsvFile(client, signal, fileName, fieldProcessors, tableName);
           if (aidColumns.length > 0) {
             if (aidColumns.includes(ROW_INDEX_COLUMN)) {
               await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${ROW_INDEX_COLUMN}" SERIAL`);

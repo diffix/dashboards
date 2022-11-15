@@ -5,7 +5,7 @@ import React, { FunctionComponent, useState } from 'react';
 import { postgresReservedKeywords } from '../../constants';
 import { useT, useUnmountListener } from '../../shared';
 import { useTableActions, useTableListCached } from '../../state';
-import { File, TableSchema } from '../../types';
+import { File, ParseOptions, TableSchema } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 
 import './ImportStep.css';
@@ -14,6 +14,7 @@ const { Title } = Typography;
 
 type ImportProps = {
   file: File;
+  parseOptions: ParseOptions;
   schema: TableSchema;
   aidColumns: string[];
   removeFile: () => void;
@@ -33,7 +34,7 @@ function tableNameFixable(name: string) {
   return (postgresReservedKeywords.includes(name) || !tableNameRE.test(name)) && name !== fixTableName(name);
 }
 
-export const ImportStep: FunctionComponent<ImportProps> = ({ file, schema, aidColumns, removeFile }) => {
+export const ImportStep: FunctionComponent<ImportProps> = ({ file, parseOptions, schema, aidColumns, removeFile }) => {
   const t = useT('ImportDataTab::ImportStep');
   const tableList = useTableListCached();
   const { importCSV } = useTableActions();
@@ -78,7 +79,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({ file, schema, aidCo
         <Button
           onClick={async () => {
             setIsImporting(true);
-            const task = importCSV(file, tableName, schema, aidColumns);
+            const task = importCSV(file, parseOptions, tableName, schema, aidColumns);
             unmountListener.onUnmount = task.cancel;
             task.result
               .then((success) => {

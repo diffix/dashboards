@@ -3,7 +3,7 @@ import React, { FunctionComponent } from 'react';
 import { PREVIEW_ROWS_COUNT } from '../../constants';
 import { useT } from '../../shared';
 import { useSchema } from '../../state';
-import { File, TableSchema } from '../../types';
+import { File, TableSchema, ParseOptions } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 import { DataPreviewTable } from './DataPreviewTable';
 
@@ -11,6 +11,7 @@ const { Text, Title } = Typography;
 
 export type SchemaLoadStepProps = {
   file: File;
+  parseOptions: ParseOptions;
   children: (data: SchemaLoadStepData) => React.ReactNode;
 };
 
@@ -18,9 +19,9 @@ export type SchemaLoadStepData = {
   schema: TableSchema;
 };
 
-export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ children, file }) => {
+export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ children, file, parseOptions }) => {
   const t = useT('ImportDataTab::SchemaLoadStep');
-  const schema = useSchema(file);
+  const schema = useSchema(file, parseOptions);
 
   switch (schema.state) {
     case 'hasData':

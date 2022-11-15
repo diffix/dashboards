@@ -4,7 +4,7 @@ import { abortableAtom, loadable, useAtomValue } from 'jotai/utils';
 import { useEffect, useMemo, useState } from 'react';
 import { TOAST_DURATION } from '../constants';
 import { getT, runTask } from '../shared';
-import { ColumnType, File, ImportedTable, TableSchema, Task } from '../types';
+import { ColumnType, NumberFormat, File, ImportedTable, ParseOptions, TableSchema, Task } from '../types';
 import { Loadable, LOADING_STATE, useCachedLoadable } from './common';
 
 // State
@@ -37,7 +37,13 @@ export function useTableListCached(): ImportedTable[] {
 export interface TableActions {
   invalidateTableList(): void;
   removeTable(tableName: string): Task<boolean>;
-  importCSV(file: File, tableName: string, schema: TableSchema, aidColumns: string[]): Task<boolean>;
+  importCSV(
+    file: File,
+    parseOptions: ParseOptions,
+    tableName: string,
+    schema: TableSchema,
+    aidColumns: string[],
+  ): Task<boolean>;
 }
 
 export function useTableActions(): TableActions {
@@ -78,7 +84,7 @@ export function useTableActions(): TableActions {
         });
       },
 
-      importCSV(file, tableName, schema, aidColumns) {
+      importCSV(file, parseOptions, tableName, schema, aidColumns) {
         return runTask(async (signal) => {
           const t = getT('messages::importer');
 
@@ -90,7 +96,14 @@ export function useTableActions(): TableActions {
           });
 
           try {
-            const { aborted } = await window.importCSV(file.path, tableName, schema.columns, aidColumns, signal);
+            const { aborted } = await window.importCSV(
+              file.path,
+              parseOptions,
+              tableName,
+              schema.columns,
+              aidColumns,
+              signal,
+            );
             if (aborted) {
               message.info({
                 content: t('Import aborted'),
@@ -126,17 +139,20 @@ export function useTableActions(): TableActions {
 
 const BOOLEAN_RE = /^(?:true|false|0|1)$/i;
 const INTEGER_RE = /^-?\d{1,20}$/;
-const REAL_RE = /^-?\d{1,20}(?:\.\d{1,20})?$/;
+const REAL_EN_RE = /^-?\d{1,20}(?:\.\d{1,20})?$/;
+const REAL_DE_RE = /^-?\d{1,20}(?:,\d{1,20})?$/;
 // Source: https://stackoverflow.com/a/3143231, extended with a subset of PostgreSQL-admissible formats.
 // This is widely advised against, but there doesn't seem to be any viable approximation of the PostgreSQL
 // format in the packages I've explored.
 const TIMESTAMP_RE =
   /(\d{4}-[01]\d-[0-3]\d(T| )[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)?)|(\d{4}-[01]\d-[0-3]\d(T| )[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)?)|(\d{4}-[01]\d-[0-3]\d(T| )[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)?)|(\d{4}-[01]\d-[0-3]\d(T| )?([+-][0-2]\d:[0-5]\d|Z)?)/;
 
-function detectColumnTypes(columnsCount: number, rows: string[][]): ColumnType[] {
+function detectColumnTypes(parseOptions: ParseOptions, columnsCount: number, rows: string[][]): ColumnType[] {
   const typesInfo = Array(columnsCount)
     .fill(null)
     .map(() => ({ isEmpty: true, isBoolean: true, isInteger: true, isReal: true, isTimestamp: true }));
+
+  const realRE = parseOptions.numberFormat === NumberFormat.English ? REAL_EN_RE : REAL_DE_RE;
 
   for (const row of rows) {
     for (let index = 0; index < row.length; index++) {
@@ -147,7 +163,7 @@ function detectColumnTypes(columnsCount: number, rows: string[][]): ColumnType[]
         typeInfo.isEmpty = false;
         typeInfo.isBoolean &&= BOOLEAN_RE.test(value);
         typeInfo.isInteger &&= INTEGER_RE.test(value);
-        typeInfo.isReal &&= REAL_RE.test(value);
+        typeInfo.isReal &&= realRE.test(value);
         typeInfo.isTimestamp &&= TIMESTAMP_RE.test(value);
       }
     }
@@ -162,11 +178,11 @@ function detectColumnTypes(columnsCount: number, rows: string[][]): ColumnType[]
   });
 }
 
-function loadSchema(file: File): Task<TableSchema> {
+function loadSchema(file: File, parseOptions: ParseOptions): Task<TableSchema> {
   return runTask(async (signal) => {
     const result = await window.readCSV(file.path, signal);
 
-    const types = detectColumnTypes(result.headers.length, result.rows);
+    const types = detectColumnTypes(parseOptions, result.headers.length, result.rows);
     const columns = types.map((type, index) => {
       return { name: result.headers[index], type };
     });
@@ -175,14 +191,14 @@ function loadSchema(file: File): Task<TableSchema> {
   });
 }
 
-export function useSchema(file: File): Loadable<TableSchema> {
+export function useSchema(file: File, parseOptions: ParseOptions): Loadable<TableSchema> {
   const [schema, setSchema] = useState<Loadable<TableSchema>>(LOADING_STATE);
 
   useEffect(() => {
     setSchema(LOADING_STATE);
 
     let canceled = false;
-    const task = loadSchema(file);
+    const task = loadSchema(file, parseOptions);
 
     task.result
       .then((schema) => {
@@ -202,7 +218,7 @@ export function useSchema(file: File): Loadable<TableSchema> {
       canceled = true;
       task.cancel();
     };
-  }, [file]);
+  }, [file, parseOptions]);
 
   return schema;
 }

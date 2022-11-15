@@ -7,7 +7,7 @@ import { i18nConfig } from './constants';
 
 import de from '../assets/locales/de/translation.json';
 import en from '../assets/locales/en/translation.json';
-import { ServiceName, TableColumn } from './types';
+import { ParseOptions, ServiceName, TableColumn } from './types';
 
 const args = window.process.argv;
 let initialLanguage = 'en';
@@ -88,13 +88,14 @@ window.readCSV = (fileName: string, signal: AbortSignal) =>
 
 window.importCSV = (
   fileName: string,
+  parseOptions: ParseOptions,
   tableName: string,
   columns: TableColumn[],
   aidColumns: string[],
   signal: AbortSignal,
 ) =>
   newTask(signal, (taskId) => {
-    return ipcRenderer.invoke('import_csv', taskId, fileName, tableName, columns, aidColumns);
+    return ipcRenderer.invoke('import_csv', taskId, fileName, parseOptions, tableName, columns, aidColumns);
   });
 
 window.setMainWindowTitle = (title: string) => {
