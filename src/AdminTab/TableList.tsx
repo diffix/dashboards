@@ -1,4 +1,4 @@
-import { DeleteOutlined } from '@ant-design/icons';
+import { BarChartOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Button, Table } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
@@ -20,7 +20,11 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
   }
 }
 
-export const TableList: FunctionComponent = () => {
+export type TableListProps = {
+  onOpenMetabaseTab: () => void;
+};
+
+export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab }) => {
   const t = useT('AdminTab::TableList');
   const tableListLodable = useTableListLoadable();
   const tableList = useCachedLoadable(tableListLodable, []);
@@ -40,9 +44,14 @@ export const TableList: FunctionComponent = () => {
           key="actions"
           align="right"
           render={(_: unknown, table: ImportedTable) => (
-            <Button type="text" shape="circle" onClick={() => removeTable(table.name)}>
-              <DeleteOutlined />
-            </Button>
+            <>
+              <Button type="text" shape="circle" onClick={() => onOpenMetabaseTab()}>
+                <BarChartOutlined />
+              </Button>
+              <Button type="text" shape="circle" onClick={() => removeTable(table.name)}>
+                <DeleteOutlined />
+              </Button>
+            </>
           )}
         />
       </Table>

@@ -35,6 +35,7 @@ type MetabaseTabData = CommonTabData & {
   type: 'metabase';
   stale: boolean;
   refreshNonce: number;
+  startUrlPath: string;
 };
 
 type DocsTabData = CommonTabData & {
@@ -72,6 +73,7 @@ function newMetabaseTab(t: TFunc): TabData {
     type: 'metabase',
     stale: false,
     refreshNonce: 0,
+    startUrlPath: 'browse/3-anonymized-access',
   };
 }
 
@@ -275,7 +277,7 @@ export const App: FunctionComponent = () => {
                 ) : tab.type === 'import' ? (
                   <ImportDataTab isActive={tab.id === activeTab} />
                 ) : tab.type === 'metabase' ? (
-                  <MetabaseTab refreshNonce={tab.refreshNonce} />
+                  <MetabaseTab refreshNonce={tab.refreshNonce} startUrlPath={tab.startUrlPath} />
                 ) : (
                   <DocsTab
                     onTitleChange={(title) => setTitle(tab.id, title)}

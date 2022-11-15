@@ -16,7 +16,7 @@ export type AdminTabProps = {
   onOpenmportDataTab: () => void;
 };
 
-export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenmportDataTab }) => {
+export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, onOpenmportDataTab }) => {
   const t = useT('AdminTab');
   const postgresqlStatus = usePostgresqlStatus();
   const metabaseStatus = useMetabaseStatus();
@@ -41,7 +41,7 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenmportDataTab 
               {t('Import Table')}
             </Button>
           </div>
-          <TableList />
+          <TableList onOpenMetabaseTab={onOpenMetabaseTab} />
         </div>
       </div>
     </div>

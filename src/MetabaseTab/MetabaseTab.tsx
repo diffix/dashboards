@@ -7,9 +7,10 @@ import './MetabaseTab.css';
 
 export type MetabaseTabProps = {
   refreshNonce: number;
+  startUrlPath: string;
 };
 
-export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce }) => {
+export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce, startUrlPath }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const refreshRef = useRef(() => {});
 
@@ -18,7 +19,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce 
 
     const webviewProps = {
       partition: METABASE_SESSION_NAME,
-      src: `http://localhost:${METABASE_PORT}`,
+      src: `http://localhost:${METABASE_PORT}/${startUrlPath}`,
       // preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
       webpreferences: 'contextIsolation=false',
     };
@@ -32,7 +33,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce 
     webview!.addEventListener('did-attach', () => {
       refreshRef.current = () => (webview as any).reload();
     });
-  }, []);
+  }, [startUrlPath]);
 
   useEffect(() => {
     if (refreshNonce > 0) {
