@@ -31,6 +31,7 @@
           "metabase"
         ],
         "name": "Diffix Dashboards",
+        "executableName": "DiffixDashboards",
         "icon": "assets/icon"
       },
       "makers": [
