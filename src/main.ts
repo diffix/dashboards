@@ -1,23 +1,17 @@
 import archiver from 'archiver';
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import util from 'util';
 import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
 import log from 'electron-log';
+import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
-import * as csv from 'csv-string';
-import stream from 'stream';
-import readline from 'readline';
-import events from 'events';
-import pg from 'pg';
-import pgCopyStreams from 'pg-copy-streams';
+import path from 'path';
 import semver from 'semver';
-import { i18nConfig, PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from './constants';
+import { i18nConfig } from './constants';
 import { PageId } from './DocsTab';
-import { appResourcesLocation, isMac, postgresConfig } from './main/config';
+import { appResourcesLocation, isMac } from './main/config';
+import { sendToRenderer } from './main/ipc';
 import { getAppLanguage } from './main/language';
 import {
   getMetabaseStatus,
@@ -25,7 +19,6 @@ import {
   setMetabaseStatus,
   shutdownMetabase,
   startMetabase,
-  syncMetabaseSchema,
 } from './main/metabase';
 import {
   getPostgresqlStatus,
@@ -36,25 +29,8 @@ import {
   startPostgres,
 } from './main/postgres';
 import { forwardLogLines } from './main/service-utils';
-import {
-  NumberFormat,
-  ImportedTable,
-  ParseOptions,
-  ServiceName,
-  ServiceStatus,
-  TableColumn,
-  ColumnType,
-} from './types';
-
-const finished = util.promisify(stream.finished);
-
-const connectionConfig = {
-  database: postgresConfig.tablesDatabase,
-  port: postgresConfig.port,
-  user: postgresConfig.adminUser,
-  password: postgresConfig.adminPassword,
-  connectionTimeoutMillis: 1000,
-};
+import { importCSV, loadTables, readCSV, removeTable } from './main/tables';
+import { ParseOptions, ServiceName, ServiceStatus, TableColumn } from './types';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -255,11 +231,6 @@ function createWindow() {
 
 // IPC
 
-function sendToRenderer(channel: string, ...args: unknown[]): void {
-  const mainWindow = BrowserWindow.getAllWindows()[0];
-  mainWindow?.webContents.send(channel, ...args);
-}
-
 const activeTasks = new Map<string, AbortController>();
 
 async function runTask<T>(taskId: string, runner: (signal: AbortSignal) => Promise<T>): Promise<T> {
@@ -294,7 +265,7 @@ function setupApp() {
     }
   });
 
-  app.on('ready', async () => {
+  app.on('ready', () => {
     i18n.changeLanguage(getAppLanguage());
     setupMenu();
     registerProtocols();
@@ -332,13 +303,8 @@ function setupI18n() {
   });
 }
 
-async function syncTables(): Promise<void> {
-  await syncMetabaseSchema();
-  sendToRenderer('metabase_event', 'refresh');
-}
-
 function setupIPC() {
-  ipcMain.on('cancel_task', async (_event, taskId: string) => {
+  ipcMain.on('cancel_task', (_event, taskId: string) => {
     console.info(`Cancelling task ${taskId}.`);
     const controller = activeTasks.get(taskId);
     if (controller) {
@@ -349,119 +315,19 @@ function setupIPC() {
     }
   });
 
-  ipcMain.handle('load_tables', async (_event, taskId: string) => {
-    const client = new pg.Client(connectionConfig);
-    await client.connect();
-    return runTask(taskId, async (_signal) => {
-      console.info(`(${taskId}) Loading imported tables.`);
-
-      const { adminUser } = postgresConfig;
-      try {
-        const ret: ImportedTable[] = [];
-        const allTables = await client.query(
-          `SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner='${adminUser}';`,
-        );
-        allTables.rows.forEach((row) => ret.push({ key: row.tablename, name: row.tablename, aidColumns: [] }));
-
-        const aids = await client.query(
-          'SELECT tablename, objname FROM pg_catalog.pg_tables, diffix.show_labels() ' +
-            "WHERE objname ~ ('public\\.\\\"?' || tablename || '\\\"?\\..*') AND" +
-            `      tableowner='${adminUser}' AND ` +
-            "      label='aid';",
-        );
-        aids.rows.forEach((row) =>
-          ret.find(({ name }) => name == row.tablename)?.aidColumns.push(row.objname.split('.').at(-1)),
-        );
-
-        return ret;
-      } finally {
-        client.end();
-      }
-    });
+  ipcMain.handle('load_tables', (_event, taskId: string) => {
+    console.info(`(${taskId}) Loading imported tables.`);
+    return runTask(taskId, (_signal) => loadTables());
   });
 
-  ipcMain.handle('remove_table', async (_event, taskId: string, tableName: string) => {
-    const client = new pg.Client(connectionConfig);
-    await client.connect();
-    return runTask(taskId, async (_signal) => {
-      console.info(`(${taskId}) Removing imported table.`);
-
-      try {
-        await client.query(`DROP TABLE public."${tableName}";`);
-        await syncTables();
-      } finally {
-        client.end();
-      }
-    });
+  ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {
+    console.info(`(${taskId}) Removing imported table.`);
+    return runTask(taskId, (_signal) => removeTable(tableName));
   });
-
-  function parseCsvSeparatorLine(line: string) {
-    const regex = /^"?sep=(.)"?$/i;
-    const matches = line.match(regex);
-    return matches && (matches[1] as ReturnType<typeof csv.detect>);
-  }
-
-  async function* csvFileRows(signal: AbortSignal, fileName: string) {
-    const fileStream = stream.addAbortSignal(signal, fs.createReadStream(fileName));
-    const lineReader = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-    let separator = null;
-
-    for await (const line of lineReader) {
-      if (line.length === 0) continue;
-
-      if (!separator) {
-        // If we got a separator line, extract separator value and skip it.
-        separator = parseCsvSeparatorLine(line);
-        if (separator) continue;
-
-        // Auto-detect separator from headers line.
-        separator = csv.detect(line);
-      }
-
-      const row = csv.fetch(line, separator).map((value) => (value === '\\n' ? '' : value));
-      yield row;
-    }
-
-    lineReader.close();
-    fileStream.close();
-  }
-
-  async function copyRowsFromCsvFile(
-    client: pg.Client,
-    signal: AbortSignal,
-    fileName: string,
-    fieldProcessors: ((_: string) => string)[],
-    tableName: string,
-  ) {
-    const pgStream = stream.addAbortSignal(
-      signal,
-      client.query(pgCopyStreams.from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER false)`)),
-    );
-
-    let isHeader = true;
-    for await (const row of csvFileRows(signal, fileName)) {
-      if (isHeader) {
-        isHeader = false;
-        continue;
-      }
-      const line = csv.stringify(row.map((value, index) => fieldProcessors[index](value)));
-      if (!pgStream.write(line)) await events.once(pgStream, 'drain'); // Handle backpressure
-    }
-
-    pgStream.end();
-    await finished(pgStream);
-  }
-
-  function getFieldProcessor(type: ColumnType, parseOptions: ParseOptions) {
-    if (parseOptions.numberFormat === NumberFormat.German && type === 'real')
-      return (field: string) => field.replace(',', '.');
-    return (field: string) => field;
-  }
 
   ipcMain.handle(
     'import_csv',
-    async (
+    (
       _event,
       taskId: string,
       fileName: string,
@@ -470,68 +336,15 @@ function setupIPC() {
       columns: TableColumn[],
       aidColumns: string[],
     ) => {
-      const client = new pg.Client(connectionConfig);
-      await client.connect();
-      return runTask(taskId, async (signal) => {
-        console.info(`(${taskId}) copying CSV "${fileName}" to "${tableName}".`);
-
-        const columnsSQL = columns.map((column) => `"${column.name}" ${column.type}`).join(', ');
-        console.info(`Table schema: ${columnsSQL}.`);
-
-        const fieldProcessors = columns.map((column) => getFieldProcessor(column.type, parseOptions));
-
-        try {
-          await client.query(`BEGIN`);
-          // TODO: should we worry about (accidental) SQL-injection here?
-          await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
-          await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
-          await copyRowsFromCsvFile(client, signal, fileName, fieldProcessors, tableName);
-          if (aidColumns.length > 0) {
-            if (aidColumns.includes(ROW_INDEX_COLUMN)) {
-              await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${ROW_INDEX_COLUMN}" SERIAL`);
-            }
-            const aidColumnsSQL = aidColumns.map((aidColumn) => `'"${aidColumn}"'`).join(', ');
-            await client.query(`CALL diffix.mark_personal('"${tableName}"', ${aidColumnsSQL});`);
-          } else {
-            await client.query(`CALL diffix.mark_public('"${tableName}"');`);
-          }
-          await client.query(`GRANT SELECT ON "${tableName}" TO "${postgresConfig.trustedUser}"`);
-          await client.query(`COMMIT`);
-          await syncTables();
-        } catch (err) {
-          await client.query(`ROLLBACK`);
-          if ((err as Error)?.name === 'AbortError') {
-            return { aborted: true };
-          } else {
-            throw err;
-          }
-        } finally {
-          client.end();
-        }
-        return { aborted: false };
-      });
+      console.info(`(${taskId}) copying CSV "${fileName}" to "${tableName}".`);
+      return runTask(taskId, (signal) => importCSV(fileName, parseOptions, tableName, columns, aidColumns, signal));
     },
   );
 
-  ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) =>
-    runTask(taskId, async (signal) => {
-      console.info(`(${taskId}) reading CSV ${fileName}.`);
-
-      let headers: string[] | null = null;
-      const rows: string[][] = [];
-
-      for await (const row of csvFileRows(signal, fileName)) {
-        if (rows.length === PREVIEW_ROWS_COUNT) break;
-
-        if (headers === null) headers = row;
-        else rows.push(row);
-      }
-
-      if (headers === null) throw 'CSV parsing error: input file is empty!';
-
-      return { headers, rows };
-    }),
-  );
+  ipcMain.handle('read_csv', (_event, taskId: string, fileName: string) => {
+    console.info(`(${taskId}) reading CSV ${fileName}.`);
+    return runTask(taskId, (signal) => readCSV(fileName, signal));
+  });
 
   ipcMain.handle('set_main_window_title', (_event, title: string) => {
     const mainWindow = BrowserWindow.getAllWindows()[0];
@@ -541,7 +354,7 @@ function setupIPC() {
   ipcMain.handle('check_for_updates', async (_event) => {
     const response = await fetch('https://api.github.com/repos/diffix/dashboards/releases/latest');
 
-    // 404 here means there hasn't yet been a full release yet, just prerelases or drafts
+    // 404 here means there hasn't yet been a full release yet, just prereleases or drafts
     if (response.status == 404) return null;
 
     const data = await response.json();
@@ -587,7 +400,7 @@ async function startServices() {
   await setupPostgres();
   postgresql = startPostgres();
 
-  postgresql.stderr.on('data', async (data: string) => {
+  postgresql.stderr.on('data', (data: string) => {
     forwardLogLines(log.info, 'postgres:', data);
   });
 
@@ -598,7 +411,7 @@ async function startServices() {
 
   metabase = startMetabase();
 
-  metabase.stdout.on('data', async (data: string) => {
+  metabase.stdout.on('data', (data: string) => {
     forwardLogLines(log.info, 'metabase:', data);
   });
   metabase.stderr.on('data', (data: string) => {

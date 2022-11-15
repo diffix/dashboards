@@ -2,7 +2,6 @@ import { isEqual, noop } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TFunction, useTranslation } from 'react-i18next';
 import { i18nConfig } from '../constants';
-import { ComputedData } from '../types';
 
 export type TFunc = TFunction<typeof i18nConfig.ns, string>;
 
@@ -16,16 +15,6 @@ export function useT(prefix?: string): TFunc {
  */
 export function getT(prefix?: string): TFunc {
   return window.i18n.getFixedT(null, i18nConfig.ns, prefix);
-}
-
-export function useCachedData<T>(resultData: ComputedData<T>, initialData: T): T {
-  const ref = useRef(initialData);
-
-  if (resultData.state === 'completed') {
-    ref.current = resultData.value;
-  }
-
-  return ref.current;
 }
 
 /** Similar to `useMemo`, but retains reference for deep-equal values. */

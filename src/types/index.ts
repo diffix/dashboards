@@ -5,11 +5,6 @@ import type { PageId } from '../DocsTab';
 
 // UI State
 
-export type ComputedData<T> =
-  | { state: 'in_progress' }
-  | { state: 'failed'; error: string }
-  | { state: 'completed'; value: T };
-
 export enum ServiceStatus {
   Starting,
   Running,

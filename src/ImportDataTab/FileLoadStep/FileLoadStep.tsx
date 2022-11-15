@@ -1,8 +1,8 @@
 import { FileDoneOutlined, FileOutlined } from '@ant-design/icons';
-import { Divider, Upload, Radio, RadioChangeEvent, Typography } from 'antd';
-import React, { FunctionComponent, useCallback, useState } from 'react';
+import { Divider, Radio, RadioChangeEvent, Typography, Upload } from 'antd';
+import React, { FunctionComponent, useCallback, useMemo, useState } from 'react';
 import { useT } from '../../shared';
-import { NumberFormat, ParseOptions, File } from '../../types';
+import { File, NumberFormat, ParseOptions } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 
 const { Dragger } = Upload;
@@ -29,6 +29,8 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
     file && setLastCompletedImport(file.name);
     setFile(null);
   }, [file]);
+
+  const parseOptions = useMemo(() => ({ numberFormat }), [numberFormat]);
 
   const dragPromptText = lastCompletedImport
     ? t('{{lastCompletedImport}} imported successfully. Click or drag another file to this area', {
@@ -75,7 +77,7 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
       {file && (
         <>
           <Divider />
-          {children({ file, parseOptions: { numberFormat }, removeFile })}
+          {children({ file, parseOptions, removeFile })}
         </>
       )}
     </>
