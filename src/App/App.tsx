@@ -273,7 +273,7 @@ export const App: FunctionComponent = () => {
                 closable={tab.type !== 'admin'}
               >
                 {tab.type === 'admin' ? (
-                  <AdminTab onOpenMetabaseTab={openMetabaseTab} onOpenmportDataTab={openImportDataTab} />
+                  <AdminTab onOpenMetabaseTab={openMetabaseTab} onOpenImportDataTab={openImportDataTab} />
                 ) : tab.type === 'import' ? (
                   <ImportDataTab isActive={tab.id === activeTab} />
                 ) : tab.type === 'metabase' ? (

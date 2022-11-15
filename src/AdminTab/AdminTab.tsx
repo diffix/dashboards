@@ -13,10 +13,10 @@ const { Title } = Typography;
 
 export type AdminTabProps = {
   onOpenMetabaseTab: () => void;
-  onOpenmportDataTab: () => void;
+  onOpenImportDataTab: () => void;
 };
 
-export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, onOpenmportDataTab }) => {
+export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, onOpenImportDataTab }) => {
   const t = useT('AdminTab');
   const postgresqlStatus = usePostgresqlStatus();
   const metabaseStatus = useMetabaseStatus();
@@ -37,7 +37,7 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, 
         <div className="AdminTab-tables">
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
-            <Button onClick={onOpenmportDataTab} type="ghost" size="large" icon={<PlusOutlined />}>
+            <Button onClick={onOpenImportDataTab} type="ghost" size="large" icon={<PlusOutlined />}>
               {t('Import Table')}
             </Button>
           </div>
