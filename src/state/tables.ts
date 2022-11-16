@@ -4,8 +4,18 @@ import { abortableAtom, loadable, useAtomValue } from 'jotai/utils';
 import { useEffect, useMemo, useState } from 'react';
 import { TOAST_DURATION } from '../constants';
 import { getT, runTask } from '../shared';
-import { ColumnType, NumberFormat, File, ImportedTable, ParseOptions, TableSchema, Task } from '../types';
+import {
+  ColumnType,
+  File,
+  ImportedTable,
+  NumberFormat,
+  ParseOptions,
+  ServiceStatus,
+  TableSchema,
+  Task,
+} from '../types';
 import { Loadable, LOADING_STATE, useCachedLoadable } from './common';
+import { $postgresqlStatus } from './services';
 
 // State
 
@@ -13,7 +23,12 @@ const $tableListInvalidator = atom(0);
 
 const $tableList = abortableAtom((get, { signal }) => {
   get($tableListInvalidator);
-  return window.loadTables(signal);
+  const postgresqlStatus = get($postgresqlStatus);
+  if (postgresqlStatus === ServiceStatus.Running) {
+    return window.loadTables(signal);
+  } else {
+    return [] as ImportedTable[];
+  }
 });
 
 const $tableListLoadable = loadable($tableList);

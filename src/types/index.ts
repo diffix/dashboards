@@ -97,7 +97,8 @@ declare global {
     metabaseEvents: EventEmitter;
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
-    onServiceStatusUpdate(name: ServiceName, status: ServiceStatus): void;
+    onPostgresqlStatusUpdate(status: ServiceStatus): void;
+    onMetabaseStatusUpdate(status: ServiceStatus): void;
     getServicesStatus: (name: ServiceName) => ServiceStatus;
     loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
     removeTable(tableName: string, signal: AbortSignal): Promise<void>;
