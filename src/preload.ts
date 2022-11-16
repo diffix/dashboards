@@ -61,10 +61,18 @@ async function newTask<T>(signal: AbortSignal, runner: (taskId: string) => Promi
   }
 }
 
-window.onServiceStatusUpdate = (_name, _status) => {};
+window.onPostgresqlStatusUpdate = (_status) => {};
+window.onMetabaseStatusUpdate = (_status) => {};
 
 ipcRenderer.on('update_service_status', (_event, name, status) => {
-  window.onServiceStatusUpdate(name, status);
+  switch (name) {
+    case ServiceName.PostgreSQL:
+      window.onPostgresqlStatusUpdate(status);
+      break;
+    case ServiceName.Metabase:
+      window.onMetabaseStatusUpdate(status);
+      break;
+  }
 });
 
 window.getServicesStatus = (name: ServiceName) => ipcRenderer.sendSync('get_service_status', name);

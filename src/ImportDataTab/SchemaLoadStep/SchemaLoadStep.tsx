@@ -3,7 +3,7 @@ import React, { FunctionComponent } from 'react';
 import { PREVIEW_ROWS_COUNT } from '../../constants';
 import { useT } from '../../shared';
 import { useSchema } from '../../state';
-import { File, TableSchema, ParseOptions } from '../../types';
+import { File, ParseOptions, TableSchema } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 import { DataPreviewTable } from './DataPreviewTable';
 

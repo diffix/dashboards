@@ -1,8 +1,8 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Typography } from 'antd';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent } from 'react';
 import { useT } from '../shared';
-import { ServiceName } from '../types';
+import { useMetabaseStatus, usePostgresqlStatus } from '../state';
 import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';
 
@@ -18,20 +18,8 @@ export type AdminTabProps = {
 
 export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenmportDataTab }) => {
   const t = useT('AdminTab');
-
-  const [postgresqlStatus, setPostgresqlStatus] = useState(() => window.getServicesStatus(ServiceName.PostgreSQL));
-  const [metabaseStatus, setMetabaseStatus] = useState(() => window.getServicesStatus(ServiceName.Metabase));
-
-  window.onServiceStatusUpdate = (name, status) => {
-    switch (name) {
-      case ServiceName.PostgreSQL:
-        setPostgresqlStatus(status);
-        break;
-      case ServiceName.Metabase:
-        setMetabaseStatus(status);
-        break;
-    }
-  };
+  const postgresqlStatus = usePostgresqlStatus();
+  const metabaseStatus = useMetabaseStatus();
 
   return (
     <div className="AdminTab">
