@@ -15,6 +15,7 @@ import { appResourcesLocation, isMac } from './main/config';
 import { sendToRenderer } from './main/ipc';
 import { getAppLanguage } from './main/language';
 import {
+  buildSampleCardEncoded,
   getMetabaseStatus,
   initializeMetabase,
   setMetabaseStatus,
@@ -30,7 +31,7 @@ import {
   startPostgres,
 } from './main/postgres';
 import { forwardLogLines } from './main/service-utils';
-import { importCSV, loadTables, readCSV, removeTable } from './main/tables';
+import { getAnonymizedAccessDbId, importCSV, loadTables, readCSV, removeTable } from './main/tables';
 import { ParseOptions, ServiceName, ServiceStatus, TableColumn } from './types';
 
 const store = new Store();
@@ -323,9 +324,19 @@ function setupIPC() {
     return runTask(taskId, (_signal) => loadTables());
   });
 
+  ipcMain.handle('get_anonymized_access_db_id', (_event, taskId: string) => {
+    console.info(`(${taskId}) Loading anonymized access db id.`);
+    return runTask(taskId, (_signal) => getAnonymizedAccessDbId());
+  });
+
   ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {
     console.info(`(${taskId}) Removing imported table '${tableName}'.`);
     return runTask(taskId, (_signal) => removeTable(tableName));
+  });
+
+  ipcMain.handle('build_sample_card_encoded', (_event, taskId: string, tableName: string, aidColumns: string[]) => {
+    console.info(`(${taskId}) Building sample card for '${tableName}'.`);
+    return runTask(taskId, (_signal) => buildSampleCardEncoded(tableName, aidColumns));
   });
 
   ipcMain.handle('store_set', (_event, key, value) => {

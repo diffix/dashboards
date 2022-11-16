@@ -83,9 +83,21 @@ window.loadTables = (signal: AbortSignal) =>
     return result;
   });
 
+window.getAnonymizedAccessDbId = (signal: AbortSignal) =>
+  newTask(signal, async (taskId) => {
+    const result = await ipcRenderer.invoke('get_anonymized_access_db_id', taskId);
+    return result;
+  });
+
 window.removeTable = (tableName: string, signal: AbortSignal) =>
   newTask(signal, async (taskId) => {
     const result = await ipcRenderer.invoke('remove_table', taskId, tableName);
+    return result;
+  });
+
+window.buildSampleCardEncoded = (tableName: string, aidColumns: string[], signal: AbortSignal) =>
+  newTask(signal, async (taskId) => {
+    const result = await ipcRenderer.invoke('build_sample_card_encoded', taskId, tableName, aidColumns);
     return result;
   });
 

@@ -15,7 +15,7 @@ import {
   Task,
 } from '../types';
 import { Loadable, LOADING_STATE, useCachedLoadable } from './common';
-import { $postgresqlStatus } from './services';
+import { $metabaseStatus, $postgresqlStatus } from './services';
 
 // State
 
@@ -33,6 +33,17 @@ const $tableList = abortableAtom((get, { signal }) => {
 
 const $tableListLoadable = loadable($tableList);
 
+const $anonymizedAccessDbId = abortableAtom((get, { signal }) => {
+  const metabaseStatus = get($metabaseStatus);
+  if (metabaseStatus === ServiceStatus.Running) {
+    return window.getAnonymizedAccessDbId(signal);
+  } else {
+    return 0;
+  }
+});
+
+const $anonymizedAccessDbIdLoadable = loadable($anonymizedAccessDbId);
+
 // Utility hooks
 
 export function useTableList(): ImportedTable[] {
@@ -45,6 +56,10 @@ export function useTableListLoadable(): Loadable<ImportedTable[]> {
 
 export function useTableListCached(): ImportedTable[] {
   return useCachedLoadable(useAtomValue($tableListLoadable), []);
+}
+
+export function useAnonymizedAccessDbIdLoadable(): Loadable<number> {
+  return useAtomValue($anonymizedAccessDbIdLoadable);
 }
 
 // Actions

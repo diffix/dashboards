@@ -21,7 +21,7 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
 }
 
 export type TableListProps = {
-  onOpenMetabaseTab: () => void;
+  onOpenMetabaseTab: (table?: ImportedTable) => void;
   showMetabaseHint: boolean;
 };
 
@@ -56,7 +56,7 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
                 <Button
                   type={showMetabaseHint && !metabaseHintHovered && index === 0 ? 'primary' : 'text'}
                   shape="circle"
-                  onClick={() => onOpenMetabaseTab()}
+                  onClick={() => onOpenMetabaseTab(table)}
                 >
                   <BarChartOutlined />
                 </Button>

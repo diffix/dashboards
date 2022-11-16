@@ -176,6 +176,58 @@ export async function addDataSources(): Promise<Array<Record<string, unknown>>> 
   ];
 }
 
+export async function buildSampleCardEncoded(tableName: string, aidColumns: string[]): Promise<string> {
+  const databaseId = await anonymizedAccessDbId();
+
+  const tables = (await get(`api/database/${databaseId}?include=tables`)).tables as Array<{
+    id: number;
+    name: string;
+  }>;
+  const tableId = tables.find((table) => table.name === tableName)?.id;
+
+  const fields = (await get(`api/table/${tableId}/query_metadata`)).fields as Array<{ id: number; name: string }>;
+
+  // Picks some fields which aren't AIDs to put in the GROUP BY.
+  const nonAidFields = fields.filter((field) => !aidColumns.includes(field.name));
+  const breakout = nonAidFields.map((field) => ['field', field.id, null]).slice(0, 3);
+
+  const payload = {
+    name: `Sample card ${tableName}`,
+    description: `Sample card for ${tableName}`,
+    dataset_query: {
+      type: 'query',
+      query: {
+        'source-table': tableId,
+        aggregation: [['count']],
+        breakout: breakout,
+      },
+      database: databaseId,
+    },
+    display: 'table',
+    displayIsLocked: true,
+    parameters: [],
+  };
+
+  return Buffer.from(JSON.stringify(payload)).toString('base64');
+}
+
+export async function anonymizedAccessDbId(): Promise<number> {
+  const databases = (await get('/api/database')).data as Array<{
+    id: number;
+    details: { dbname: string; user: string };
+  }>;
+
+  const databaseId = databases.find(
+    (db) => db.details.dbname === postgresConfig.tablesDatabase && db.details.user === postgresConfig.trustedUser,
+  )?.id;
+
+  if (databaseId) {
+    return databaseId;
+  } else {
+    throw 'Anonymized access data source not found in Metabase';
+  }
+}
+
 export async function hasUserSetup(): Promise<boolean> {
   const properties = await get('/api/session/properties');
   return properties['has-user-setup'] as boolean;
