@@ -321,7 +321,7 @@ function setupIPC() {
   });
 
   ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {
-    console.info(`(${taskId}) Removing imported table.`);
+    console.info(`(${taskId}) Removing imported table '${tableName}'.`);
     return runTask(taskId, (_signal) => removeTable(tableName));
   });
 
