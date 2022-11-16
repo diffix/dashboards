@@ -98,7 +98,7 @@ async function* csvFileRows(signal: AbortSignal, fileName: string) {
       separator = csv.detect(line);
     }
 
-    const row = csv.fetch(line, separator).map((value) => (value === '\\n' ? '' : value));
+    const row = csv.fetch(line, separator).map((value) => (value === '\\n' || value === '\\N' ? '' : value));
     yield row;
   }
 
