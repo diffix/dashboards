@@ -101,3 +101,7 @@ export const postgresReservedKeywords = [
   'window',
   'with',
 ];
+
+// Storage keys
+
+export const SHOW_METABASE_HINT_KEY = 'hints.tableList.showMetabase';

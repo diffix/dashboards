@@ -12,11 +12,16 @@ import logo from './logo.png';
 const { Title } = Typography;
 
 export type AdminTabProps = {
+  showMetabaseHint: boolean;
   onOpenMetabaseTab: () => void;
   onOpenImportDataTab: () => void;
 };
 
-export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, onOpenImportDataTab }) => {
+export const AdminTab: FunctionComponent<AdminTabProps> = ({
+  showMetabaseHint,
+  onOpenMetabaseTab,
+  onOpenImportDataTab,
+}) => {
   const t = useT('AdminTab');
   const postgresqlStatus = usePostgresqlStatus();
   const metabaseStatus = useMetabaseStatus();
@@ -41,7 +46,7 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({ onOpenMetabaseTab, 
               {t('Import Table')}
             </Button>
           </div>
-          <TableList onOpenMetabaseTab={onOpenMetabaseTab} />
+          <TableList onOpenMetabaseTab={onOpenMetabaseTab} showMetabaseHint={showMetabaseHint} />
         </div>
       </div>
     </div>

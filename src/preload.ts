@@ -89,6 +89,10 @@ window.removeTable = (tableName: string, signal: AbortSignal) =>
     return result;
   });
 
+window.storeSet = (key: string, value: unknown) => ipcRenderer.invoke('store_set', key, value);
+window.storeGet = (key: string, defaultValue?: unknown) => ipcRenderer.invoke('store_get', key, defaultValue);
+window.storeDelete = (key: string) => ipcRenderer.invoke('store_delete', key);
+
 window.readCSV = (fileName: string, signal: AbortSignal) =>
   newTask(signal, (taskId) => {
     return ipcRenderer.invoke('read_csv', taskId, fileName);

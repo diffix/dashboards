@@ -3,6 +3,7 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
 import log from 'electron-log';
+import Store from 'electron-store';
 import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
@@ -31,6 +32,8 @@ import {
 import { forwardLogLines } from './main/service-utils';
 import { importCSV, loadTables, readCSV, removeTable } from './main/tables';
 import { ParseOptions, ServiceName, ServiceStatus, TableColumn } from './types';
+
+const store = new Store();
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -323,6 +326,19 @@ function setupIPC() {
   ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {
     console.info(`(${taskId}) Removing imported table '${tableName}'.`);
     return runTask(taskId, (_signal) => removeTable(tableName));
+  });
+
+  ipcMain.handle('store_set', (_event, key, value) => {
+    console.info('Storage store_set:', key, value);
+    store.set(key, value);
+  });
+  ipcMain.handle('store_get', (_event, key, defaultValue?) => {
+    console.info('Storage store_get:', key, store.get(key, defaultValue));
+    return store.get(key, defaultValue);
+  });
+  ipcMain.handle('store_delete', (_event, key) => {
+    console.info('Storage store_delete:', key);
+    store.delete(key);
   });
 
   ipcMain.handle(

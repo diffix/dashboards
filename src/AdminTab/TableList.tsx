@@ -1,6 +1,6 @@
 import { BarChartOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Button, Table } from 'antd';
-import React, { FunctionComponent } from 'react';
+import { Button, Tooltip, Table } from 'antd';
+import React, { FunctionComponent, useState } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
 import { TFunc, useT } from '../shared';
 import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
@@ -22,13 +22,15 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
 
 export type TableListProps = {
   onOpenMetabaseTab: () => void;
+  showMetabaseHint: boolean;
 };
 
-export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab }) => {
+export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab, showMetabaseHint }) => {
   const t = useT('AdminTab::TableList');
   const tableListLodable = useTableListLoadable();
   const tableList = useCachedLoadable(tableListLodable, []);
   const tableListIsLoading = useIsLoading(tableListLodable);
+  const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
   const { removeTable } = useTableActions();
 
   return (
@@ -43,11 +45,22 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
         <Column
           key="actions"
           align="right"
-          render={(_: unknown, table: ImportedTable) => (
+          render={(_: unknown, table: ImportedTable, index: number) => (
             <>
-              <Button type="text" shape="circle" onClick={() => onOpenMetabaseTab()}>
-                <BarChartOutlined />
-              </Button>
+              <Tooltip
+                placement="left"
+                visible={showMetabaseHint && !metabaseHintHovered && index == 0}
+                title={t('Click here to analyze in Metabase')}
+                onVisibleChange={(visible) => visible || setMetabaseHintHovered(true)}
+              >
+                <Button
+                  type={showMetabaseHint && !metabaseHintHovered && index == 0 ? 'primary' : 'text'}
+                  shape="circle"
+                  onClick={() => onOpenMetabaseTab()}
+                >
+                  <BarChartOutlined />
+                </Button>
+              </Tooltip>
               <Button type="text" shape="circle" onClick={() => removeTable(table.name)}>
                 <DeleteOutlined />
               </Button>
