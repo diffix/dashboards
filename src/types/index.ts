@@ -53,7 +53,7 @@ export type ColumnType = TableColumn['type'];
 
 // Query request
 
-export type ImportedTable = { key: string; name: string; aidColumns: string[] };
+export type ImportedTable = { name: string; aidColumns: string[] };
 
 // Query results
 
