@@ -9,11 +9,11 @@ import { ImportedTable } from '../types';
 const { Column } = Table;
 
 function renderAidColumns(aidColumns: string[], t: TFunc) {
-  if (aidColumns.length == 0) {
+  if (aidColumns.length === 0) {
     return t('None');
-  } else if (aidColumns.length == 1 && aidColumns[0] == ROW_INDEX_COLUMN) {
+  } else if (aidColumns.length === 1 && aidColumns[0] === ROW_INDEX_COLUMN) {
     return t('Per Row');
-  } else if (aidColumns.length == 1) {
+  } else if (aidColumns.length === 1) {
     return t('Column: {{column}}', { column: aidColumns[0] });
   } else {
     return t('Columns: {{columns}}', { columns: aidColumns.join(', ') });
@@ -49,12 +49,12 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
             <>
               <Tooltip
                 placement="left"
-                visible={showMetabaseHint && !metabaseHintHovered && index == 0}
+                visible={showMetabaseHint && !metabaseHintHovered && index === 0}
                 title={t('Click here to analyze in Metabase')}
                 onVisibleChange={(visible) => visible || setMetabaseHintHovered(true)}
               >
                 <Button
-                  type={showMetabaseHint && !metabaseHintHovered && index == 0 ? 'primary' : 'text'}
+                  type={showMetabaseHint && !metabaseHintHovered && index === 0 ? 'primary' : 'text'}
                   shape="circle"
                   onClick={() => onOpenMetabaseTab()}
                 >

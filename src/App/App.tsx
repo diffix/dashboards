@@ -184,6 +184,13 @@ export const App: FunctionComponent = () => {
     });
   }
 
+  function closeAndBackToAdmin(id: string) {
+    updateState((state) => {
+      if (id === state.activeTab) setActiveTab(state.tabs[0].id);
+      onEdit(id, 'remove');
+    });
+  }
+
   const docsFunctions = useStaticValue(() => ({
     openDocs(page: PageId, section: string | null = null) {
       updateState((state) => {
@@ -282,13 +289,7 @@ export const App: FunctionComponent = () => {
                     onOpenImportDataTab={openImportDataTab}
                   />
                 ) : tab.type === 'import' ? (
-                  <ImportDataTab
-                    isActive={tab.id === activeTab}
-                    closeImportTab={() => {
-                      onEdit(tab.id, 'remove');
-                      setActiveTab(tabs[0].id);
-                    }}
-                  />
+                  <ImportDataTab isActive={tab.id === activeTab} closeImportTab={() => closeAndBackToAdmin(tab.id)} />
                 ) : tab.type === 'metabase' ? (
                   <MetabaseTab refreshNonce={tab.refreshNonce} startUrlPath={tab.startUrlPath} />
                 ) : (
