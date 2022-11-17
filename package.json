@@ -116,8 +116,6 @@
     "@types/lodash": "^4.14.172",
     "@types/mdast": "^3.0.10",
     "@types/node": "^16.4.6",
-    "@types/pg": "^8.6.5",
-    "@types/pg-copy-streams": "^1.2.1",
     "@types/react": "^17.0.15",
     "@types/react-dom": "^17.0.9",
     "@types/semver": "^7.3.9",
