@@ -1,8 +1,8 @@
 import * as csv from 'csv-string';
 import events from 'events';
 import fs from 'fs';
-import pg from 'pg';
-import pgCopyStreams from 'pg-copy-streams';
+import { find } from 'lodash';
+import { TransactionSql } from 'postgres';
 import readline from 'readline';
 import stream from 'stream';
 import util from 'util';
@@ -11,16 +11,9 @@ import { ColumnType, ImportedTable, NumberFormat, ParseOptions, TableColumn } fr
 import { postgresConfig } from './config';
 import { sendToRenderer } from './ipc';
 import { syncMetabaseSchema } from './metabase';
+import { sql, SqlFragment } from './postgres';
 
 const finished = util.promisify(stream.finished);
-
-const connectionConfig = {
-  database: postgresConfig.tablesDatabase,
-  port: postgresConfig.port,
-  user: postgresConfig.adminUser,
-  password: postgresConfig.adminPassword,
-  connectionTimeoutMillis: 1000,
-};
 
 async function syncTables(): Promise<void> {
   await syncMetabaseSchema();
@@ -32,45 +25,31 @@ async function syncTables(): Promise<void> {
 // ----------------------------------------------------------------
 
 export async function loadTables(): Promise<ImportedTable[]> {
-  const client = new pg.Client(connectionConfig);
-  await client.connect();
-
   const { adminUser } = postgresConfig;
-  try {
-    const ret: ImportedTable[] = [];
-    const allTables = await client.query(`SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner='${adminUser}';`);
-    allTables.rows.forEach((row) => ret.push({ key: row.tablename, name: row.tablename, aidColumns: [] }));
 
-    const aids = await client.query(
-      'SELECT tablename, objname FROM pg_catalog.pg_tables, diffix.show_labels() ' +
-        "WHERE objname ~ ('public\\.\\\"?' || tablename || '\\\"?\\..*') AND" +
-        `      tableowner='${adminUser}' AND ` +
-        "      label='aid';",
-    );
+  const allTables = await sql`SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner = ${adminUser}`;
 
-    aids.rows.forEach((row) =>
-      ret.find(({ name }) => name == row.tablename)?.aidColumns.push(row.objname.split('.').at(-1)),
-    );
+  const ret: ImportedTable[] = allTables.map((row) => ({ key: row.tablename, name: row.tablename, aidColumns: [] }));
 
-    const tables = ret.map((table) => `'${table.name}'`).join(', ');
-    console.info(`Found the following tables: ${tables}.`);
+  const aids = await sql`
+    SELECT tablename, objname
+    FROM pg_catalog.pg_tables, diffix.show_labels()
+    WHERE objname ~ ('public\\.\\\"?' || tablename || '\\\"?\\..*')
+      AND tableowner = ${adminUser}
+      AND label = 'aid'
+  `;
 
-    return ret;
-  } finally {
-    client.end();
-  }
+  aids.forEach((row) => find(ret, { name: row.tablename })?.aidColumns.push(row.objname.split('.').at(-1)));
+
+  const tables = ret.map((table) => `'${table.name}'`).join(', ');
+  console.info(`Found the following tables: ${tables}.`);
+
+  return ret;
 }
 
 export async function removeTable(tableName: string): Promise<void> {
-  const client = new pg.Client(connectionConfig);
-  await client.connect();
-
-  try {
-    await client.query(`DROP TABLE public."${tableName}";`);
-    await syncTables();
-  } finally {
-    client.end();
-  }
+  await sql`DROP TABLE public.${sql(tableName)}`;
+  await syncTables();
 }
 
 // ----------------------------------------------------------------
@@ -109,8 +88,15 @@ async function* csvFileRows(signal: AbortSignal, fileName: string) {
   fileStream.close();
 }
 
+function rawSql(str: string): TemplateStringsArray {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const strings: any = [str];
+  strings.raw = [str];
+  return strings;
+}
+
 async function copyRowsFromCsvFile(
-  client: pg.Client,
+  sql: TransactionSql,
   signal: AbortSignal,
   fileName: string,
   fieldProcessors: ((_: string) => string)[],
@@ -118,7 +104,8 @@ async function copyRowsFromCsvFile(
 ) {
   const pgStream = stream.addAbortSignal(
     signal,
-    client.query(pgCopyStreams.from(`COPY "${tableName}" FROM STDIN (DELIMITER ',', FORMAT CSV, HEADER false)`)),
+    // Hack: We can't use ${sql(tableName)} to escape the table name identifier because of a library bug.
+    await sql(rawSql(`COPY "${tableName}" FROM STDIN (FORMAT CSV, DELIMITER ',', HEADER false)`)).writable(),
   );
 
   let isHeader = true;
@@ -170,41 +157,41 @@ export async function importCSV(
   aidColumns: string[],
   signal: AbortSignal,
 ): Promise<{ aborted: boolean }> {
-  const client = new pg.Client(connectionConfig);
-  await client.connect();
-
-  const columnsSQL = columns.map((column) => `"${column.name}" ${column.type}`).join(', ');
-  console.info(`Table schema: ${columnsSQL}.`);
-
-  const fieldProcessors = columns.map((column) => getFieldProcessor(column.type, parseOptions));
-
   try {
-    await client.query(`BEGIN`);
-    // TODO: should we worry about (accidental) SQL-injection here?
-    await client.query(`DROP TABLE IF EXISTS "${tableName}"`);
-    await client.query(`CREATE TABLE "${tableName}" (${columnsSQL})`);
-    await copyRowsFromCsvFile(client, signal, fileName, fieldProcessors, tableName);
-    if (aidColumns.length > 0) {
-      if (aidColumns.includes(ROW_INDEX_COLUMN)) {
-        await client.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${ROW_INDEX_COLUMN}" SERIAL`);
+    await sql.begin(async (sql) => {
+      await sql`DROP TABLE IF EXISTS ${sql(tableName)}`;
+
+      const columnsSQL: SqlFragment[] = columns.map((column, i) =>
+        i > 0
+          ? sql`, ${sql(column.name)} ${sql.unsafe(column.type)}`
+          : sql`${sql(column.name)} ${sql.unsafe(column.type)}`,
+      );
+      await sql`CREATE TABLE ${sql(tableName)} (${columnsSQL})`;
+
+      const fieldProcessors = columns.map((column) => getFieldProcessor(column.type, parseOptions));
+      await copyRowsFromCsvFile(sql, signal, fileName, fieldProcessors, tableName);
+
+      if (aidColumns.length > 0) {
+        if (aidColumns.includes(ROW_INDEX_COLUMN)) {
+          await sql`ALTER TABLE ${sql(tableName)} ADD COLUMN IF NOT EXISTS ${sql(ROW_INDEX_COLUMN)} SERIAL`;
+        }
+
+        const aidColumnsSQL: SqlFragment[] = aidColumns.map((aidColumn, i) =>
+          i > 0 ? sql`, '${sql(aidColumn)}'` : sql`'${sql(aidColumn)}'`,
+        );
+
+        await sql`CALL diffix.mark_personal('${sql(tableName)}', ${aidColumnsSQL})`;
+      } else {
+        await sql`CALL diffix.mark_public('${sql(tableName)}')`;
       }
-      const aidColumnsSQL = aidColumns.map((aidColumn) => `'"${aidColumn}"'`).join(', ');
-      await client.query(`CALL diffix.mark_personal('"${tableName}"', ${aidColumnsSQL});`);
-    } else {
-      await client.query(`CALL diffix.mark_public('"${tableName}"');`);
-    }
-    await client.query(`GRANT SELECT ON "${tableName}" TO "${postgresConfig.trustedUser}"`);
-    await client.query(`COMMIT`);
-    await syncTables();
+    });
+
+    return { aborted: false };
   } catch (err) {
-    await client.query(`ROLLBACK`);
     if ((err as Error)?.name === 'AbortError') {
       return { aborted: true };
     } else {
       throw err;
     }
-  } finally {
-    client.end();
   }
-  return { aborted: false };
 }
