@@ -29,7 +29,7 @@ export const TableList: FunctionComponent = () => {
 
   return (
     <div className="TableList">
-      <Table dataSource={tableList} loading={tableListIsLoading} rowKey="name">
+      <Table dataSource={tableList} loading={tableListIsLoading} rowKey="key">
         <Column title={t('Name')} dataIndex="name" />
         <Column
           title={t('Protected entities')}
