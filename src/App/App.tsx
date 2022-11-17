@@ -219,7 +219,7 @@ export const App: FunctionComponent = () => {
     function makeMetabaseTabsStale() {
       updateState((state) => {
         state.tabs.forEach((tab) => {
-          if (tab.type == 'metabase') tab.stale = true;
+          if (tab.type === 'metabase') tab.stale = true;
         });
       });
     }

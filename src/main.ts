@@ -371,7 +371,7 @@ function setupIPC() {
     const response = await fetch('https://api.github.com/repos/diffix/dashboards/releases/latest');
 
     // 404 here means there hasn't yet been a full release yet, just prereleases or drafts
-    if (response.status == 404) return null;
+    if (response.status === 404) return null;
 
     const data = await response.json();
     const newestTagName = data['tag_name'];

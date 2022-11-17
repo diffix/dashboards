@@ -49,7 +49,7 @@ export async function loadTables(): Promise<ImportedTable[]> {
     );
 
     aids.rows.forEach((row) =>
-      ret.find(({ name }) => name == row.tablename)?.aidColumns.push(row.objname.split('.').at(-1)),
+      ret.find(({ name }) => name === row.tablename)?.aidColumns.push(row.objname.split('.').at(-1)),
     );
 
     const tables = ret.map((table) => `'${table.name}'`).join(', ');
