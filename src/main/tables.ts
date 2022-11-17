@@ -29,7 +29,7 @@ export async function loadTables(): Promise<ImportedTable[]> {
 
   const allTables = await sql`SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner = ${adminUser}`;
 
-  const ret: ImportedTable[] = allTables.map((row) => ({ key: row.tablename, name: row.tablename, aidColumns: [] }));
+  const ret: ImportedTable[] = allTables.map((row) => ({ name: row.tablename, aidColumns: [] }));
 
   const aids = await sql`
     SELECT tablename, objname
@@ -184,6 +184,8 @@ export async function importCSV(
       } else {
         await sql`CALL diffix.mark_public('${sql(tableName)}')`;
       }
+
+      await sql`GRANT SELECT ON ${sql(tableName)} TO ${sql(postgresConfig.trustedUser)}`;
     });
 
     return { aborted: false };
