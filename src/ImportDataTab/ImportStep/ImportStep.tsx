@@ -17,7 +17,7 @@ type ImportProps = {
   parseOptions: ParseOptions;
   schema: TableSchema;
   aidColumns: string[];
-  closeImportTab: () => void;
+  onImportCompleted: () => void;
 };
 
 // Produces a table name which will not require surrounding in double-quotes in PostgreSQL.
@@ -39,7 +39,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
   parseOptions,
   schema,
   aidColumns,
-  closeImportTab,
+  onImportCompleted,
 }) => {
   const t = useT('ImportDataTab::ImportStep');
   const tableList = useTableListCached();
@@ -90,7 +90,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
             task.result
               .then((success) => {
                 if (success) {
-                  closeImportTab();
+                  onImportCompleted();
                 }
               })
               .finally(() => {

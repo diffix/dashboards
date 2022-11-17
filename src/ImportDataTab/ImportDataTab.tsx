@@ -12,10 +12,10 @@ import './ImportDataTab.css';
 
 export type ImportDataTabProps = {
   isActive: boolean;
-  closeImportTab: () => void;
+  onImportCompleted: () => void;
 };
 
-export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive, closeImportTab }) => {
+export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive, onImportCompleted }) => {
   return (
     <ImportDataNavProvider isActive={isActive}>
       <Layout className="ImportDataTab">
@@ -36,7 +36,7 @@ export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive,
                         file={file}
                         parseOptions={parseOptions}
                         aidColumns={aidColumns}
-                        closeImportTab={closeImportTab}
+                        onImportCompleted={onImportCompleted}
                       />
                     )}
                   </AidSelectionStep>
