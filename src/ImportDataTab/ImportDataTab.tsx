@@ -12,9 +12,10 @@ import './ImportDataTab.css';
 
 export type ImportDataTabProps = {
   isActive: boolean;
+  onImportCompleted: () => void;
 };
 
-export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive }) => {
+export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive, onImportCompleted }) => {
   return (
     <ImportDataNavProvider isActive={isActive}>
       <Layout className="ImportDataTab">
@@ -25,7 +26,7 @@ export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive 
         </Layout.Sidebar>
         <Layout.Content className="ImportDataTab-content">
           <FileLoadStep>
-            {({ file, parseOptions, removeFile }) => (
+            {({ file, parseOptions }) => (
               <SchemaLoadStep file={file} parseOptions={parseOptions}>
                 {({ schema }) => (
                   <AidSelectionStep schema={schema}>
@@ -35,7 +36,7 @@ export const ImportDataTab: FunctionComponent<ImportDataTabProps> = ({ isActive 
                         file={file}
                         parseOptions={parseOptions}
                         aidColumns={aidColumns}
-                        removeFile={removeFile}
+                        onImportCompleted={onImportCompleted}
                       />
                     )}
                   </AidSelectionStep>

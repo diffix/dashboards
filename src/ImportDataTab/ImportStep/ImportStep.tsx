@@ -17,7 +17,7 @@ type ImportProps = {
   parseOptions: ParseOptions;
   schema: TableSchema;
   aidColumns: string[];
-  removeFile: () => void;
+  onImportCompleted: () => void;
 };
 
 // Produces a table name which will not require surrounding in double-quotes in PostgreSQL.
@@ -34,7 +34,13 @@ function tableNameFixable(name: string) {
   return (postgresReservedKeywords.includes(name) || !tableNameRE.test(name)) && name !== fixTableName(name);
 }
 
-export const ImportStep: FunctionComponent<ImportProps> = ({ file, parseOptions, schema, aidColumns, removeFile }) => {
+export const ImportStep: FunctionComponent<ImportProps> = ({
+  file,
+  parseOptions,
+  schema,
+  aidColumns,
+  onImportCompleted,
+}) => {
   const t = useT('ImportDataTab::ImportStep');
   const tableList = useTableListCached();
   const { importCSV } = useTableActions();
@@ -84,7 +90,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({ file, parseOptions,
             task.result
               .then((success) => {
                 if (success) {
-                  removeFile();
+                  onImportCompleted();
                 }
               })
               .finally(() => {

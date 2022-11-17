@@ -29,6 +29,7 @@
   "rules": {
     "no-empty": "warn",
     "prefer-const": "warn",
+    "eqeqeq": "warn",
     "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-non-null-assertion": "off",

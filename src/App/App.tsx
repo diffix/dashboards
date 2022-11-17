@@ -3,11 +3,12 @@ import { ConfigProvider, message, Tabs, Tooltip } from 'antd';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
 import { find, findIndex } from 'lodash';
-import React, { FunctionComponent, useEffect } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
 import { AdminTab } from '../AdminTab';
+import { SHOW_METABASE_HINT_KEY } from '../constants';
 import { DocsFunctionsContext, DocsTab, PageId } from '../DocsTab';
 import { ImportDataTab } from '../ImportDataTab';
 import { MetabaseTab } from '../MetabaseTab';
@@ -35,6 +36,7 @@ type MetabaseTabData = CommonTabData & {
   type: 'metabase';
   stale: boolean;
   refreshNonce: number;
+  startUrlPath: string;
 };
 
 type DocsTabData = CommonTabData & {
@@ -72,6 +74,7 @@ function newMetabaseTab(t: TFunc): TabData {
     type: 'metabase',
     stale: false,
     refreshNonce: 0,
+    startUrlPath: 'browse/3-anonymized-access',
   };
 }
 
@@ -98,6 +101,7 @@ function setWindowTitle(state: AppState) {
 
 export const App: FunctionComponent = () => {
   const t = useT('App');
+
   const [state, updateState] = useImmer(() => {
     const initialTabs = [newAdminTab(t)];
     return {
@@ -106,17 +110,36 @@ export const App: FunctionComponent = () => {
     };
   });
 
+  const [showMetabaseHint, setShowMetabaseHint] = useState(true);
+
   useCheckUpdates();
+
+  function openMetabaseTab() {
+    updateState((state) => {
+      const metabaseTab = newMetabaseTab(t);
+      state.tabs.push(metabaseTab);
+      state.activeTab = metabaseTab.id;
+      setWindowTitle(state);
+    });
+    window.storeSet(SHOW_METABASE_HINT_KEY, false);
+    setShowMetabaseHint(false);
+  }
+
+  function openImportDataTab() {
+    updateState((state) => {
+      const importDataTab = newImportDataTab(t);
+      state.tabs.push(importDataTab);
+      state.activeTab = importDataTab.id;
+      setWindowTitle(state);
+    });
+  }
+
+  window.storeGet(SHOW_METABASE_HINT_KEY, true).then((r) => setShowMetabaseHint(r as boolean));
 
   function onEdit(targetKey: unknown, action: 'add' | 'remove'): void {
     switch (action) {
       case 'add':
-        updateState((state) => {
-          const metabaseTab = newMetabaseTab(t);
-          state.tabs.push(metabaseTab);
-          state.activeTab = metabaseTab.id;
-          setWindowTitle(state);
-        });
+        openMetabaseTab();
         return;
 
       case 'remove':
@@ -134,24 +157,6 @@ export const App: FunctionComponent = () => {
         });
         return;
     }
-  }
-
-  function openMetabaseTab() {
-    updateState((state) => {
-      const metabaseTab = newMetabaseTab(t);
-      state.tabs.push(metabaseTab);
-      state.activeTab = metabaseTab.id;
-      setWindowTitle(state);
-    });
-  }
-
-  function openImportDataTab() {
-    updateState((state) => {
-      const importDataTab = newImportDataTab(t);
-      state.tabs.push(importDataTab);
-      state.activeTab = importDataTab.id;
-      setWindowTitle(state);
-    });
   }
 
   function setActiveTab(id: string) {
@@ -177,6 +182,16 @@ export const App: FunctionComponent = () => {
       tab.stale = false;
       tab.refreshNonce++;
     });
+  }
+
+  function onImportCompleted(id: string) {
+    updateState((state) => {
+      if (id === state.activeTab) {
+        state.activeTab = state.tabs[0].id;
+        setWindowTitle(state);
+      }
+    });
+    onEdit(id, 'remove');
   }
 
   const docsFunctions = useStaticValue(() => ({
@@ -207,7 +222,7 @@ export const App: FunctionComponent = () => {
     function makeMetabaseTabsStale() {
       updateState((state) => {
         state.tabs.forEach((tab) => {
-          if (tab.type == 'metabase') tab.stale = true;
+          if (tab.type === 'metabase') tab.stale = true;
         });
       });
     }
@@ -271,11 +286,15 @@ export const App: FunctionComponent = () => {
                 closable={tab.type !== 'admin'}
               >
                 {tab.type === 'admin' ? (
-                  <AdminTab onOpenMetabaseTab={openMetabaseTab} onOpenmportDataTab={openImportDataTab} />
+                  <AdminTab
+                    showMetabaseHint={showMetabaseHint}
+                    onOpenMetabaseTab={openMetabaseTab}
+                    onOpenImportDataTab={openImportDataTab}
+                  />
                 ) : tab.type === 'import' ? (
-                  <ImportDataTab isActive={tab.id === activeTab} />
+                  <ImportDataTab isActive={tab.id === activeTab} onImportCompleted={() => onImportCompleted(tab.id)} />
                 ) : tab.type === 'metabase' ? (
-                  <MetabaseTab refreshNonce={tab.refreshNonce} />
+                  <MetabaseTab refreshNonce={tab.refreshNonce} startUrlPath={tab.startUrlPath} />
                 ) : (
                   <DocsTab
                     onTitleChange={(title) => setTitle(tab.id, title)}

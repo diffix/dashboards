@@ -45,7 +45,7 @@ async function waitUntilReachable(): Promise<void> {
       );
       return;
     } catch (err) {
-      if ((err as ExecFileException).code == 3) {
+      if ((err as ExecFileException).code === 3) {
         console.error('pg_isready failed to check if PostgreSQL is ready');
         throw err;
       }
@@ -74,9 +74,9 @@ async function psqlDetectPgDiffix() {
   );
   forwardLogLines(setupLog.info, 'psql:', detectPgDiffix.stderr);
   const result = detectPgDiffix.stdout.trim();
-  if (result == '1') {
+  if (result === '1') {
     return true;
-  } else if (result == '') {
+  } else if (result === '') {
     return false;
   } else {
     throw new Error(`Unexpected result when detecting pg_diffix: ${result}`);

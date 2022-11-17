@@ -57,7 +57,8 @@
       "None": "None",
       "Per Row": "Per Row",
       "Column: {{column}}": "Column: {{column}}",
-      "Columns: {{columns}}": "Columns: {{columns}}"
+      "Columns: {{columns}}": "Columns: {{columns}}",
+      "Click here to analyze in Metabase": "Click here to analyze in Metabase"
     }
   },
   "ImportDataTab": {

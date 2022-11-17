@@ -3,6 +3,7 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItemConstructorOptions, protocol, shell } from 'electron';
 import fetch from 'electron-fetch';
 import log from 'electron-log';
+import Store from 'electron-store';
 import fs from 'fs';
 import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
@@ -31,6 +32,8 @@ import {
 import { forwardLogLines } from './main/service-utils';
 import { importCSV, loadTables, readCSV, removeTable } from './main/tables';
 import { ParseOptions, ServiceName, ServiceStatus, TableColumn } from './types';
+
+const store = new Store();
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -325,6 +328,19 @@ function setupIPC() {
     return runTask(taskId, (_signal) => removeTable(tableName));
   });
 
+  ipcMain.handle('store_set', (_event, key, value) => {
+    console.info('Storage store_set:', key, value);
+    store.set(key, value);
+  });
+  ipcMain.handle('store_get', (_event, key, defaultValue?) => {
+    console.info('Storage store_get:', key, store.get(key, defaultValue));
+    return store.get(key, defaultValue);
+  });
+  ipcMain.handle('store_delete', (_event, key) => {
+    console.info('Storage store_delete:', key);
+    store.delete(key);
+  });
+
   ipcMain.handle(
     'import_csv',
     (
@@ -355,7 +371,7 @@ function setupIPC() {
     const response = await fetch('https://api.github.com/repos/diffix/dashboards/releases/latest');
 
     // 404 here means there hasn't yet been a full release yet, just prereleases or drafts
-    if (response.status == 404) return null;
+    if (response.status === 404) return null;
 
     const data = await response.json();
     const newestTagName = data['tag_name'];

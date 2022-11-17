@@ -102,6 +102,9 @@ declare global {
     getServicesStatus: (name: ServiceName) => ServiceStatus;
     loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
     removeTable(tableName: string, signal: AbortSignal): Promise<void>;
+    storeSet(key: string, value: unknown): Promise<void>;
+    storeGet(key: string, defaultValue?: unknown): Promise<unknown>;
+    storeDelete(key: string): Promise<unknown>;
     readCSV(fileName: string, signal: AbortSignal): Promise<LoadResponse>;
     importCSV(
       fileName: string,
