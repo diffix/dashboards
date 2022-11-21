@@ -197,6 +197,7 @@ export async function importCSV(
 
       await sql`GRANT SELECT ON ${sql(tableName)} TO ${sql(postgresConfig.trustedUser)}`;
     });
+    await syncTables();
     return { aborted: false };
   } catch (err) {
     if ((err as Error)?.name === 'AbortError') {

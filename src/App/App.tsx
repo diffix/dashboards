@@ -77,7 +77,6 @@ function newMetabaseTab(t: TFunc, anonymizedAccessDbId: number, table?: Imported
     type: 'metabase',
     stale: false,
     refreshNonce: 0,
-    // FIXME: un-hardcode-the `3`
     startUrlPath: table ? `question/#${table.initialQuery}` : `browse/${anonymizedAccessDbId}-anonymized-access`,
   };
 }
