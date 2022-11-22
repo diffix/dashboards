@@ -5,6 +5,25 @@ import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
 
 import './MetabaseTab.css';
 
+const CUSTOM_CSS = `
+  /* User menu actions */
+  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="Navbar;Profile Dropdown;Enter Admin"],
+  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="Navbar;Profile Dropdown;About v0.44.6"],
+  .css-1hoi0fz.ep9pi9w0 > ol > li > div[data-metabase-event="Navbar;Profile Dropdown;Logout"] {
+    display: none;
+  }
+
+  /* New Question button */
+  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="NavBar;New Question Click;"] {
+    display: none;
+  }
+
+  /* Sidebar Data section */
+  aside > nav > .css-1agdudp.exp4uno11 > div > :nth-child(3) {
+    display: none;
+  }
+`;
+
 export type MetabaseTabProps = {
   refreshNonce: number;
   startUrlPath: string;
@@ -20,7 +39,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
     const webviewProps = {
       partition: METABASE_SESSION_NAME,
       src: `http://localhost:${METABASE_PORT}/${startUrlPath}`,
-      // preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
+      preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
       webpreferences: 'contextIsolation=false',
     };
 
@@ -32,6 +51,11 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
 
     webview!.addEventListener('did-attach', () => {
       refreshRef.current = () => (webview as any).reload();
+    });
+
+    webview!.addEventListener('dom-ready', () => {
+      (webview as any).insertCSS(CUSTOM_CSS);
+      (webview as any).openDevTools();
     });
   }, [startUrlPath]);
 
