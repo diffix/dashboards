@@ -5,7 +5,6 @@ import { useT } from '../shared';
 import { useMetabaseStatus, usePostgresqlStatus } from '../state';
 import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';
-import { ImportedTable } from '../types';
 
 import './AdminTab.css';
 import logo from './logo.png';
@@ -14,7 +13,7 @@ const { Title } = Typography;
 
 export type AdminTabProps = {
   showMetabaseHint: boolean;
-  onOpenMetabaseTab: (table?: ImportedTable) => void;
+  onOpenMetabaseTab: (initialPath?: string) => void;
   onOpenImportDataTab: () => void;
 };
 

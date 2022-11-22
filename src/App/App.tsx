@@ -13,7 +13,6 @@ import { DocsFunctionsContext, DocsTab, PageId } from '../DocsTab';
 import { ImportDataTab } from '../ImportDataTab';
 import { MetabaseTab } from '../MetabaseTab';
 import { getT, TFunc, useStaticValue, useT } from '../shared';
-import { ImportedTable } from '../types';
 import { useCheckUpdates } from './use-check-updates';
 
 import './App.css';
@@ -68,14 +67,24 @@ function newImportDataTab(t: TFunc): TabData {
   };
 }
 
-function newMetabaseTab(t: TFunc, table?: ImportedTable): TabData {
+function blankMetabasePath(): string {
+  const blankQuestionWizardPayload = {
+    creationType: 'custom_question',
+    dataset_query: { database: null, query: { 'source-table': null }, type: 'query' },
+    display: 'table',
+    visualization_settings: {},
+  };
+  return `question/notebook#${Buffer.from(JSON.stringify(blankQuestionWizardPayload)).toString('base64')}`;
+}
+
+function newMetabaseTab(t: TFunc, initialPath?: string): TabData {
   return {
     id: (nextTabId++).toString(),
     title: t('Metabase'),
     type: 'metabase',
     stale: false,
     refreshNonce: 0,
-    startUrlPath: table ? `question/#${table.initialQuery}` : ``,
+    startUrlPath: initialPath || blankMetabasePath(),
   };
 }
 
@@ -115,9 +124,9 @@ export const App: FunctionComponent = () => {
 
   useCheckUpdates();
 
-  function openMetabaseTab(table?: ImportedTable) {
+  function openMetabaseTab(initialPath: string) {
     updateState((state) => {
-      const metabaseTab = newMetabaseTab(t, table);
+      const metabaseTab = newMetabaseTab(t, initialPath);
       state.tabs.push(metabaseTab);
       state.activeTab = metabaseTab.id;
       setWindowTitle(state);
@@ -289,7 +298,7 @@ export const App: FunctionComponent = () => {
                 {tab.type === 'admin' ? (
                   <AdminTab
                     showMetabaseHint={showMetabaseHint}
-                    onOpenMetabaseTab={(table?: ImportedTable) => openMetabaseTab(table)}
+                    onOpenMetabaseTab={(initialPath?: string) => openMetabaseTab(initialPath)}
                     onOpenImportDataTab={openImportDataTab}
                   />
                 ) : tab.type === 'import' ? (

@@ -10,7 +10,7 @@ import { PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from '../constants';
 import { ColumnType, ImportedTable, NumberFormat, ParseOptions, TableColumn } from '../types';
 import { postgresConfig } from './config';
 import { sendToRenderer } from './ipc';
-import { buildSampleCardEncoded, syncMetabaseSchema } from './metabase';
+import { buildNewSQLPayload, syncMetabaseSchema } from './metabase';
 import { sql, SqlFragment } from './postgres';
 
 const finished = util.promisify(stream.finished);
@@ -29,7 +29,7 @@ export async function loadTables(): Promise<ImportedTable[]> {
 
   const allTables = await sql`SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner = ${adminUser}`;
 
-  const ret: ImportedTable[] = allTables.map((row) => ({ name: row.tablename, aidColumns: [], initialQuery: '' }));
+  const ret: ImportedTable[] = allTables.map((row) => ({ name: row.tablename, aidColumns: [] }));
 
   const aids = await sql`
     SELECT tablename, objname
@@ -43,7 +43,7 @@ export async function loadTables(): Promise<ImportedTable[]> {
 
   await Promise.all(
     ret.map(async (table) => {
-      table.initialQuery = await buildSampleCardEncoded(table.name, table.aidColumns);
+      table.initialQueryPayloads = await buildNewSQLPayload(table.name, table.aidColumns);
     }),
   );
 
