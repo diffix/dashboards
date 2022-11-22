@@ -13,7 +13,7 @@ const { Title } = Typography;
 
 export type AdminTabProps = {
   showMetabaseHint: boolean;
-  onOpenMetabaseTab: () => void;
+  onOpenMetabaseTab: (initialPath?: string) => void;
   onOpenImportDataTab: () => void;
 };
 

@@ -1,4 +1,5 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
+import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
 import { delay, getUsername } from '../service-utils';
@@ -104,6 +105,50 @@ async function healthCheck(): Promise<boolean> {
   }
 }
 
+async function getTableId(databaseId: number, tableName: string) {
+  const tables = (await get(`api/database/${databaseId}?include=tables`)).tables as Array<{
+    id: number;
+    name: string;
+  }>;
+  const tableId = tables.find((table) => table.name === tableName)?.id;
+
+  if (tableId) {
+    return tableId;
+  } else {
+    throw new Error(`Table ${tableName} not found in data source ${databaseId}`);
+  }
+}
+
+function makeSqlPayload(databaseId: number, queryString: string) {
+  return {
+    dataset_query: {
+      type: 'native',
+      native: { query: queryString, 'template-tags': {} },
+      database: databaseId,
+    },
+    display: 'table',
+    displayIsLocked: true,
+    parameters: [],
+  };
+}
+
+function makeQuestionPayload(databaseId: number, tableId: number, breakout: (string | number | null)[][]) {
+  return {
+    dataset_query: {
+      type: 'query',
+      query: {
+        'source-table': tableId,
+        aggregation: [['count']],
+        breakout: breakout,
+      },
+      database: databaseId,
+    },
+    display: 'table',
+    displayIsLocked: true,
+    parameters: [],
+  };
+}
+
 export async function waitUntilReady(): Promise<void> {
   const { connectAttempts, connectTimeout } = metabaseConfig;
   for (let i = 0; i < connectAttempts; i++) {
@@ -174,6 +219,49 @@ export async function addDataSources(): Promise<Array<Record<string, unknown>>> 
     await post('/api/database', conn('direct', postgresConfig.adminUser, postgresConfig.adminPassword)),
     await post('/api/database', conn('anonymized', postgresConfig.trustedUser, postgresConfig.trustedPassword)),
   ];
+}
+
+export async function getAnonymizedAccessDbId(): Promise<number> {
+  const databases = (await get('/api/database')).data as Array<{
+    id: number;
+    details: { dbname: string; user: string };
+  }>;
+
+  const databaseId = databases.find(
+    (db) => db.details.dbname === postgresConfig.tablesDatabase && db.details.user === postgresConfig.trustedUser,
+  )?.id;
+
+  if (databaseId) {
+    return databaseId;
+  } else {
+    throw new Error('Anonymized access data source not found in Metabase');
+  }
+}
+
+export async function buildInitialQueries(
+  databaseId: number,
+  tableName: string,
+  aidColumns: string[],
+): Promise<InitialQueryPayloads> {
+  const tableId = await getTableId(databaseId, tableName);
+  const fields = (await get(`api/table/${tableId}/query_metadata`)).fields as Array<{ id: number; name: string }>;
+
+  // Picks some fields which aren't AIDs to put in the GROUP BY.
+  const nonAidField = fields.find((field) => !aidColumns.includes(field.name));
+
+  const columnSQL = nonAidField ? `"${nonAidField.name}",` : '';
+  const groupBySQL = nonAidField ? 'GROUP BY 1' : '';
+  const query = `SELECT ${columnSQL} count(*) FROM "${tableName}" ${groupBySQL}`;
+
+  const breakout = nonAidField ? [['field', nonAidField.id, null]] : [];
+
+  const sqlPayload = makeSqlPayload(databaseId, query);
+  const questionPayload = makeQuestionPayload(databaseId, tableId, breakout);
+
+  return {
+    sqlPayload: Buffer.from(JSON.stringify(sqlPayload)).toString('base64'),
+    questionPayload: Buffer.from(JSON.stringify(questionPayload)).toString('base64'),
+  };
 }
 
 export async function hasUserSetup(): Promise<boolean> {

@@ -10,7 +10,7 @@ import { PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from '../constants';
 import { ColumnType, ImportedTable, NumberFormat, ParseOptions, TableColumn } from '../types';
 import { postgresConfig } from './config';
 import { sendToRenderer } from './ipc';
-import { syncMetabaseSchema } from './metabase';
+import { buildInitialQueries, getAnonymizedAccessDbId, syncMetabaseSchema } from './metabase';
 import { sql, SqlFragment } from './postgres';
 
 const finished = util.promisify(stream.finished);
@@ -40,6 +40,13 @@ export async function loadTables(): Promise<ImportedTable[]> {
   `;
 
   aids.forEach((row) => find(ret, { name: row.tablename })?.aidColumns.push(row.objname.split('.').at(-1)));
+
+  const databaseId = await getAnonymizedAccessDbId();
+  await Promise.all(
+    ret.map(async (table) => {
+      table.initialQueryPayloads = await buildInitialQueries(databaseId, table.name, table.aidColumns);
+    }),
+  );
 
   const tables = ret.map((table) => `'${table.name}'`).join(', ');
   console.info(`Found the following tables: ${tables}.`);
@@ -187,7 +194,7 @@ export async function importCSV(
 
       await sql`GRANT SELECT ON ${sql(tableName)} TO ${sql(postgresConfig.trustedUser)}`;
     });
-
+    await syncTables();
     return { aborted: false };
   } catch (err) {
     if ((err as Error)?.name === 'AbortError') {

@@ -1,4 +1,4 @@
-import { BarChartOutlined, DeleteOutlined } from '@ant-design/icons';
+import { BarChartOutlined, DeleteOutlined, ConsoleSqlOutlined } from '@ant-design/icons';
 import { Button, Tooltip, Table } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
@@ -21,7 +21,7 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
 }
 
 export type TableListProps = {
-  onOpenMetabaseTab: () => void;
+  onOpenMetabaseTab: (initialPath?: string) => void;
   showMetabaseHint: boolean;
 };
 
@@ -56,9 +56,16 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
                 <Button
                   type={showMetabaseHint && !metabaseHintHovered && index === 0 ? 'primary' : 'text'}
                   shape="circle"
-                  onClick={() => onOpenMetabaseTab()}
+                  onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.questionPayload}`)}
                 >
                   <BarChartOutlined />
+                </Button>
+                <Button
+                  type={'text'}
+                  shape="circle"
+                  onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload}`)}
+                >
+                  <ConsoleSqlOutlined />
                 </Button>
               </Tooltip>
               <Button type="text" shape="circle" onClick={() => removeTable(table.name)}>
