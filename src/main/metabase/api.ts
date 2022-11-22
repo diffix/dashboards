@@ -96,6 +96,10 @@ function post(path: string, data: unknown) {
   }) as Promise<Record<string, unknown>>;
 }
 
+function deleteReq(path: string) {
+  return makeRequest(path, { method: 'DELETE' }) as Promise<Record<string, unknown>>;
+}
+
 async function healthCheck(): Promise<boolean> {
   try {
     const response = await get('/api/health');
@@ -219,6 +223,12 @@ export async function addDataSources(): Promise<Array<Record<string, unknown>>> 
     await post('/api/database', conn('direct', postgresConfig.adminUser, postgresConfig.adminPassword)),
     await post('/api/database', conn('anonymized', postgresConfig.trustedUser, postgresConfig.trustedPassword)),
   ];
+}
+
+export async function removeSampleData(): Promise<void> {
+  // According to Metabase docs, sample data cannot be stopped from being generated.
+  // When removed, the `id: 1` is not reused, so it's a fair assumption to delete it like this.
+  await deleteReq('/api/database/1');
 }
 
 export async function getAnonymizedAccessDbId(): Promise<number> {
