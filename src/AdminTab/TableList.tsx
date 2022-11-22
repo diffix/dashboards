@@ -1,4 +1,4 @@
-import { BarChartOutlined, DeleteOutlined, ConsoleSqlOutlined, EllipsisOutlined } from '@ant-design/icons';
+import { DeleteOutlined, ConsoleSqlOutlined, EllipsisOutlined } from '@ant-design/icons';
 import { Button, Tooltip, Table, Dropdown, Menu } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
@@ -34,13 +34,6 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
 
   const menu = (
     <Menu>
-      <Menu.Item
-        icon={<BarChartOutlined />}
-        key={`${table.name}-new-question`}
-        onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.questionPayload}`)}
-      >
-        {t('New Question')}
-      </Menu.Item>
       <Menu.Item
         icon={<ConsoleSqlOutlined />}
         key={`${table.name}-new-sql`}

@@ -59,7 +59,6 @@
       "Column: {{column}}": "Column: {{column}}",
       "Columns: {{columns}}": "Columns: {{columns}}",
       "TableDropdown": {
-        "New Question": "New Question",
         "New SQL query": "New SQL query",
         "Remove": "Remove",
         "Click here to analyze in Metabase": "Click here to analyze in Metabase"

@@ -132,23 +132,6 @@ function makeSqlPayload(databaseId: number, queryString: string) {
   };
 }
 
-function makeQuestionPayload(databaseId: number, tableId: number, breakout: (string | number | null)[][]) {
-  return {
-    dataset_query: {
-      type: 'query',
-      query: {
-        'source-table': tableId,
-        aggregation: [['count']],
-        breakout: breakout,
-      },
-      database: databaseId,
-    },
-    display: 'table',
-    displayIsLocked: true,
-    parameters: [],
-  };
-}
-
 export async function waitUntilReady(): Promise<void> {
   const { connectAttempts, connectTimeout } = metabaseConfig;
   for (let i = 0; i < connectAttempts; i++) {
@@ -253,14 +236,10 @@ export async function buildInitialQueries(
   const groupBySQL = nonAidField ? 'GROUP BY 1' : '';
   const query = `SELECT ${columnSQL} count(*) FROM "${tableName}" ${groupBySQL}`;
 
-  const breakout = nonAidField ? [['field', nonAidField.id, null]] : [];
-
   const sqlPayload = makeSqlPayload(databaseId, query);
-  const questionPayload = makeQuestionPayload(databaseId, tableId, breakout);
 
   return {
     sqlPayload: Buffer.from(JSON.stringify(sqlPayload)).toString('base64'),
-    questionPayload: Buffer.from(JSON.stringify(questionPayload)).toString('base64'),
   };
 }
 
