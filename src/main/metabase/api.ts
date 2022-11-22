@@ -104,6 +104,23 @@ async function healthCheck(): Promise<boolean> {
   }
 }
 
+async function anonymizedAccessDbId(): Promise<number> {
+  const databases = (await get('/api/database')).data as Array<{
+    id: number;
+    details: { dbname: string; user: string };
+  }>;
+
+  const databaseId = databases.find(
+    (db) => db.details.dbname === postgresConfig.tablesDatabase && db.details.user === postgresConfig.trustedUser,
+  )?.id;
+
+  if (databaseId) {
+    return databaseId;
+  } else {
+    throw 'Anonymized access data source not found in Metabase';
+  }
+}
+
 export async function waitUntilReady(): Promise<void> {
   const { connectAttempts, connectTimeout } = metabaseConfig;
   for (let i = 0; i < connectAttempts; i++) {
@@ -209,23 +226,6 @@ export async function buildSampleCardEncoded(tableName: string, aidColumns: stri
   };
 
   return Buffer.from(JSON.stringify(payload)).toString('base64');
-}
-
-export async function anonymizedAccessDbId(): Promise<number> {
-  const databases = (await get('/api/database')).data as Array<{
-    id: number;
-    details: { dbname: string; user: string };
-  }>;
-
-  const databaseId = databases.find(
-    (db) => db.details.dbname === postgresConfig.tablesDatabase && db.details.user === postgresConfig.trustedUser,
-  )?.id;
-
-  if (databaseId) {
-    return databaseId;
-  } else {
-    throw 'Anonymized access data source not found in Metabase';
-  }
 }
 
 export async function hasUserSetup(): Promise<boolean> {

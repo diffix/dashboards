@@ -31,7 +31,7 @@ import {
   startPostgres,
 } from './main/postgres';
 import { forwardLogLines } from './main/service-utils';
-import { getAnonymizedAccessDbId, importCSV, loadTables, readCSV, removeTable } from './main/tables';
+import { importCSV, loadTables, readCSV, removeTable } from './main/tables';
 import { ParseOptions, ServiceName, ServiceStatus, TableColumn } from './types';
 
 const store = new Store();
@@ -322,11 +322,6 @@ function setupIPC() {
   ipcMain.handle('load_tables', (_event, taskId: string) => {
     console.info(`(${taskId}) Loading imported tables.`);
     return runTask(taskId, (_signal) => loadTables());
-  });
-
-  ipcMain.handle('get_anonymized_access_db_id', (_event, taskId: string) => {
-    console.info(`(${taskId}) Loading anonymized access db id.`);
-    return runTask(taskId, (_signal) => getAnonymizedAccessDbId());
   });
 
   ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {

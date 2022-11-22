@@ -101,7 +101,6 @@ declare global {
     onMetabaseStatusUpdate(status: ServiceStatus): void;
     getServicesStatus: (name: ServiceName) => ServiceStatus;
     loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
-    getAnonymizedAccessDbId(signal: AbortSignal): Promise<number>;
     removeTable(tableName: string, signal: AbortSignal): Promise<void>;
     buildSampleCardEncoded(tableName: string, aidColumns: string[], signal: AbortSignal): Promise<string>;
     storeSet(key: string, value: unknown): Promise<void>;

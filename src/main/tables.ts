@@ -10,7 +10,7 @@ import { PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from '../constants';
 import { ColumnType, ImportedTable, NumberFormat, ParseOptions, TableColumn } from '../types';
 import { postgresConfig } from './config';
 import { sendToRenderer } from './ipc';
-import { anonymizedAccessDbId, buildSampleCardEncoded, syncMetabaseSchema } from './metabase';
+import { buildSampleCardEncoded, syncMetabaseSchema } from './metabase';
 import { sql, SqlFragment } from './postgres';
 
 const finished = util.promisify(stream.finished);
@@ -51,10 +51,6 @@ export async function loadTables(): Promise<ImportedTable[]> {
   console.info(`Found the following tables: ${tables}.`);
 
   return ret;
-}
-
-export async function getAnonymizedAccessDbId(): Promise<number> {
-  return await anonymizedAccessDbId();
 }
 
 export async function removeTable(tableName: string): Promise<void> {

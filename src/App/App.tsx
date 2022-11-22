@@ -13,8 +13,6 @@ import { DocsFunctionsContext, DocsTab, PageId } from '../DocsTab';
 import { ImportDataTab } from '../ImportDataTab';
 import { MetabaseTab } from '../MetabaseTab';
 import { getT, TFunc, useStaticValue, useT } from '../shared';
-import { useCachedLoadable } from '../state';
-import { useAnonymizedAccessDbIdLoadable } from '../state/tables';
 import { ImportedTable } from '../types';
 import { useCheckUpdates } from './use-check-updates';
 
@@ -70,14 +68,14 @@ function newImportDataTab(t: TFunc): TabData {
   };
 }
 
-function newMetabaseTab(t: TFunc, anonymizedAccessDbId: number, table?: ImportedTable): TabData {
+function newMetabaseTab(t: TFunc, table?: ImportedTable): TabData {
   return {
     id: (nextTabId++).toString(),
     title: t('Metabase'),
     type: 'metabase',
     stale: false,
     refreshNonce: 0,
-    startUrlPath: table ? `question/#${table.initialQuery}` : `browse/${anonymizedAccessDbId}-anonymized-access`,
+    startUrlPath: table ? `question/#${table.initialQuery}` : ``,
   };
 }
 
@@ -115,14 +113,11 @@ export const App: FunctionComponent = () => {
 
   const [showMetabaseHint, setShowMetabaseHint] = useState(true);
 
-  const anonymizedAccessDbIdLoadable = useAnonymizedAccessDbIdLoadable();
-  const anonymizedAccessDbId = useCachedLoadable(anonymizedAccessDbIdLoadable, 0);
-
   useCheckUpdates();
 
-  function openMetabaseTab(anonymizedAccessDbId: number, table?: ImportedTable) {
+  function openMetabaseTab(table?: ImportedTable) {
     updateState((state) => {
-      const metabaseTab = newMetabaseTab(t, anonymizedAccessDbId, table);
+      const metabaseTab = newMetabaseTab(t, table);
       state.tabs.push(metabaseTab);
       state.activeTab = metabaseTab.id;
       setWindowTitle(state);
@@ -145,7 +140,7 @@ export const App: FunctionComponent = () => {
   function onEdit(targetKey: unknown, action: 'add' | 'remove'): void {
     switch (action) {
       case 'add':
-        openMetabaseTab(anonymizedAccessDbId);
+        openMetabaseTab();
         return;
 
       case 'remove':
@@ -294,7 +289,7 @@ export const App: FunctionComponent = () => {
                 {tab.type === 'admin' ? (
                   <AdminTab
                     showMetabaseHint={showMetabaseHint}
-                    onOpenMetabaseTab={(table?: ImportedTable) => openMetabaseTab(anonymizedAccessDbId, table)}
+                    onOpenMetabaseTab={(table?: ImportedTable) => openMetabaseTab(table)}
                     onOpenImportDataTab={openImportDataTab}
                   />
                 ) : tab.type === 'import' ? (

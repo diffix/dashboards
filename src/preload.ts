@@ -83,12 +83,6 @@ window.loadTables = (signal: AbortSignal) =>
     return result;
   });
 
-window.getAnonymizedAccessDbId = (signal: AbortSignal) =>
-  newTask(signal, async (taskId) => {
-    const result = await ipcRenderer.invoke('get_anonymized_access_db_id', taskId);
-    return result;
-  });
-
 window.removeTable = (tableName: string, signal: AbortSignal) =>
   newTask(signal, async (taskId) => {
     const result = await ipcRenderer.invoke('remove_table', taskId, tableName);
