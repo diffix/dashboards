@@ -103,7 +103,6 @@ declare global {
     getServicesStatus: (name: ServiceName) => ServiceStatus;
     loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
     removeTable(tableName: string, signal: AbortSignal): Promise<void>;
-    buildSampleCardEncoded(tableName: string, aidColumns: string[], signal: AbortSignal): Promise<string>;
     storeSet(key: string, value: unknown): Promise<void>;
     storeGet(key: string, defaultValue?: unknown): Promise<unknown>;
     storeDelete(key: string): Promise<unknown>;

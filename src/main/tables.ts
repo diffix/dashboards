@@ -10,7 +10,7 @@ import { PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from '../constants';
 import { ColumnType, ImportedTable, NumberFormat, ParseOptions, TableColumn } from '../types';
 import { postgresConfig } from './config';
 import { sendToRenderer } from './ipc';
-import { buildNewSQLPayload, syncMetabaseSchema } from './metabase';
+import { buildInitialQueries, getAnonymizedAccessDbId, syncMetabaseSchema } from './metabase';
 import { sql, SqlFragment } from './postgres';
 
 const finished = util.promisify(stream.finished);
@@ -41,9 +41,10 @@ export async function loadTables(): Promise<ImportedTable[]> {
 
   aids.forEach((row) => find(ret, { name: row.tablename })?.aidColumns.push(row.objname.split('.').at(-1)));
 
+  const databaseId = await getAnonymizedAccessDbId();
   await Promise.all(
     ret.map(async (table) => {
-      table.initialQueryPayloads = await buildNewSQLPayload(table.name, table.aidColumns);
+      table.initialQueryPayloads = await buildInitialQueries(databaseId, table.name, table.aidColumns);
     }),
   );
 

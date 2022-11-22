@@ -15,7 +15,6 @@ import { appResourcesLocation, isMac } from './main/config';
 import { sendToRenderer } from './main/ipc';
 import { getAppLanguage } from './main/language';
 import {
-  buildNewSQLPayload,
   getMetabaseStatus,
   initializeMetabase,
   setMetabaseStatus,
@@ -327,11 +326,6 @@ function setupIPC() {
   ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {
     console.info(`(${taskId}) Removing imported table '${tableName}'.`);
     return runTask(taskId, (_signal) => removeTable(tableName));
-  });
-
-  ipcMain.handle('build_sample_card_encoded', (_event, taskId: string, tableName: string, aidColumns: string[]) => {
-    console.info(`(${taskId}) Building initial queries for '${tableName}'.`);
-    return runTask(taskId, (_signal) => buildNewSQLPayload(tableName, aidColumns));
   });
 
   ipcMain.handle('store_set', (_event, key, value) => {

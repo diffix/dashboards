@@ -124,7 +124,7 @@ export const App: FunctionComponent = () => {
 
   useCheckUpdates();
 
-  function openMetabaseTab(initialPath: string) {
+  function openMetabaseTab(initialPath?: string) {
     updateState((state) => {
       const metabaseTab = newMetabaseTab(t, initialPath);
       state.tabs.push(metabaseTab);

@@ -89,12 +89,6 @@ window.removeTable = (tableName: string, signal: AbortSignal) =>
     return result;
   });
 
-window.buildSampleCardEncoded = (tableName: string, aidColumns: string[], signal: AbortSignal) =>
-  newTask(signal, async (taskId) => {
-    const result = await ipcRenderer.invoke('build_sample_card_encoded', taskId, tableName, aidColumns);
-    return result;
-  });
-
 window.storeSet = (key: string, value: unknown) => ipcRenderer.invoke('store_set', key, value);
 window.storeGet = (key: string, defaultValue?: unknown) => ipcRenderer.invoke('store_get', key, defaultValue);
 window.storeDelete = (key: string) => ipcRenderer.invoke('store_delete', key);
