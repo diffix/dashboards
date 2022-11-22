@@ -10,6 +10,24 @@ type RequestOptions = Partial<ClientRequestConstructorOptions> & {
   timeout?: number;
 };
 
+type Database = {
+  id: number;
+  is_sample: boolean;
+  details: { dbname: string; user: string };
+};
+
+function findAnonymizedAccessDbId(databases: Database[]) {
+  const databaseId = databases.find(
+    (db) => db.details.dbname === postgresConfig.tablesDatabase && db.details.user === postgresConfig.trustedUser,
+  )?.id;
+
+  if (databaseId) {
+    return databaseId;
+  } else {
+    throw new Error('Anonymized access data source not found in Metabase');
+  }
+}
+
 function makeRequest(path: string, options: RequestOptions = {}): Promise<unknown> {
   const { protocol, hostname, port, sessionName } = metabaseConfig;
   const { headers = {}, timeout = 5_000, body, method = 'GET', ...otherOptions } = options;
@@ -215,20 +233,8 @@ export async function removeSampleData(): Promise<void> {
 }
 
 export async function getAnonymizedAccessDbId(): Promise<number> {
-  const databases = (await get('/api/database')).data as Array<{
-    id: number;
-    details: { dbname: string; user: string };
-  }>;
-
-  const databaseId = databases.find(
-    (db) => db.details.dbname === postgresConfig.tablesDatabase && db.details.user === postgresConfig.trustedUser,
-  )?.id;
-
-  if (databaseId) {
-    return databaseId;
-  } else {
-    throw new Error('Anonymized access data source not found in Metabase');
-  }
+  const databases = (await get('/api/database')).data as Array<Database>;
+  return findAnonymizedAccessDbId(databases);
 }
 
 export async function buildInitialQueries(
@@ -259,10 +265,13 @@ export async function hasUserSetup(): Promise<boolean> {
 }
 
 export async function syncMetabaseSchema(): Promise<void> {
-  const databases = (await get('/api/database')).data as Array<{ id: number; is_sample: boolean }>;
+  const databases = (await get('/api/database')).data as Array<Database>;
+  const anonymizedAccessDbId = findAnonymizedAccessDbId(databases);
+
   for (const db of databases) {
-    if (!db.is_sample) {
+    if (!db.is_sample && db.id !== anonymizedAccessDbId) {
       await post(`/api/database/${db.id}/sync_schema`, {});
     }
   }
+  await post(`/api/database/${anonymizedAccessDbId}/sync`, {});
 }
