@@ -6,7 +6,7 @@ import { ServiceStatus } from '../../types';
 import { appResourcesLocation, isWin, metabaseConfig, postgresConfig } from '../config';
 import { cleanAppData } from '../postgres';
 import { waitForServiceStatus } from '../service-utils';
-import { addDataSources, hasUserSetup, logIn, setupMetabase, waitUntilReady } from './api';
+import { addDataSources, hasUserSetup, logIn, removeSampleData, setupMetabase, waitUntilReady } from './api';
 
 let metabaseStatus = ServiceStatus.Starting;
 
@@ -97,6 +97,9 @@ export async function initializeMetabase(): Promise<void> {
       setupLog.info('Adding data sources to Metabase...');
       const addDataSourcesResult = await addDataSources();
       setupLog.info('Add data sources to Metabase:', addDataSourcesResult);
+      setupLog.info('Removing Sample Data from Metabase...');
+      await removeSampleData();
+      setupLog.info('Removed Sample Data from Metabase.');
     } catch (e) {
       setupLog.error(e);
       cleanAppData();
