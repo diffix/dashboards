@@ -53,7 +53,7 @@ export type ColumnType = TableColumn['type'];
 
 // Query request
 
-export type InitialQueryPayloads = { sqlPayload: string; questionPayload: string };
+export type InitialQueryPayloads = { sqlPayload: string };
 export type ImportedTable = { name: string; aidColumns: string[]; initialQueryPayloads?: InitialQueryPayloads };
 
 // Query results

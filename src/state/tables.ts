@@ -15,7 +15,7 @@ import {
   Task,
 } from '../types';
 import { Loadable, LOADING_STATE, useCachedLoadable } from './common';
-import { $postgresqlStatus } from './services';
+import { $metabaseStatus, $postgresqlStatus } from './services';
 
 // State
 
@@ -24,7 +24,8 @@ const $tableListInvalidator = atom(0);
 const $tableList = abortableAtom((get, { signal }) => {
   get($tableListInvalidator);
   const postgresqlStatus = get($postgresqlStatus);
-  if (postgresqlStatus === ServiceStatus.Running) {
+  const metabaseStatus = get($metabaseStatus);
+  if (postgresqlStatus === ServiceStatus.Running && metabaseStatus === ServiceStatus.Running) {
     return window.loadTables(signal);
   } else {
     return [] as ImportedTable[];
