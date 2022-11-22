@@ -5,6 +5,11 @@ import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
 
 import './MetabaseTab.css';
 
+/*
+ * Metabase uses styled components, which means class names are obscure hashes.
+ * These may (and will) change without notice, so we must manually inspect
+ * the rendered DOM whenever we want to update the shipped Metabase version.
+ */
 const CUSTOM_CSS = `
   /* User menu actions */
   .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="Navbar;Profile Dropdown;Enter Admin"],
@@ -39,7 +44,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
     const webviewProps = {
       partition: METABASE_SESSION_NAME,
       src: `http://localhost:${METABASE_PORT}/${startUrlPath}`,
-      preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
+      // preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
       webpreferences: 'contextIsolation=false',
     };
 
@@ -55,7 +60,6 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
 
     webview!.addEventListener('dom-ready', () => {
       (webview as any).insertCSS(CUSTOM_CSS);
-      (webview as any).openDevTools();
     });
   }, [startUrlPath]);
 
