@@ -233,7 +233,7 @@ export async function removeSampleData(): Promise<void> {
 }
 
 export async function getAnonymizedAccessDbId(): Promise<number> {
-  const databases = (await get('/api/database')).data as Array<Database>;
+  const databases = (await get('/api/database')).data as Database[];
   return findAnonymizedAccessDbId(databases);
 }
 
