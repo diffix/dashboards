@@ -100,6 +100,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
               });
           }}
           disabled={isImporting || !tableName}
+          type="primary"
         >
           {t('Import')}
         </Button>
