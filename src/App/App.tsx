@@ -1,4 +1,11 @@
-import { ReloadOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  BarChartOutlined,
+  FileOutlined,
+  HomeOutlined,
+  PlusOutlined,
+  QuestionCircleOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
 import { ConfigProvider, message, Tabs, Tooltip } from 'antd';
 import deDE from 'antd/es/locale/de_DE';
 import enUS from 'antd/es/locale/en_US';
@@ -62,7 +69,7 @@ function newAdminTab(t: TFunc): TabData {
 function newImportDataTab(t: TFunc): TabData {
   return {
     id: (nextTabId++).toString(),
-    title: t('Import Data'),
+    title: t('Import'),
     type: 'import',
   };
 }
@@ -256,6 +263,41 @@ export const App: FunctionComponent = () => {
     return tabs.some((t) => t.type === 'metabase');
   }
 
+  function tabTitle(tab: TabData) {
+    switch (tab.type) {
+      case 'admin':
+        return <HomeOutlined />;
+      case 'docs':
+        return (
+          <span>
+            <QuestionCircleOutlined />
+            {tab.title}
+          </span>
+        );
+      case 'metabase':
+        return tab.stale ? (
+          <span>
+            <Tooltip title={t('Refresh to reveal newly imported tables (currently running queries will abort)')}>
+              <ReloadOutlined onClick={() => refreshTab(tab.id)} />
+            </Tooltip>
+            {tab.title}
+          </span>
+        ) : (
+          <span>
+            <BarChartOutlined />
+            {tab.title}
+          </span>
+        );
+      case 'import':
+        return (
+          <span>
+            <FileOutlined />
+            {tab.title}
+          </span>
+        );
+    }
+  }
+
   return (
     <ConfigProvider locale={window.i18n.language === 'de' ? deDE : enUS}>
       <DocsFunctionsContext.Provider value={docsFunctions}>
@@ -277,24 +319,7 @@ export const App: FunctionComponent = () => {
             onEdit={onEdit}
           >
             {tabs.map((tab) => (
-              <TabPane
-                tab={
-                  tab.type === 'metabase' && tab.stale ? (
-                    <span>
-                      {tab.title}
-                      <Tooltip
-                        title={t('Refresh to reveal newly imported tables (currently running queries will abort)')}
-                      >
-                        <ReloadOutlined className="App-tab-pane-icon" onClick={() => refreshTab(tab.id)} />
-                      </Tooltip>
-                    </span>
-                  ) : (
-                    tab.title
-                  )
-                }
-                key={tab.id}
-                closable={tab.type !== 'admin'}
-              >
+              <TabPane tab={tabTitle(tab)} key={tab.id} closable={tab.type !== 'admin'}>
                 {tab.type === 'admin' ? (
                   <AdminTab
                     showMetabaseHint={showMetabaseHint}
