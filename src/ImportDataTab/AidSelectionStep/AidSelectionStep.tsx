@@ -32,7 +32,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
     <>
       <div className="AidSelectionStep import-data-step">
         <ImportDataNavAnchor step={ImportDataNavStep.AidSelection} status={aidColumn ? 'done' : 'active'} />
-        <Title level={3}>{t('Select the protected entity identifier')}</Title>
+        <Title level={3}>{t('{{stepNumber}}. Select the protected entity', { stepNumber: 3 })}</Title>
         <div className="AidSelectionStep-container">
           <Radio.Group
             className="AidSelectionStep-radio-group"

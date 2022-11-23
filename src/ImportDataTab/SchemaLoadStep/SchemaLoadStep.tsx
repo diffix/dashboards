@@ -29,9 +29,9 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
         <>
           <div className="SchemaLoadStep import-data-step completed">
             <ImportDataNavAnchor step={ImportDataNavStep.DataPreview} status="done" />
-            <Title level={3}>{t('Successfully loaded {{fileName}}', { fileName: schema.data.file.name })}</Title>
+            <Title level={3}>{t('{{stepNumber}}. Data Preview', { stepNumber: 2 })}</Title>
             <div className="mb-1">
-              <Text>{t('Here is what the data looks like:')}</Text>
+              <Text>{t('Here is what {{fileName}} looks like:', { fileName: schema.data.file.name })}</Text>
               {schema.data.rowsPreview.length === PREVIEW_ROWS_COUNT && (
                 <Text type="secondary">
                   {' '}

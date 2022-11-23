@@ -60,7 +60,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
     <>
       <div className="ImportStep import-data-step">
         <ImportDataNavAnchor step={ImportDataNavStep.Import} />
-        <Title level={3}>{t('Select a name for the table')}</Title>
+        <Title level={3}>{t('{{stepNumber}}. Select a name for the table', { stepNumber: 4 })}</Title>
         <Form layout="inline" initialValues={{ tableName }} onValuesChange={({ tableName }) => setTableName(tableName)}>
           <Form.Item
             label={t('Table name')}

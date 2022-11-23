@@ -68,13 +68,13 @@
   "ImportDataTab": {
     "Sidebar": {
       "ImportDataNavSteps": {
-        "Select File": "Select File",
+        "{{stepNumber}}. Select File": "{{stepNumber}}. Select File",
         "Load data from CSV": "Load data from CSV",
-        "Data Preview": "Data Preview",
+        "{{stepNumber}}. Data Preview": "{{stepNumber}}. Data Preview",
         "Preview contents of the file": "Preview contents of the file",
-        "Protected Entity": "Protected Entity",
+        "{{stepNumber}}. Protected Entity": "{{stepNumber}}. Protected Entity",
         "Identify the protected entity in the data": "Identify the protected entity in the data",
-        "Table Name": "Table Name",
+        "{{stepNumber}}. Table Name": "{{stepNumber}}. Table Name",
         "Select table name and finalize import": "Select table name and finalize import"
       },
       "AidSelectionHelp": {
@@ -98,21 +98,21 @@
       }
     },
     "FileLoadStep": {
+      "{{stepNumber}}. Select a CSV file": "{{stepNumber}}. Select a CSV File",
       "Click or drag a file to this area": "Click or drag a file to this area",
-      "Select CSV file": "Select CSV file",
       "English": "English",
       "German": "German",
       "Number format:": "Number format:",
       "{{lastCompletedImport}} imported successfully. Click or drag another file to this area": "{{lastCompletedImport}} imported successfully. Click or drag another file to this area"
     },
     "SchemaLoadStep": {
+      "{{stepNumber}}. Data Preview": "{{stepNumber}}. Data Preview",
       "Loading schema": "Loading schema",
-      "Successfully loaded {{fileName}}": "Successfully loaded {{fileName}}",
-      "Here is what the data looks like:": "Here is what the data looks like:",
+      "Here is what {{fileName}} looks like:": "Here is what {{fileName}} looks like:",
       "(only the first {{count}} rows are shown)": "(only the first {{count}} rows are shown)"
     },
     "AidSelectionStep": {
-      "Select the protected entity identifier": "Select the protected entity identifier",
+      "{{stepNumber}}. Select the protected entity": "{{stepNumber}}. Select the protected entity",
       "None (data is not personal)": "None (data is not personal)",
       "One row per protected entity": "One row per protected entity",
       "Multiple rows per protected entity": "Multiple rows per protected entity",
@@ -123,7 +123,7 @@
       "You must ensure that each individual row from the input file represents a unique protected entity.": "You must ensure that each individual row from the input file represents a unique protected entity."
     },
     "ImportStep": {
-      "Select a name for the table": "Select a name for the table",
+      "{{stepNumber}}. Select a name for the table": "{{stepNumber}}. Select a name for the table",
       "Import": "Import",
       "Table name": "Table name",
       "{{tableName}} already exists, will be overwritten": "{{tableName}} already exists, will be overwritten",
