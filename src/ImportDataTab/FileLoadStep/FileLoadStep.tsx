@@ -6,7 +6,7 @@ import { File, NumberFormat, ParseOptions } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 
 const { Dragger } = Upload;
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 export type FileLoadStepProps = {
   children: (data: FileLoadStepData) => React.ReactNode;
@@ -42,6 +42,7 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
     <>
       <div className="FileLoadStep import-data-step">
         <ImportDataNavAnchor step={ImportDataNavStep.CsvImport} status={file ? 'done' : 'active'} />
+        <Title level={3}>{t('{{stepNumber}}. Select a CSV file', { stepNumber: 1 })}</Title>
         <Dragger
           accept=".csv,.tsv,.txt"
           fileList={[]}
@@ -55,7 +56,7 @@ export const FileLoadStep: FunctionComponent<FileLoadStepProps> = ({ children })
           showUploadList={false}
         >
           <p className="ant-upload-drag-icon">{lastCompletedImport ? <FileDoneOutlined /> : <FileOutlined />}</p>
-          <p className="ant-upload-text">{t('Select CSV file')}</p>
+          {file ? <p className="ant-upload-text">{file.name}</p> : undefined}
           <p className="ant-upload-hint">{dragPromptText}</p>
         </Dragger>
         <br />

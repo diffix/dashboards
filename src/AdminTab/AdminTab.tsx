@@ -42,7 +42,7 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
         <div className="AdminTab-tables">
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
-            <Button onClick={onOpenImportDataTab} type="ghost" size="large" icon={<PlusOutlined />}>
+            <Button onClick={onOpenImportDataTab} type="primary" size="large" icon={<PlusOutlined />}>
               {t('Import Table')}
             </Button>
           </div>
