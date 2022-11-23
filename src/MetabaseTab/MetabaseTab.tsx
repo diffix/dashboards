@@ -19,7 +19,8 @@ const CUSTOM_CSS = `
   }
 
   /* New Question button */
-  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="NavBar;New Question Click;"] {
+  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="NavBar;New Question Click;"],
+  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="Collection Landing;New Question Click;"] {
     display: none;
   }
 

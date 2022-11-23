@@ -55,7 +55,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
       onVisibleChange={(visible) => visible || setMetabaseHintHovered(true)}
     >
       <Dropdown overlay={menu} trigger={['click']}>
-        <Button type={showMetabaseHint && !metabaseHintHovered ? 'primary' : 'text'} shape="circle">
+        <Button type={showMetabaseHint && !metabaseHintHovered ? 'primary' : 'text'} shape="circle" size="large">
           <EllipsisOutlined />
         </Button>
       </Dropdown>

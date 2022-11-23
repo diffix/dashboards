@@ -75,13 +75,7 @@ function newImportDataTab(t: TFunc): TabData {
 }
 
 function blankMetabasePath(): string {
-  const blankQuestionWizardPayload = {
-    creationType: 'custom_question',
-    dataset_query: { database: null, query: { 'source-table': null }, type: 'query' },
-    display: 'table',
-    visualization_settings: {},
-  };
-  return `question/notebook#${Buffer.from(JSON.stringify(blankQuestionWizardPayload)).toString('base64')}`;
+  return 'collection/root';
 }
 
 function newMetabaseTab(t: TFunc, initialPath?: string): TabData {

@@ -2,13 +2,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { Button, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { useT } from '../shared';
-import {
-  useCachedLoadable,
-  useIsLoading,
-  useMetabaseStatus,
-  usePostgresqlStatus,
-  useTableListLoadable,
-} from '../state';
+import { useMetabaseStatus, usePostgresqlStatus } from '../state';
 import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';
 
@@ -32,11 +26,6 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
   const postgresqlStatus = usePostgresqlStatus();
   const metabaseStatus = useMetabaseStatus();
 
-  const tableListLodable = useTableListLoadable();
-  const tableList = useCachedLoadable(tableListLodable, []);
-  const tableListIsLoading = useIsLoading(tableListLodable);
-  const highlightImport = !tableListIsLoading && tableList.length === 0;
-
   return (
     <div className="AdminTab">
       <div className="AdminTab-content">
@@ -53,12 +42,7 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
         <div className="AdminTab-tables">
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
-            <Button
-              onClick={onOpenImportDataTab}
-              type={highlightImport ? 'primary' : 'ghost'}
-              size="large"
-              icon={<PlusOutlined />}
-            >
+            <Button onClick={onOpenImportDataTab} type="primary" size="large" icon={<PlusOutlined />}>
               {t('Import Table')}
             </Button>
           </div>
