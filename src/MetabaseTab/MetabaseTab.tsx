@@ -12,20 +12,20 @@ import './MetabaseTab.css';
  */
 const CUSTOM_CSS = `
   /* User menu actions */
-  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="Navbar;Profile Dropdown;Enter Admin"],
-  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="Navbar;Profile Dropdown;About v0.44.6"],
-  .css-1hoi0fz.ep9pi9w0 > ol > li > div[data-metabase-event="Navbar;Profile Dropdown;Logout"] {
+  ol > li > a[data-metabase-event="Navbar;Profile Dropdown;Enter Admin"],
+  ol > li > a[data-metabase-event="Navbar;Profile Dropdown;About v0.44.6"],
+  ol > li > div[data-metabase-event="Navbar;Profile Dropdown;Logout"] {
     display: none;
   }
 
-  /* New Question button */
-  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="NavBar;New Question Click;"],
-  .css-1hoi0fz.ep9pi9w0 > ol > li > a[data-metabase-event="Collection Landing;New Question Click;"] {
+  /* New Question buttons */
+  ol > li > a[data-metabase-event="NavBar;New Question Click;"],
+  ol > li > a[data-metabase-event="Collection Landing;New Question Click;"] {
     display: none;
   }
 
   /* Sidebar Data section */
-  aside > nav > .css-1agdudp.exp4uno11 > div > :nth-child(3) {
+  aside > nav > * div > :nth-child(3) {
     display: none;
   }
 `;
