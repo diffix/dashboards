@@ -44,7 +44,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
     const webviewProps = {
       partition: METABASE_SESSION_NAME,
       src: `http://localhost:${METABASE_PORT}/${startUrlPath}`,
-      // preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
+      preload: 'file://' + window.METABASE_PRELOAD_WEBPACK_ENTRY,
       webpreferences: 'contextIsolation=false',
     };
 
@@ -60,6 +60,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
 
     webview!.addEventListener('dom-ready', () => {
       (webview as any).insertCSS(CUSTOM_CSS);
+      (webview as any).send('dispatch', { type: 'metabase/app/OPEN_NAVBAR' });
     });
   }, [startUrlPath]);
 
