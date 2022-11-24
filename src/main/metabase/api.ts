@@ -1,4 +1,5 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
+import { isPostgresIdentifier } from '../../utils';
 import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
@@ -26,6 +27,10 @@ function findAnonymizedAccessDbId(databases: Database[]) {
   } else {
     throw new Error('Anonymized access data source not found in Metabase');
   }
+}
+
+function postgresQuote(name: string) {
+  return isPostgresIdentifier(name) ? name : `"${name}"`;
 }
 
 function makeRequest(path: string, options: RequestOptions = {}): Promise<unknown> {
@@ -248,9 +253,9 @@ export async function buildInitialQueries(
   // Picks some fields which aren't AIDs to put in the GROUP BY.
   const nonAidField = fields.find((field) => !aidColumns.includes(field.name));
 
-  const columnSQL = nonAidField ? `"${nonAidField.name}",` : '';
-  const groupBySQL = nonAidField ? 'GROUP BY 1' : '';
-  const query = `SELECT ${columnSQL} count(*) FROM "${tableName}" ${groupBySQL}`;
+  const columnSQL = nonAidField ? `${postgresQuote(nonAidField.name)},` : '';
+  const groupBySQL = nonAidField ? `GROUP BY ${postgresQuote(nonAidField.name)}` : '';
+  const query = [`SELECT ${columnSQL} count(*)`, `FROM ${postgresQuote(tableName)}`, `${groupBySQL}`].join('\n');
 
   const sqlPayload = makeSqlPayload(databaseId, query);
 
