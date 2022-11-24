@@ -1,7 +1,7 @@
 import { FileDoneOutlined, FileOutlined } from '@ant-design/icons';
 import { Divider, Radio, RadioChangeEvent, Typography, Upload } from 'antd';
 import React, { FunctionComponent, useCallback, useMemo, useState } from 'react';
-import { useT } from '../../shared';
+import { useT } from '../../shared-react';
 import { File, NumberFormat, ParseOptions } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 

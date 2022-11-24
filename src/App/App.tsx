@@ -19,7 +19,7 @@ import { SHOW_METABASE_HINT_KEY } from '../constants';
 import { DocsFunctionsContext, DocsTab, PageId } from '../DocsTab';
 import { ImportDataTab } from '../ImportDataTab';
 import { MetabaseTab } from '../MetabaseTab';
-import { getT, TFunc, useStaticValue, useT } from '../shared';
+import { getT, TFunc, useStaticValue, useT } from '../shared-react';
 import { useCheckUpdates } from './use-check-updates';
 
 import './App.css';

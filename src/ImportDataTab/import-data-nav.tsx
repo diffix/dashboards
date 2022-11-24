@@ -5,7 +5,7 @@ import { debounce, findLastIndex, noop } from 'lodash';
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { useInViewport } from 'react-in-viewport';
 import { useImmer } from 'use-immer';
-import { useStaticValue, useT } from '../shared';
+import { useStaticValue, useT } from '../shared-react';
 
 const { Step } = Steps;
 

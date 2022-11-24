@@ -1,7 +1,7 @@
 import { notification } from 'antd';
 import React, { useEffect } from 'react';
 import { Trans } from 'react-i18next';
-import { getT, TFunc } from '../shared';
+import { getT, TFunc } from '../shared-react';
 
 const notificationContent = (version: string, t: TFunc) => {
   return (

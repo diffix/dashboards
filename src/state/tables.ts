@@ -3,7 +3,8 @@ import { atom, useSetAtom } from 'jotai';
 import { abortableAtom, loadable, useAtomValue } from 'jotai/utils';
 import { useEffect, useMemo, useState } from 'react';
 import { TOAST_DURATION } from '../constants';
-import { getT, runTask } from '../shared';
+import { runTask } from '../shared';
+import { getT } from '../shared-react';
 import {
   ColumnType,
   File,

@@ -2,7 +2,7 @@ import { Anchor, Typography } from 'antd';
 import { find } from 'lodash';
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import invariant from 'tiny-invariant';
-import { Layout, usePrevious, useT } from '../shared';
+import { Layout, usePrevious, useT } from '../shared-react';
 import { Markdown, TableOfContents, TableOfContentsLink } from './Markdown';
 
 import './DocsTab.css';

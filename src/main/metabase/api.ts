@@ -1,5 +1,5 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
-import { isPostgresIdentifier } from '../../utils';
+import { isPostgresIdentifier } from '../../shared';
 import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';

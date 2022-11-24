@@ -1,3 +1,4 @@
+import { postgresReservedKeywords } from '../constants';
 import { ColumnType, RowData, RowDataIndex, Task, Value } from '../types';
 
 export function delay(ms: number): Promise<void> {
@@ -65,3 +66,8 @@ export const columnSorter =
         return new Date(a as string).getTime() - new Date(b as string).getTime();
     }
   };
+
+const tableNameRE = /^[a-z_][a-z0-9$_]*$/;
+export function isPostgresIdentifier(name: string): boolean {
+  return !postgresReservedKeywords.includes(name) && tableNameRE.test(name);
+}

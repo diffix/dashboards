@@ -3,8 +3,8 @@ import { snakeCase } from 'lodash';
 import path from 'path';
 import React, { FunctionComponent, useState } from 'react';
 import { postgresReservedKeywords } from '../../constants';
-import { useT, useUnmountListener } from '../../shared';
-import { isPostgresIdentifier } from '../../utils';
+import { useT, useUnmountListener } from '../../shared-react';
+import { isPostgresIdentifier } from '../../shared';
 import { useTableActions, useTableListCached } from '../../state';
 import { File, ParseOptions, TableSchema } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
@@ -31,7 +31,7 @@ function fixTableName(name: string) {
 // Checks whether a table name will require surrounding in double-quotes in PostgreSQL.
 // Will return false for cases where our suggestion would be the same, to avoid confusing warnings.
 function tableNameFixable(name: string) {
-  return isPostgresIdentifier(name) && name !== fixTableName(name);
+  return !isPostgresIdentifier(name) && name !== fixTableName(name);
 }
 
 export const ImportStep: FunctionComponent<ImportProps> = ({

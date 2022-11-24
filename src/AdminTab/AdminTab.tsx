@@ -1,7 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
-import { useT } from '../shared';
+import { useT } from '../shared-react';
 import { useMetabaseStatus, usePostgresqlStatus } from '../state';
 import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';

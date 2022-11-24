@@ -1,6 +1,6 @@
 import { Divider } from 'antd';
 import React, { FunctionComponent } from 'react';
-import { Layout } from '../shared';
+import { Layout } from '../shared-react';
 import { AidSelectionStep } from './AidSelectionStep';
 import { FileLoadStep } from './FileLoadStep';
 import { ImportDataHelp } from './import-data-help';
