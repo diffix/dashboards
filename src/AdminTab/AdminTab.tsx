@@ -3,6 +3,7 @@ import { Button, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { useT } from '../shared-react';
 import { useMetabaseStatus, usePostgresqlStatus } from '../state';
+import { ServiceStatus } from '../types';
 import { ServiceStatusCard } from './ServiceStatusCard';
 import { TableList } from './TableList';
 
@@ -42,7 +43,13 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
         <div className="AdminTab-tables">
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
-            <Button onClick={onOpenImportDataTab} type="primary" size="large" icon={<PlusOutlined />}>
+            <Button
+              onClick={onOpenImportDataTab}
+              type="primary"
+              size="large"
+              disabled={postgresqlStatus !== ServiceStatus.Running}
+              icon={<PlusOutlined />}
+            >
               {t('Import Table')}
             </Button>
           </div>
