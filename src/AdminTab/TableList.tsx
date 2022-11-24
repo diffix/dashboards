@@ -1,5 +1,5 @@
-import { DeleteOutlined, ConsoleSqlOutlined, EllipsisOutlined } from '@ant-design/icons';
-import { Button, Tooltip, Table, Dropdown, Menu } from 'antd';
+import { DeleteOutlined, ConsoleSqlOutlined, EllipsisOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { Button, Tooltip, Table, Dropdown, Menu, Popconfirm } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { ROW_INDEX_COLUMN } from '../constants';
 import { TFunc, useT } from '../shared';
@@ -41,9 +41,17 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
       >
         {t('New SQL query')}
       </Menu.Item>
-      <Menu.Item icon={<DeleteOutlined />} key={`${table.name}-remove`} onClick={() => removeTable(table.name)}>
-        {t('Remove')}
-      </Menu.Item>
+      <Popconfirm
+        title={t('Remove table `{{name}}`?', { name: table.name })}
+        icon={<QuestionCircleOutlined />}
+        onConfirm={() => removeTable(table.name)}
+        okText={t('Remove')}
+        cancelText={t('Cancel')}
+      >
+        <Menu.Item icon={<DeleteOutlined />} key={`${table.name}-remove`}>
+          {t('Remove')}
+        </Menu.Item>
+      </Popconfirm>
     </Menu>
   );
 
