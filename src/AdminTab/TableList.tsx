@@ -42,11 +42,11 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
         {t('New SQL query')}
       </Menu.Item>
       <Popconfirm
-        title={t('Are you sure to delete table `{{name}}`?', { name: table.name })}
+        title={t('Remove table `{{name}}`?', { name: table.name })}
         icon={<QuestionCircleOutlined />}
         onConfirm={() => removeTable(table.name)}
-        okText={t('Yes')}
-        cancelText={t('No')}
+        okText={t('Remove')}
+        cancelText={t('Cancel')}
       >
         <Menu.Item icon={<DeleteOutlined />} key={`${table.name}-remove`}>
           {t('Remove')}
