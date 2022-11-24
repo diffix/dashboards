@@ -1,9 +1,19 @@
-.MetabaseTab {
+.MetabaseTab,
+.MetabaseTab > .ant-spin-nested-loading,
+.MetabaseTab > .ant-spin-nested-loading > .ant-spin-container,
+.MetabaseTab-webview-wrapper {
   width: 100%;
   height: 100%;
+}
+
+.MetabaseTab > .ant-spin-nested-loading > div > .ant-spin-lg .ant-spin-text {
+  padding-top: 22px;
+}
+
+.MetabaseTab-webview-wrapper {
   display: flex;
 }
 
-.MetabaseTab > * {
+.MetabaseTab-webview-wrapper > * {
   flex: 1;
 }

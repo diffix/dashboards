@@ -132,6 +132,9 @@
       "{{tableName}} will require double-quotes in SQL, try {{fixedTableName}} instead": "{{tableName}} will require double-quotes in SQL, try {{fixedTableName}} instead"
     }
   },
+  "MetabaseTab": {
+    "Waiting for Metabase...": "Waiting for Metabase..."
+  },
   "DocsTab": {
     "Anonymization": "Anonymization",
     "Documentation": "Documentation",
