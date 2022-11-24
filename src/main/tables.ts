@@ -29,7 +29,8 @@ export async function loadTables(): Promise<ImportedTable[]> {
 
   const allTables = await sql`SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner = ${adminUser}`;
 
-  const ret: ImportedTable[] = allTables.map((row) => ({ name: row.tablename, aidColumns: [] }));
+  const tables: ImportedTable[] = allTables.map((row) => ({ name: row.tablename, aidColumns: [] }));
+  const tableNames = tables.map((table) => `'${table.name}'`).join(', ');
 
   const aids = await sql`
     SELECT tablename, objname
@@ -39,19 +40,22 @@ export async function loadTables(): Promise<ImportedTable[]> {
       AND label = 'aid'
   `;
 
-  aids.forEach((row) => find(ret, { name: row.tablename })?.aidColumns.push(row.objname.split('.').at(-1)));
+  aids.forEach((row) => find(tables, { name: row.tablename })?.aidColumns.push(row.objname.split('.').at(-1)));
 
-  const databaseId = await getAnonymizedAccessDbId();
-  await Promise.all(
-    ret.map(async (table) => {
-      table.initialQueryPayloads = await buildInitialQueries(databaseId, table.name, table.aidColumns);
-    }),
-  );
+  try {
+    const databaseId = await getAnonymizedAccessDbId();
+    await Promise.all(
+      tables.map(async (table) => {
+        table.initialQueryPayloads = await buildInitialQueries(databaseId, table.name, table.aidColumns);
+      }),
+    );
+  } catch (e) {
+    console.warn('Unable to build initial queries for tables', tableNames, e);
+  }
 
-  const tables = ret.map((table) => `'${table.name}'`).join(', ');
-  console.info(`Found the following tables: ${tables}.`);
+  console.info(`Found the following tables: ${tableNames}.`);
 
-  return ret;
+  return tables;
 }
 
 export async function removeTable(tableName: string): Promise<void> {

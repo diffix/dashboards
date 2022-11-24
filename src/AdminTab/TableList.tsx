@@ -37,7 +37,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
       <Menu.Item
         icon={<ConsoleSqlOutlined />}
         key={`${table.name}-new-sql`}
-        onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload}`)}
+        onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
       >
         {t('New SQL query')}
       </Menu.Item>
