@@ -33,6 +33,17 @@ function postgresQuote(name: string) {
   return isPostgresIdentifier(name) ? name : `"${name}"`;
 }
 
+const sqlHint = `
+-- HINTS 
+-- Change, add, or remove columns as desired.
+-- Text columns can be masked:
+--     substring(text_column, 1, 2)
+-- Numeric columns can be binned:
+--     diffix.floor_by(numeric_column, 10)
+-- Sum numeric columns with:
+--     sum(column)
+-- Learn more at https://github.com/diffix/pg_diffix/blob/master/docs/analyst_guide.md#supported-functions.`;
+
 function makeRequest(path: string, options: RequestOptions = {}): Promise<unknown> {
   const { protocol, hostname, port, sessionName } = metabaseConfig;
   const { headers = {}, timeout = 5_000, body, method = 'GET', ...otherOptions } = options;
@@ -256,8 +267,12 @@ export async function buildInitialQueries(
   const columnSQL = nonAidField ? `${postgresQuote(nonAidField.name)},` : '';
   const groupBySQL = nonAidField ? `GROUP BY ${postgresQuote(nonAidField.name)}` : '';
   const query = [`SELECT ${columnSQL} count(*)`, `FROM ${postgresQuote(tableName)}`, `${groupBySQL}`].join('\n');
+  const commentedQuery = `
+${query}
 
-  const sqlPayload = makeSqlPayload(databaseId, query);
+${sqlHint}`;
+
+  const sqlPayload = makeSqlPayload(databaseId, commentedQuery);
 
   return {
     sqlPayload: Buffer.from(JSON.stringify(sqlPayload)).toString('base64'),
