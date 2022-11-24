@@ -61,6 +61,9 @@
       "TableDropdown": {
         "New SQL query": "New SQL query",
         "Remove": "Remove",
+        "Are you sure to delete table `{{name}}`?": "Are you sure to delete table `{{name}}`?",
+        "Yes": "Yes",
+        "No": "No",
         "Click here to analyze in Metabase": "Click here to analyze in Metabase"
       }
     }
