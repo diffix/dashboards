@@ -260,7 +260,7 @@ export const App: FunctionComponent = () => {
   function tabTitle(tab: TabData) {
     switch (tab.type) {
       case 'admin':
-        return <HomeOutlined />;
+        return <HomeOutlined style={{ margin: '0 8px' }} />;
       case 'docs':
         return (
           <span>
