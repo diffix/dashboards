@@ -1,4 +1,4 @@
-import { postgresReservedKeywords } from '../constants';
+import { postgresReservedKeywords } from './constants';
 import { ColumnType, RowData, RowDataIndex, Task, Value } from '../types';
 
 export function delay(ms: number): Promise<void> {

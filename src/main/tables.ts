@@ -6,7 +6,7 @@ import { TransactionSql } from 'postgres';
 import readline from 'readline';
 import stream from 'stream';
 import util from 'util';
-import { PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from '../constants';
+import { PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from '../shared/constants';
 import { ColumnType, ImportedTable, NumberFormat, ParseOptions, TableColumn } from '../types';
 import { postgresConfig } from './config';
 import { sendToRenderer } from './ipc';

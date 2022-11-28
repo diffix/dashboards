@@ -1,7 +1,7 @@
 import { DeleteOutlined, ConsoleSqlOutlined, EllipsisOutlined } from '@ant-design/icons';
 import { Button, Tooltip, Table, Dropdown, Menu } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
-import { ROW_INDEX_COLUMN } from '../constants';
+import { ROW_INDEX_COLUMN } from '../shared/constants';
 import { TFunc, useT } from '../shared-react';
 import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
 import { ImportedTable } from '../types';

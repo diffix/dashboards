@@ -2,7 +2,7 @@ import { message } from 'antd';
 import { atom, useSetAtom } from 'jotai';
 import { abortableAtom, loadable, useAtomValue } from 'jotai/utils';
 import { useEffect, useMemo, useState } from 'react';
-import { TOAST_DURATION } from '../constants';
+import { TOAST_DURATION } from '../shared/constants';
 import { runTask } from '../shared';
 import { getT } from '../shared-react';
 import {

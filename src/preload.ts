@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import i18n from 'i18next';
 import { set } from 'lodash';
 import { initReactI18next } from 'react-i18next';
-import { i18nConfig } from './constants';
+import { i18nConfig } from './shared/constants';
 
 import de from '../assets/locales/de/translation.json';
 import en from '../assets/locales/en/translation.json';

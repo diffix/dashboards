@@ -2,7 +2,7 @@ import { Button, Form, Input, Typography } from 'antd';
 import { snakeCase } from 'lodash';
 import path from 'path';
 import React, { FunctionComponent, useState } from 'react';
-import { postgresReservedKeywords } from '../../constants';
+import { postgresReservedKeywords } from '../../shared/constants';
 import { useT, useUnmountListener } from '../../shared-react';
 import { isPostgresIdentifier } from '../../shared';
 import { useTableActions, useTableListCached } from '../../state';

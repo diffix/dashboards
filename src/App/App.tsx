@@ -15,7 +15,7 @@ import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
 import { AdminTab } from '../AdminTab';
-import { SHOW_METABASE_HINT_KEY } from '../constants';
+import { SHOW_METABASE_HINT_KEY } from '../shared/constants';
 import { DocsFunctionsContext, DocsTab, PageId } from '../DocsTab';
 import { ImportDataTab } from '../ImportDataTab';
 import { MetabaseTab } from '../MetabaseTab';

@@ -1,6 +1,6 @@
 import { Divider, Result, Space, Spin, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
-import { PREVIEW_ROWS_COUNT } from '../../constants';
+import { PREVIEW_ROWS_COUNT } from '../../shared/constants';
 import { useT } from '../../shared-react';
 import { useSchema } from '../../state';
 import { File, ParseOptions, TableSchema } from '../../types';
