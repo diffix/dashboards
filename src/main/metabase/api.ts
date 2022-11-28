@@ -267,16 +267,11 @@ export async function buildInitialQueries(
   const columnSQL = nonAidField ? `${postgresQuote(nonAidField.name)},` : '';
   const groupBySQL = nonAidField ? `GROUP BY ${postgresQuote(nonAidField.name)}` : '';
   const query = [`SELECT ${columnSQL} count(*)`, `FROM ${postgresQuote(tableName)}`, `${groupBySQL}`].join('\n');
-  const commentedQuery = `
-${query}
-
-${sqlHint}`;
+  const commentedQuery = `${query}\n\n${sqlHint}`;
 
   const sqlPayload = makeSqlPayload(databaseId, commentedQuery);
 
-  return {
-    sqlPayload: Buffer.from(JSON.stringify(sqlPayload)).toString('base64'),
-  };
+  return { sqlPayload: Buffer.from(JSON.stringify(sqlPayload)).toString('base64') };
 }
 
 export async function hasUserSetup(): Promise<boolean> {
