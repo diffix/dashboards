@@ -51,6 +51,7 @@
     "Diffix Dashboards": "Diffix Dashboards",
     "Imported Tables": "Imported Tables",
     "Import Table": "Import Table",
+    "PostgreSQL database is not yet ready": "PostgreSQL database is not yet ready",
     "TableList": {
       "Name": "Name",
       "Protected entities": "Protected entities",

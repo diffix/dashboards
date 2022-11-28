@@ -1,7 +1,8 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Typography } from 'antd';
+import { Button, message, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { useT } from '../shared-react';
+import { TOAST_DURATION } from '../shared/constants';
 import { useMetabaseStatus, usePostgresqlStatus } from '../state';
 import { ServiceStatus } from '../types';
 import { ServiceStatusCard } from './ServiceStatusCard';
@@ -27,6 +28,18 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
   const postgresqlStatus = usePostgresqlStatus();
   const metabaseStatus = useMetabaseStatus();
 
+  function openImportDataTab() {
+    if (postgresqlStatus !== ServiceStatus.Running) {
+      message.warning({
+        content: t('PostgreSQL database is not yet ready'),
+        duration: TOAST_DURATION,
+      });
+      return;
+    }
+
+    onOpenImportDataTab();
+  }
+
   return (
     <div className="AdminTab">
       <div className="AdminTab-content">
@@ -43,13 +56,7 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
         <div className="AdminTab-tables">
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
-            <Button
-              onClick={onOpenImportDataTab}
-              type="primary"
-              size="large"
-              disabled={postgresqlStatus !== ServiceStatus.Running}
-              icon={<PlusOutlined />}
-            >
+            <Button onClick={openImportDataTab} type="primary" size="large" icon={<PlusOutlined />}>
               {t('Import Table')}
             </Button>
           </div>
