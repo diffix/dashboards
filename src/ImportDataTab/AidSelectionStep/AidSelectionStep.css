@@ -11,6 +11,7 @@
 
 .AidSelectionStep .AidSelectionStep-select {
   margin-bottom: 16px;
+  min-width: 275px;
 }
 
 .AidSelectionStep .AidSelectionStep-radio-group {

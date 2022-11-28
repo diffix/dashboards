@@ -33,3 +33,9 @@ export function useIsLoading<Value>(loadable: Loadable<Value>, delay = 300): boo
 
   return isLoading;
 }
+
+let nextKey = 1;
+
+export function getUniqueKey(): string {
+  return `key-${nextKey++}`;
+}

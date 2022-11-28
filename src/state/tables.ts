@@ -15,7 +15,7 @@ import {
   TableSchema,
   Task,
 } from '../types';
-import { Loadable, LOADING_STATE, useCachedLoadable } from './common';
+import { getUniqueKey, Loadable, LOADING_STATE, useCachedLoadable } from './common';
 import { $metabaseStatus, $postgresqlStatus } from './services';
 
 // State
@@ -77,10 +77,11 @@ export function useTableActions(): TableActions {
       removeTable(tableName) {
         return runTask(async (signal) => {
           const t = getT('messages::tables');
+          const key = getUniqueKey();
 
           message.loading({
             content: t('Removing table {{tableName}}', { tableName }),
-            key: tableName,
+            key,
             duration: 0,
           });
 
@@ -88,14 +89,14 @@ export function useTableActions(): TableActions {
             await window.removeTable(tableName, signal);
             message.success({
               content: t('Table {{tableName}} removed', { tableName }),
-              key: tableName,
+              key,
               duration: TOAST_DURATION,
             });
             invalidateTableList();
             return true;
           } catch (e) {
             console.error(e);
-            message.error({ content: t('Table removal failed'), key: tableName, duration: TOAST_DURATION });
+            message.error({ content: t('Table removal failed'), key, duration: TOAST_DURATION });
             return false;
           }
         });
@@ -104,11 +105,12 @@ export function useTableActions(): TableActions {
       importCSV(file, parseOptions, tableName, schema, aidColumns) {
         return runTask(async (signal) => {
           const t = getT('messages::importer');
+          const key = getUniqueKey();
 
           const fileName = file.name;
           message.loading({
             content: t('Importing {{fileName}}', { fileName }),
-            key: file.path,
+            key,
             duration: 0,
           });
 
@@ -124,13 +126,13 @@ export function useTableActions(): TableActions {
             if (aborted) {
               message.info({
                 content: t('Import aborted'),
-                key: file.path,
+                key,
                 duration: TOAST_DURATION,
               });
             } else {
               message.success({
                 content: t('{{fileName}} imported successfully', { fileName }),
-                key: file.path,
+                key,
                 duration: TOAST_DURATION,
               });
               invalidateTableList();
@@ -141,7 +143,7 @@ export function useTableActions(): TableActions {
             const reason = String(e).substring(0, 1000);
             message.error({
               content: t('Data import failed: {{reason}}', { reason }),
-              key: file.path,
+              key,
               duration: TOAST_DURATION,
             });
             return false;

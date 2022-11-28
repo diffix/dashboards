@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { Spin } from 'antd';
 import React, { FunctionComponent, useEffect, useRef } from 'react';
+import { useT } from '../shared-react';
 import { METABASE_PORT, METABASE_SESSION_NAME } from '../shared/constants';
+import { useMetabaseStatus } from '../state';
+import { ServiceStatus } from '../types';
 
 import './MetabaseTab.css';
 
@@ -36,10 +40,16 @@ export type MetabaseTabProps = {
 };
 
 export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce, startUrlPath }) => {
+  const t = useT('MetabaseTab');
+  const metabaseReady = useMetabaseStatus() === ServiceStatus.Running;
   const wrapperRef = useRef<HTMLDivElement>(null);
   const refreshRef = useRef(() => {});
 
   useEffect(() => {
+    if (!metabaseReady) {
+      return;
+    }
+
     const div = wrapperRef.current!;
 
     const webviewProps = {
@@ -62,7 +72,7 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
     webview!.addEventListener('dom-ready', () => {
       (webview as any).insertCSS(CUSTOM_CSS);
     });
-  }, [startUrlPath]);
+  }, [metabaseReady, startUrlPath]);
 
   useEffect(() => {
     if (refreshNonce > 0) {
@@ -70,5 +80,11 @@ export const MetabaseTab: FunctionComponent<MetabaseTabProps> = ({ refreshNonce,
     }
   }, [refreshNonce]);
 
-  return <div className="MetabaseTab" ref={wrapperRef}></div>;
+  return (
+    <div className="MetabaseTab">
+      <Spin className="MetabaseTab-spinner" spinning={!metabaseReady} tip={t('Waiting for Metabase...')} size="large">
+        <div className="MetabaseTab-webview-wrapper" ref={wrapperRef}></div>
+      </Spin>
+    </div>
+  );
 };
