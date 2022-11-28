@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { Trans } from 'react-i18next';
-import { TFunc, useT as useBaseT } from '../shared';
+import { TFunc, useT as useBaseT } from '../shared-react';
 import { ImportDataNavStep, useNavState } from './import-data-nav';
 
 const { Paragraph: ParagraphBase, Title } = Typography;

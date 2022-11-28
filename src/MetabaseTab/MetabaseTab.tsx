@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { FunctionComponent, useEffect, useRef } from 'react';
-import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
+import { METABASE_PORT, METABASE_SESSION_NAME } from '../shared/constants';
 
 import './MetabaseTab.css';
 

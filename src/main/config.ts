@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import path from 'path';
 import { productName } from '../../package.json';
-import { METABASE_PORT, METABASE_SESSION_NAME } from '../constants';
+import { METABASE_PORT, METABASE_SESSION_NAME } from '../shared/constants';
 
 export const isWin = process.platform === 'win32';
 export const isMac = process.platform === 'darwin';

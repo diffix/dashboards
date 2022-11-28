@@ -1,4 +1,5 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
+import { isPostgresIdentifier } from '../../shared';
 import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
@@ -27,6 +28,21 @@ function findAnonymizedAccessDbId(databases: Database[]) {
     throw new Error('Anonymized access data source not found in Metabase');
   }
 }
+
+function postgresQuote(name: string) {
+  return isPostgresIdentifier(name) ? name : `"${name}"`;
+}
+
+const sqlHint = `
+-- HINTS 
+-- Change, add, or remove columns as desired.
+-- Text columns can be masked:
+--     substring(text_column, 1, 2)
+-- Numeric columns can be binned:
+--     diffix.floor_by(numeric_column, 10)
+-- Sum numeric columns with:
+--     sum(column)
+-- Learn more at https://github.com/diffix/pg_diffix/blob/master/docs/analyst_guide.md#supported-functions.`;
 
 function makeRequest(path: string, options: RequestOptions = {}): Promise<unknown> {
   const { protocol, hostname, port, sessionName } = metabaseConfig;
@@ -248,15 +264,14 @@ export async function buildInitialQueries(
   // Picks some fields which aren't AIDs to put in the GROUP BY.
   const nonAidField = fields.find((field) => !aidColumns.includes(field.name));
 
-  const columnSQL = nonAidField ? `"${nonAidField.name}",` : '';
-  const groupBySQL = nonAidField ? 'GROUP BY 1' : '';
-  const query = `SELECT ${columnSQL} count(*) FROM "${tableName}" ${groupBySQL}`;
+  const columnSQL = nonAidField ? `${postgresQuote(nonAidField.name)},` : '';
+  const groupBySQL = nonAidField ? `GROUP BY ${postgresQuote(nonAidField.name)}` : '';
+  const query = [`SELECT ${columnSQL} count(*)`, `FROM ${postgresQuote(tableName)}`, `${groupBySQL}`].join('\n');
+  const commentedQuery = `${query}\n\n${sqlHint}`;
 
-  const sqlPayload = makeSqlPayload(databaseId, query);
+  const sqlPayload = makeSqlPayload(databaseId, commentedQuery);
 
-  return {
-    sqlPayload: Buffer.from(JSON.stringify(sqlPayload)).toString('base64'),
-  };
+  return { sqlPayload: Buffer.from(JSON.stringify(sqlPayload)).toString('base64') };
 }
 
 export async function hasUserSetup(): Promise<boolean> {

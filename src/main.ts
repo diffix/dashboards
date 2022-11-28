@@ -9,7 +9,7 @@ import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
 import semver from 'semver';
-import { i18nConfig } from './constants';
+import { i18nConfig } from './shared/constants';
 import { PageId } from './DocsTab';
 import { appResourcesLocation, isMac } from './main/config';
 import { sendToRenderer } from './main/ipc';

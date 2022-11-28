@@ -1,8 +1,8 @@
 import { DeleteOutlined, ConsoleSqlOutlined, EllipsisOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { Button, Tooltip, Table, Dropdown, Menu, Popconfirm } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
-import { ROW_INDEX_COLUMN } from '../constants';
-import { TFunc, useT } from '../shared';
+import { ROW_INDEX_COLUMN } from '../shared/constants';
+import { TFunc, useT } from '../shared-react';
 import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
 import { ImportedTable } from '../types';
 
@@ -37,7 +37,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
       <Menu.Item
         icon={<ConsoleSqlOutlined />}
         key={`${table.name}-new-sql`}
-        onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload}`)}
+        onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
       >
         {t('New SQL query')}
       </Menu.Item>

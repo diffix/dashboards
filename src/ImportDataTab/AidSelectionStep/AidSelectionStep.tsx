@@ -1,8 +1,8 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Alert, Divider, Radio, RadioChangeEvent, Select, Typography } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
-import { ROW_INDEX_COLUMN } from '../../constants';
-import { useT } from '../../shared';
+import { ROW_INDEX_COLUMN } from '../../shared/constants';
+import { useT } from '../../shared-react';
 import { TableSchema } from '../../types';
 import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 

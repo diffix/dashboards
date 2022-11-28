@@ -1,6 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import { Typography } from 'antd';
-import { columnSorter, ResponsiveTable } from '../../shared';
+import { columnSorter } from '../../shared';
+import { ResponsiveTable } from '../../shared-react';
 import { TableSchema, Value } from '../../types';
 
 const { Text } = Typography;
