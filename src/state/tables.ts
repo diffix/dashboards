@@ -193,6 +193,7 @@ function detectColumnTypes(parseOptions: ParseOptions, columnsCount: number, row
     if (info.isBoolean) return 'boolean';
     if (info.isInteger) return 'integer';
     if (info.isReal) return 'real';
+    if (info.isTimestamp) return 'timestamp';
     return 'text';
   });
 }
