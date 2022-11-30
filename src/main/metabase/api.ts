@@ -1,5 +1,5 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
-import { isPostgresIdentifier } from '../../shared';
+import { postgresQuote } from '../../shared';
 import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
@@ -27,10 +27,6 @@ function findAnonymizedAccessDbId(databases: Database[]) {
   } else {
     throw new Error('Anonymized access data source not found in Metabase');
   }
-}
-
-function postgresQuote(name: string) {
-  return isPostgresIdentifier(name) ? name : `"${name}"`;
 }
 
 const sqlHint = `
