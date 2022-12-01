@@ -429,6 +429,7 @@ export async function removeTableExamples(tableName: string): Promise<void> {
   const collections = (await get('/api/collection/tree?tree=true')) as unknown as Collection[];
   const personalCollection = find(collections, { archived: false, personal_owner_id: ADMIN_USER_ID });
   if (!personalCollection) {
+    console.warn('Unable to find personal collection for', ADMIN_USER_ID);
     return; // Should never happen.
   }
 

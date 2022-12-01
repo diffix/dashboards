@@ -10,7 +10,7 @@ import { PREVIEW_ROWS_COUNT, ROW_INDEX_COLUMN } from '../shared/constants';
 import { ColumnType, ImportedTable, NumberFormat, ParseOptions, TableColumn } from '../types';
 import { postgresConfig } from './config';
 import { sendToRenderer } from './ipc';
-import { buildInitialQueries, getAnonymizedAccessDbId, syncMetabaseSchema } from './metabase';
+import { buildInitialQueries, getAnonymizedAccessDbId, removeTableExamples, syncMetabaseSchema } from './metabase';
 import { sql, SqlFragment } from './postgres';
 
 const finished = util.promisify(stream.finished);
@@ -59,6 +59,7 @@ export async function loadTables(): Promise<ImportedTable[]> {
 }
 
 export async function removeTable(tableName: string): Promise<void> {
+  await removeTableExamples(tableName);
   await sql`DROP TABLE public.${sql(tableName)}`;
   await syncTables();
 }
@@ -198,7 +199,17 @@ export async function importCSV(
 
       await sql`GRANT SELECT ON ${sql(tableName)} TO ${sql(postgresConfig.trustedUser)}`;
     });
+
+    try {
+      // Examples might have become stale, if we have overwritten a table.
+      // We preemptively remove examples and they will be built on first view.
+      await removeTableExamples(tableName);
+    } catch (err) {
+      console.warn(`Removing examples for '${tableName}' failed`, err);
+    }
+
     await syncTables();
+
     return { aborted: false };
   } catch (err) {
     if ((err as Error)?.name === 'AbortError') {
