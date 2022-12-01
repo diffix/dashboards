@@ -5,11 +5,11 @@ import {
   EllipsisOutlined,
   QuestionCircleOutlined,
 } from '@ant-design/icons';
-import { Button, Dropdown, Menu, Popconfirm, Table, Tooltip } from 'antd';
+import { Button, Dropdown, Menu, message, Popconfirm, Table, Tooltip } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { TFunc, useT } from '../shared-react';
 import { ROW_INDEX_COLUMN } from '../shared/constants';
-import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
+import { getUniqueKey, useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
 import { ImportedTable } from '../types';
 
 const { Column } = Table;
@@ -36,6 +36,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
   const t = useT('AdminTab::TableList::TableDropdown');
 
   const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
+  const [examplesInProgress, setExamplesInProgress] = useState(false);
   const { getTableExamples, removeTable } = useTableActions();
 
   const menu = (
@@ -50,9 +51,41 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
       <Menu.Item
         icon={<BarChartOutlined />}
         key={`${table.name}-examples`}
+        disabled={examplesInProgress}
         onClick={async () => {
+          const messageKey = getUniqueKey();
+
+          const messageTimeout = setTimeout(
+            () =>
+              message.loading({
+                content: t('Examples for {{tableName}} under construction...', { tableName: table.name }),
+                key: messageKey,
+                duration: 0,
+              }),
+            1000,
+          );
+
+          setExamplesInProgress(true);
+          const startTime = performance.now();
           const examplesCollectionId = await getTableExamples(table).result;
-          onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+          const elapsed = performance.now() - startTime;
+          setExamplesInProgress(false);
+
+          if (elapsed < 3000) {
+            clearTimeout(messageTimeout);
+            message.destroy(messageKey);
+            onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+          } else {
+            message.success({
+              content: (
+                <Button type="link" onClick={() => onOpenMetabaseTab(`collection/${examplesCollectionId}`)}>
+                  {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
+                </Button>
+              ),
+              key: messageKey,
+              duration: 5,
+            });
+          }
         }}
       >
         {t('Table Overview')}
@@ -64,7 +97,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
         okText={t('Remove')}
         cancelText={t('Cancel')}
       >
-        <Menu.Item icon={<DeleteOutlined />} key={`${table.name}-remove`}>
+        <Menu.Item icon={<DeleteOutlined />} key={`${table.name}-remove`} disabled={examplesInProgress}>
           {t('Remove')}
         </Menu.Item>
       </Popconfirm>
