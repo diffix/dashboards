@@ -51,7 +51,8 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
         icon={<BarChartOutlined />}
         key={`${table.name}-examples`}
         onClick={async () => {
-          await getTableExamples(table).result;
+          const examplesCollectionId = await getTableExamples(table).result;
+          onOpenMetabaseTab(`collection/${examplesCollectionId}`);
         }}
       >
         {t('Table Overview')}
