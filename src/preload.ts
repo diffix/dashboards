@@ -110,10 +110,20 @@ window.importCSV = (
   tableName: string,
   columns: TableColumn[],
   aidColumns: string[],
+  isOverwriting: boolean,
   signal: AbortSignal,
 ) =>
   newTask(signal, (taskId) => {
-    return ipcRenderer.invoke('import_csv', taskId, fileName, parseOptions, tableName, columns, aidColumns);
+    return ipcRenderer.invoke(
+      'import_csv',
+      taskId,
+      fileName,
+      parseOptions,
+      tableName,
+      columns,
+      aidColumns,
+      isOverwriting,
+    );
   });
 
 window.setMainWindowTitle = (title: string) => {

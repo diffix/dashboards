@@ -114,6 +114,7 @@ declare global {
       tableName: string,
       columns: TableColumn[],
       aidColumns: string[],
+      isOverwriting: boolean,
       signal: AbortSignal,
     ): Promise<ImportResult>;
     onOpenDocs: (page: PageId) => void;
