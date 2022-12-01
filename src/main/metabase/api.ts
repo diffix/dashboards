@@ -1,9 +1,12 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
+import { find } from 'lodash';
 import { postgresQuote } from '../../shared';
 import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
 import { delay, getUsername } from '../service-utils';
+import { exampleQueries, ExampleQuery } from './examples';
+import { Table } from './types';
 
 type RequestOptions = Partial<ClientRequestConstructorOptions> & {
   headers?: Record<string, string>;
@@ -29,8 +32,20 @@ function findAnonymizedAccessDbId(databases: Database[]) {
   }
 }
 
+function findDirectAccessDbId(databases: Database[]) {
+  const databaseId = databases.find(
+    (db) => db.details.dbname === postgresConfig.tablesDatabase && db.details.user === postgresConfig.adminUser,
+  )?.id;
+
+  if (databaseId) {
+    return databaseId;
+  } else {
+    throw new Error('Direct access data source not found in Metabase');
+  }
+}
+
 const sqlHint = `
--- HINTS 
+-- HINTS
 -- Change, add, or remove columns as desired.
 -- Text columns can be masked:
 --     substring(text_column, 1, 2)
@@ -122,6 +137,13 @@ function get(path: string) {
 function post(path: string, data: unknown) {
   return makeRequest(path, {
     method: 'POST',
+    body: data,
+  }) as Promise<Record<string, unknown>>;
+}
+
+function put(path: string, data: unknown) {
+  return makeRequest(path, {
+    method: 'PUT',
     body: data,
   }) as Promise<Record<string, unknown>>;
 }
@@ -285,4 +307,140 @@ export async function syncMetabaseSchema(): Promise<void> {
     }
   }
   await post(`/api/database/${anonymizedAccessDbId}/sync`, {});
+}
+
+type CollectionId = number;
+
+async function createCollection(parentId: number, name: string, description?: string): Promise<CollectionId> {
+  const { id } = await post('/api/collection', {
+    name,
+    description: description || null,
+    color: '#509EE3',
+    parent_id: parentId,
+  });
+
+  return id as CollectionId;
+}
+
+type Collection = {
+  id: number;
+  personal_owner_id: number;
+  name: string;
+  archived: boolean;
+  children: Collection[];
+};
+
+// We can query the user ID from /api/user/current, but the initial user we create will always be 1.
+const ADMIN_USER_ID = 1;
+const EXAMPLES_COLLECTION_NAME = 'Examples';
+
+async function getExamplesCollection(): Promise<{
+  id: number;
+  children: Collection[];
+}> {
+  const collections = (await get('/api/collection/tree?tree=true')) as unknown as Collection[];
+  const personalCollection = find(collections, { archived: false, personal_owner_id: ADMIN_USER_ID });
+  if (!personalCollection) {
+    throw new Error('No personal collection found.');
+  }
+
+  const examplesCollection = find(personalCollection.children, { archived: false, name: EXAMPLES_COLLECTION_NAME });
+  if (examplesCollection) {
+    return examplesCollection;
+  } else {
+    return {
+      id: await createCollection(personalCollection.id, EXAMPLES_COLLECTION_NAME),
+      children: [],
+    };
+  }
+}
+
+async function addQueryToCollection(query: ExampleQuery, databaseId: number, collectionId: number): Promise<number> {
+  const response = await post('/api/card', {
+    name: query.name,
+    dataset_query: {
+      type: 'native',
+      native: {
+        query: query.sql,
+        'template-tags': {},
+      },
+      database: databaseId,
+    },
+    display: query.display,
+    description: null,
+    visualization_settings: query.visualizationSettings,
+    parameters: [],
+    collection_id: collectionId,
+    result_metadata: null,
+  });
+
+  return response.id as number;
+}
+
+export async function getOrCreateTableExamples(tableName: string, aidColumns: string[]): Promise<number> {
+  const parentCollection = await getExamplesCollection();
+
+  const collection = find(parentCollection.children, { archived: false, name: tableName });
+  if (collection) {
+    // Examples collection already exists, return ID.
+    return collection.id;
+  }
+
+  // Make and populate examples collection.
+
+  const collectionId = await createCollection(parentCollection.id, tableName);
+
+  const databases = (await get('/api/database')).data as Database[];
+
+  const directDatabaseId = findDirectAccessDbId(databases);
+  const anonDatabaseId = findAnonymizedAccessDbId(databases);
+
+  const directTableId = await getTableId(directDatabaseId, tableName);
+  const tableMetadata = (await get(`/api/table/${directTableId}/query_metadata`)) as Table;
+
+  if (tableMetadata.initial_sync_status !== 'complete') {
+    throw new Error('Table metadata is not ready.');
+  }
+
+  // Create dashboard.
+  const dashboard = await post('api/dashboard', {
+    collection_id: collectionId,
+    name: `${tableMetadata.display_name} Dashboard`,
+  });
+  const dashboardId = dashboard.id as number;
+
+  // Pin dashboard.
+  await put(`/api/dashboard/${dashboardId}`, { collection_position: 1 });
+
+  // Add queries to dashboard.
+  const sections = exampleQueries(tableMetadata, aidColumns);
+  for (const section of sections) {
+    for (const query of section.queries) {
+      const queryId = await addQueryToCollection(query, anonDatabaseId, collectionId);
+      await post(`/api/dashboard/${dashboardId}/cards`, { cardId: queryId });
+    }
+  }
+
+  return collectionId;
+}
+
+/** Archives the collection of table examples if it exists. */
+export async function removeTableExamples(tableName: string): Promise<void> {
+  const collections = (await get('/api/collection/tree?tree=true')) as unknown as Collection[];
+  const personalCollection = find(collections, { archived: false, personal_owner_id: ADMIN_USER_ID });
+  if (!personalCollection) {
+    return; // Should never happen.
+  }
+
+  const examplesCollection = find(personalCollection.children, { archived: false, name: EXAMPLES_COLLECTION_NAME });
+  if (!examplesCollection) {
+    return; // No examples at all yet.
+  }
+
+  const collection = find(examplesCollection.children, { archived: false, name: tableName });
+  if (!collection) {
+    return; // Table has no examples created.
+  }
+
+  await put(`/api/collection/${collection.id}`, { archived: true });
 }

@@ -9,13 +9,13 @@ import i18n from 'i18next';
 import i18nFsBackend from 'i18next-fs-backend';
 import path from 'path';
 import semver from 'semver';
-import { i18nConfig } from './shared/constants';
 import { PageId } from './DocsTab';
 import { appResourcesLocation, isMac } from './main/config';
 import { sendToRenderer } from './main/ipc';
 import { getAppLanguage } from './main/language';
 import {
   getMetabaseStatus,
+  getOrCreateTableExamples,
   initializeMetabase,
   setMetabaseStatus,
   shutdownMetabase,
@@ -31,6 +31,7 @@ import {
 } from './main/postgres';
 import { forwardLogLines } from './main/service-utils';
 import { importCSV, loadTables, readCSV, removeTable } from './main/tables';
+import { i18nConfig } from './shared/constants';
 import { ParseOptions, ServiceName, ServiceStatus, TableColumn } from './types';
 
 const store = new Store();
@@ -326,6 +327,10 @@ function setupIPC() {
   ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {
     console.info(`(${taskId}) Removing imported table '${tableName}'.`);
     return runTask(taskId, (_signal) => removeTable(tableName));
+  });
+
+  ipcMain.handle('get_table_examples', (_event, taskId: string, tableName: string, aidColumns: string[]) => {
+    return runTask(taskId, (_signal) => getOrCreateTableExamples(tableName, aidColumns));
   });
 
   ipcMain.handle('store_set', (_event, key, value) => {

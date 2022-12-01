@@ -1,8 +1,8 @@
-import { DeleteOutlined, ConsoleSqlOutlined, EllipsisOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-import { Button, Tooltip, Table, Dropdown, Menu, Popconfirm } from 'antd';
+import { ConsoleSqlOutlined, DeleteOutlined, EllipsisOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { Button, Dropdown, Menu, Popconfirm, Table, Tooltip } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
-import { ROW_INDEX_COLUMN } from '../shared/constants';
 import { TFunc, useT } from '../shared-react';
+import { ROW_INDEX_COLUMN } from '../shared/constants';
 import { useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
 import { ImportedTable } from '../types';
 
@@ -30,7 +30,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
   const t = useT('AdminTab::TableList::TableDropdown');
 
   const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
-  const { removeTable } = useTableActions();
+  const { getTableExamples, removeTable } = useTableActions();
 
   const menu = (
     <Menu>
@@ -40,6 +40,15 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
         onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
       >
         {t('New SQL query')}
+      </Menu.Item>
+      <Menu.Item
+        icon={<ConsoleSqlOutlined />}
+        key={`${table.name}-examples`}
+        onClick={async () => {
+          await getTableExamples(table).result;
+        }}
+      >
+        {t('Table Overview')}
       </Menu.Item>
       <Popconfirm
         title={t('Remove table `{{name}}`?', { name: table.name })}

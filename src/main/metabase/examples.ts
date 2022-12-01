@@ -4,7 +4,7 @@ import { Field, Table } from './types';
 type Display = 'table' | 'bar' | 'row' | 'scalar' | 'map'; // Other types TBD.
 
 /** An example query card. */
-type ExampleQuery = {
+export type ExampleQuery = {
   name: string; // Title of card.
   sql: string; // SQL query.
   sizeX: number; // Grid of 18 units wide.
