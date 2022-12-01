@@ -2,9 +2,9 @@ import { message } from 'antd';
 import { atom, useSetAtom } from 'jotai';
 import { abortableAtom, loadable, useAtomValue } from 'jotai/utils';
 import { useEffect, useMemo, useState } from 'react';
-import { TOAST_DURATION } from '../shared/constants';
 import { runTask } from '../shared';
 import { getT } from '../shared-react';
+import { TOAST_DURATION } from '../shared/constants';
 import {
   ColumnType,
   File,
@@ -54,6 +54,7 @@ export function useTableListCached(): ImportedTable[] {
 export interface TableActions {
   invalidateTableList(): void;
   removeTable(tableName: string): Task<boolean>;
+  getTableExamples(table: ImportedTable): Task<number>;
   importCSV(
     file: File,
     parseOptions: ParseOptions,
@@ -99,6 +100,13 @@ export function useTableActions(): TableActions {
             message.error({ content: t('Table removal failed'), key, duration: TOAST_DURATION });
             return false;
           }
+        });
+      },
+
+      getTableExamples(table: ImportedTable) {
+        return runTask(async (signal) => {
+          const collectionId = window.getTableExamples(table, signal);
+          return collectionId;
         });
       },
 

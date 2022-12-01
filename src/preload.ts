@@ -4,10 +4,10 @@ import i18n from 'i18next';
 import { set } from 'lodash';
 import { initReactI18next } from 'react-i18next';
 import { i18nConfig } from './shared/constants';
+import { ImportedTable, ParseOptions, ServiceName, TableColumn } from './types';
 
 import de from '../assets/locales/de/translation.json';
 import en from '../assets/locales/en/translation.json';
-import { ParseOptions, ServiceName, TableColumn } from './types';
 
 const args = window.process.argv;
 let initialLanguage = 'en';
@@ -86,6 +86,12 @@ window.loadTables = (signal: AbortSignal) =>
 window.removeTable = (tableName: string, signal: AbortSignal) =>
   newTask(signal, async (taskId) => {
     const result = await ipcRenderer.invoke('remove_table', taskId, tableName);
+    return result;
+  });
+
+window.getTableExamples = (table: ImportedTable, signal: AbortSignal) =>
+  newTask(signal, async (taskId) => {
+    const result = await ipcRenderer.invoke('get_table_examples', taskId, table.name, table.aidColumns);
     return result;
   });
 
