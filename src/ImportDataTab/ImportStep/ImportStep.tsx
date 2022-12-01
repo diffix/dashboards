@@ -85,7 +85,7 @@ export const ImportStep: FunctionComponent<ImportProps> = ({
         <Button
           onClick={async () => {
             setIsImporting(true);
-            const task = importCSV(file, parseOptions, tableName, schema, aidColumns, tableExists);
+            const task = importCSV(file, parseOptions, tableName, schema, aidColumns);
             unmountListener.onUnmount = task.cancel;
             task.result
               .then((success) => {

@@ -61,7 +61,6 @@ export interface TableActions {
     tableName: string,
     schema: TableSchema,
     aidColumns: string[],
-    isOverwriting: boolean,
   ): Task<boolean>;
 }
 
@@ -111,7 +110,7 @@ export function useTableActions(): TableActions {
         });
       },
 
-      importCSV(file, parseOptions, tableName, schema, aidColumns, isOverwriting) {
+      importCSV(file, parseOptions, tableName, schema, aidColumns) {
         return runTask(async (signal) => {
           const t = getT('messages::importer');
           const key = getUniqueKey();
@@ -130,7 +129,6 @@ export function useTableActions(): TableActions {
               tableName,
               schema.columns,
               aidColumns,
-              isOverwriting,
               signal,
             );
             if (aborted) {

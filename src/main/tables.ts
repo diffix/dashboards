@@ -167,7 +167,6 @@ export async function importCSV(
   tableName: string,
   columns: TableColumn[],
   aidColumns: string[],
-  isOverwriting: boolean,
   signal: AbortSignal,
 ): Promise<{ aborted: boolean }> {
   try {
@@ -201,10 +200,12 @@ export async function importCSV(
       await sql`GRANT SELECT ON ${sql(tableName)} TO ${sql(postgresConfig.trustedUser)}`;
     });
 
-    if (isOverwriting) {
-      // Examples might have become stale now; remove them and they will be rebuilt on first view.
-      // Keep this async to not crash the import in case of failure.
-      removeTableExamples(tableName);
+    try {
+      // Examples might have become stale, if we have overwritten a table.
+      // We preemptively remove examples and they will be built on first view.
+      await removeTableExamples(tableName);
+    } catch (err) {
+      console.warn(`Removing examples for '${tableName}' failed`, err);
     }
 
     await syncTables();

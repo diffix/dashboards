@@ -356,12 +356,9 @@ function setupIPC() {
       tableName: string,
       columns: TableColumn[],
       aidColumns: string[],
-      isOverwriting: boolean,
     ) => {
       console.info(`(${taskId}) copying CSV "${fileName}" to "${tableName}".`);
-      return runTask(taskId, (signal) =>
-        importCSV(fileName, parseOptions, tableName, columns, aidColumns, isOverwriting, signal),
-      );
+      return runTask(taskId, (signal) => importCSV(fileName, parseOptions, tableName, columns, aidColumns, signal));
     },
   );
 
