@@ -1,4 +1,10 @@
-import { ConsoleSqlOutlined, DeleteOutlined, EllipsisOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import {
+  BarChartOutlined,
+  ConsoleSqlOutlined,
+  DeleteOutlined,
+  EllipsisOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons';
 import { Button, Dropdown, Menu, Popconfirm, Table, Tooltip } from 'antd';
 import React, { FunctionComponent, useState } from 'react';
 import { TFunc, useT } from '../shared-react';
@@ -42,7 +48,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
         {t('New SQL query')}
       </Menu.Item>
       <Menu.Item
-        icon={<ConsoleSqlOutlined />}
+        icon={<BarChartOutlined />}
         key={`${table.name}-examples`}
         onClick={async () => {
           await getTableExamples(table).result;

@@ -61,6 +61,7 @@
       "Columns: {{columns}}": "Columns: {{columns}}",
       "TableDropdown": {
         "New SQL query": "New SQL query",
+        "Table Overview": "Table Overview",
         "Remove": "Remove",
         "Remove table `{{name}}`?": "Remove table `{{name}}`?",
         "Cancel": "Cancel",
