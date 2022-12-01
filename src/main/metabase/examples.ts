@@ -36,7 +36,11 @@ const numberFieldTypes = ['int2', 'int4', 'int8', 'float4', 'float8', 'numeric']
 function rawGroupBySQL(column: string, table: string, displayName: string): ExampleInfo {
   return {
     name: `${displayName} by ${column}`,
-    sql: lines(`SELECT ${postgresQuote(column)}`, `FROM ${postgresQuote(table)}`, `GROUP BY ${postgresQuote(column)}`),
+    sql: lines(
+      `SELECT ${postgresQuote(column)}, count(*)`,
+      `FROM ${postgresQuote(table)}`,
+      `GROUP BY ${postgresQuote(column)}`,
+    ),
   };
 }
 
@@ -62,7 +66,7 @@ function avgSQL(column: string, table: string): ExampleInfo {
 
 function textGeneralizedSQL(column: string, table: string, displayName: string, averageLength: number): ExampleInfo {
   const nChars = Math.ceil(averageLength / 4);
-  const stars = '*'.repeat(Math.ceil(averageLength - nChars));
+  const stars = "'" + '*'.repeat(Math.ceil(averageLength - nChars)) + "'";
   const bucket = `substring(${postgresQuote(column)}, 1, ${nChars})`;
 
   return {
