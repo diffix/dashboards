@@ -23,10 +23,9 @@ type ExamplesSection = {
   queries: ExampleQuery[]; // Cards in section.
 };
 
-type ExampleInfo = {
-  sql: string;
-  name: string;
-};
+type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
+
+type ExampleInfo = AtLeast<ExampleQuery, 'name' | 'sql'>;
 
 function lines(...lines: string[]) {
   return lines.join('\n');
@@ -52,6 +51,7 @@ function countDistinctSQL(column: string, table: string): ExampleInfo {
       `SELECT count(distinct ${postgresQuote(column)}) as ${postgresQuote('distinct_' + column)}`,
       `FROM ${postgresQuote(table)}`,
     ),
+    display: 'scalar',
   };
 }
 
@@ -62,6 +62,7 @@ function avgSQL(column: string, table: string): ExampleInfo {
       `SELECT avg(${postgresQuote(column)}) as ${postgresQuote('avg_' + column)}`,
       `FROM ${postgresQuote(table)}`,
     ),
+    display: 'scalar',
   };
 }
 
@@ -89,7 +90,7 @@ function yearlyGeneralizedSQL(column: string, table: string, displayName: string
   };
 }
 
-function makeExampleInfos(field: Field, table: Table, aidColumns: string[]): ExampleInfo[] {
+function columnExampleQueries(field: Field, table: Table, aidColumns: string[]): ExampleInfo[] {
   try {
     if (field.semantic_type === 'type/PK' || field.database_type === 'serial') {
       // No sensible example for columns being just row IDs.
@@ -132,36 +133,35 @@ function makeExampleInfos(field: Field, table: Table, aidColumns: string[]): Exa
   }
 }
 
+function makeQuery({
+  name,
+  sql,
+  sizeX = 6,
+  sizeY = 4,
+  display = 'table',
+  visualizationSettings = {},
+}: ExampleInfo): ExampleQuery {
+  return { name, sql, sizeX, sizeY, display, visualizationSettings };
+}
+
 export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSection[] {
-  const exampleInfos = table.fields.flatMap((field) => makeExampleInfos(field, table, aidColumns));
+  const exampleQueries = table.fields.flatMap((field) => columnExampleQueries(field, table, aidColumns));
   // const t = getT('example-queries'); // Let's worry about i18n later...
 
   return [
     {
       title: '# Overview',
       queries: [
-        {
+        makeQuery({
           name: `Count of ${table.display_name}`,
           sql: lines('SELECT count(*)', `FROM ${table.name}`),
-          sizeX: 6, // 6 is a good default (3 cards per row).
-          sizeY: 4, // 4 is a good default.
           display: 'scalar',
-          visualizationSettings: {}, // No visualizations for now. To be done after we finish SQL.
-        },
+        }),
       ],
     },
     {
       title: `# Overview of ${table.display_name} columns`,
-      queries: exampleInfos.map(({ name, sql }) => {
-        return {
-          name: name,
-          sql: sql,
-          sizeX: 6,
-          sizeY: 4, // TODO: For a table we might need something taller.
-          display: 'table' as Display, // For now we show results only as 'table'.
-          visualizationSettings: {},
-        };
-      }),
+      queries: exampleQueries.map(makeQuery),
     },
   ];
 }
