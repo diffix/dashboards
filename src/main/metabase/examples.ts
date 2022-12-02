@@ -1,3 +1,4 @@
+import { find } from 'lodash';
 import { postgresQuote } from '../../shared';
 import { Field, Table } from './types';
 
@@ -31,63 +32,83 @@ function lines(...lines: string[]) {
   return lines.join('\n');
 }
 
+function tableMiniBar(example: ExampleInfo): ExampleInfo {
+  return {
+    sizeY: 6,
+    display: 'table',
+    visualizationSettings: {
+      column_settings: {
+        '["name","count"]': {
+          show_mini_bar: true,
+        },
+      },
+    },
+    ...example,
+  };
+}
+
 const numberFieldTypes = ['int2', 'int4', 'int8', 'float4', 'float8', 'numeric'];
 
-function rawGroupBySQL(column: string, table: string, displayName: string): ExampleInfo {
-  return {
-    name: `${displayName} by ${column}`,
+function rawGroupBySQL(field: Field, table: Table): ExampleInfo {
+  const column = field.name;
+  return tableMiniBar({
+    name: `${table.display_name} by ${field.display_name}`,
     sql: lines(
       `SELECT ${postgresQuote(column)}, count(*)`,
-      `FROM ${postgresQuote(table)}`,
+      `FROM ${postgresQuote(table.name)}`,
       `GROUP BY ${postgresQuote(column)}`,
     ),
-  };
+  });
 }
 
-function countDistinctSQL(column: string, table: string): ExampleInfo {
+function countDistinctSQL(field: Field, table: Table): ExampleInfo {
+  const column = field.name;
   return {
-    name: `Distinct ${column}`,
+    name: `Distinct ${field.display_name}`,
     sql: lines(
       `SELECT count(distinct ${postgresQuote(column)}) as ${postgresQuote('distinct_' + column)}`,
-      `FROM ${postgresQuote(table)}`,
+      `FROM ${postgresQuote(table.name)}`,
     ),
     display: 'scalar',
   };
 }
 
-function avgSQL(column: string, table: string): ExampleInfo {
+function avgSQL(field: Field, table: Table): ExampleInfo {
+  const column = field.name;
   return {
-    name: `Average ${column}`,
+    name: `Average ${field.display_name}`,
     sql: lines(
       `SELECT avg(${postgresQuote(column)}) as ${postgresQuote('avg_' + column)}`,
-      `FROM ${postgresQuote(table)}`,
+      `FROM ${postgresQuote(table.name)}`,
     ),
     display: 'scalar',
   };
 }
 
-function textGeneralizedSQL(column: string, table: string, displayName: string, averageLength: number): ExampleInfo {
+function textGeneralizedSQL(field: Field, table: Table, averageLength: number): ExampleInfo {
+  const column = field.name;
   const nChars = Math.ceil(averageLength / 4);
   const stars = "'" + '*'.repeat(Math.ceil(averageLength - nChars)) + "'";
   const bucket = `substring(${postgresQuote(column)}, 1, ${nChars})`;
 
-  return {
-    name: `${displayName} by ${column}`,
-    sql: lines(`SELECT ${bucket} || ${stars}, count(*)`, `FROM ${postgresQuote(table)}`, `GROUP BY ${bucket}`),
-  };
+  return tableMiniBar({
+    name: `${table.display_name} by ${field.display_name}`,
+    sql: lines(`SELECT ${bucket} || ${stars}, count(*)`, `FROM ${postgresQuote(table.name)}`, `GROUP BY ${bucket}`),
+  });
 }
 
-function yearlyGeneralizedSQL(column: string, table: string, displayName: string): ExampleInfo {
+function yearlyGeneralizedSQL(field: Field, table: Table): ExampleInfo {
+  const column = field.name;
   const bucket = `extract(year from ${postgresQuote(column)})`;
 
-  return {
-    name: `${displayName} by ${column} year`,
+  return tableMiniBar({
+    name: `${table.display_name} by ${field.display_name} year`,
     sql: lines(
       `SELECT ${bucket} as ${postgresQuote(column + '_year')}, count(*)`,
-      `FROM ${postgresQuote(table)}`,
+      `FROM ${postgresQuote(table.name)}`,
       `GROUP BY ${bucket}`,
     ),
-  };
+  });
 }
 
 function columnExampleQueries(field: Field, table: Table, aidColumns: string[]): ExampleInfo[] {
@@ -101,31 +122,31 @@ function columnExampleQueries(field: Field, table: Table, aidColumns: string[]):
     } else if (field.database_type === 'text' && field.fingerprint) {
       if (field.fingerprint.global['distinct-count'] && field.fingerprint.global['distinct-count'] < 10) {
         // Few distinct values - can GROUP BY directly.
-        return [rawGroupBySQL(field.name, table.name, table.display_name)];
+        return [rawGroupBySQL(field, table)];
       } else {
         const averageLength = field.fingerprint.type?.['type/Text']?.['average-length'];
 
         // The `< 20`: we want to generalize surnames and categories but not sentences, paragraphs or addresses.
         if (averageLength && averageLength < 20) {
-          return [textGeneralizedSQL(field.name, table.name, table.display_name, averageLength)];
+          return [textGeneralizedSQL(field, table, averageLength)];
         } else {
-          return [countDistinctSQL(field.name, table.name)];
+          return [countDistinctSQL(field, table)];
         }
       }
     } else if (numberFieldTypes.includes(field.database_type) && field.fingerprint) {
       if (field.fingerprint.global['distinct-count'] && field.fingerprint.global['distinct-count'] < 10) {
         // Few distinct values - can GROUP BY directly.
-        return [rawGroupBySQL(field.name, table.name, table.display_name)];
+        return [rawGroupBySQL(field, table)];
       } else {
         // TODO: Construct stable generalization. Temporarily revert to the average.
-        return [avgSQL(field.name, table.name)];
+        return [avgSQL(field, table)];
       }
     } else if (field.database_type === 'timestamp') {
       // TODO: using timestamps fingerprint is possible, but we need to pull in some datetime lib.
-      return [yearlyGeneralizedSQL(field.name, table.name, table.display_name)];
+      return [yearlyGeneralizedSQL(field, table)];
     } else {
       // Fallback to the count distinct for anything else.
-      return [countDistinctSQL(field.name, table.name)];
+      return [countDistinctSQL(field, table)];
     }
   } catch (err) {
     console.warn(`Unable to make example query for ${table.name}, ${field.name}`, err);
@@ -146,6 +167,12 @@ function makeQuery({
 
 export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSection[] {
   const exampleQueries = table.fields.flatMap((field) => columnExampleQueries(field, table, aidColumns));
+
+  function findField(name: string) {
+    const field = find(table.fields, { name });
+    if (!field) throw new Error(`Field '${name}' not found in table ${table.name}.`);
+    return field;
+  }
   // const t = getT('example-queries'); // Let's worry about i18n later...
 
   return [
@@ -159,7 +186,7 @@ export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSect
         }),
         ...aidColumns.map((aidColumn) =>
           makeQuery({
-            ...countDistinctSQL(aidColumn, table.name),
+            ...countDistinctSQL(findField(aidColumn), table),
             name: 'Distinct entities',
           }),
         ),
