@@ -2,7 +2,16 @@ import { find } from 'lodash';
 import { postgresQuote } from '../../shared';
 import { Field, Table } from './types';
 
-type Display = 'table' | 'bar' | 'row' | 'scalar' | 'map'; // Other types TBD.
+// ----------------------------------------------------------------
+// Types & helpers
+// ----------------------------------------------------------------
+
+/** A section for a group of examples. */
+type ExamplesSection = {
+  title: string; // Markdown text as the section heading.
+  titleSizeY?: number; // Title height. Defaults to 1.
+  queries: ExampleQuery[]; // Cards in section.
+};
 
 /** An example query card. */
 export type ExampleQuery = {
@@ -17,20 +26,30 @@ export type ExampleQuery = {
   // packing algorithm to arrange cards automatically in a section.
 };
 
-/** A section for a group of examples. */
-type ExamplesSection = {
-  title: string; // Markdown text as the section heading.
-  titleSizeY?: number; // Title height. Defaults to 1.
-  queries: ExampleQuery[]; // Cards in section.
-};
+type Display = 'table' | 'bar' | 'row' | 'scalar' | 'map'; // Other types TBD.
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
-
 type ExampleInfo = AtLeast<ExampleQuery, 'name' | 'sql'>;
+
+/** Makes a query with reasonable defaults. */
+function makeQuery({
+  name,
+  sql,
+  sizeX = 6,
+  sizeY = 4,
+  display = 'table',
+  visualizationSettings = {},
+}: ExampleInfo): ExampleQuery {
+  return { name, sql, sizeX, sizeY, display, visualizationSettings };
+}
 
 function lines(...lines: string[]) {
   return lines.join('\n');
 }
+
+// ----------------------------------------------------------------
+// Visualization
+// ----------------------------------------------------------------
 
 function tableMiniBar(example: ExampleInfo): ExampleInfo {
   return {
@@ -47,43 +66,81 @@ function tableMiniBar(example: ExampleInfo): ExampleInfo {
   };
 }
 
-const numberFieldTypes = ['int2', 'int4', 'int8', 'float4', 'float8', 'numeric'];
+function rowChart(field: Field, example: ExampleInfo): ExampleInfo {
+  return {
+    display: 'row',
+    visualizationSettings: {
+      'graph.dimensions': [field.name],
+      'graph.metrics': ['count'],
+    },
+    ...example,
+  };
+}
+
+function scalar(example: ExampleInfo): ExampleInfo {
+  return {
+    display: 'scalar',
+    ...example,
+  };
+}
+
+// ----------------------------------------------------------------
+// All columns
+// ----------------------------------------------------------------
 
 function rawGroupBySQL(field: Field, table: Table): ExampleInfo {
   const column = field.name;
-  return tableMiniBar({
+  const query: ExampleInfo = {
     name: `${table.display_name} by ${field.display_name}`,
     sql: lines(
       `SELECT ${postgresQuote(column)}, count(*)`,
       `FROM ${postgresQuote(table.name)}`,
       `GROUP BY ${postgresQuote(column)}`,
     ),
-  });
+  };
+
+  const distinct = field.fingerprint.global['distinct-count'];
+  if (typeof distinct === 'number' && distinct <= 5) {
+    return {
+      ...rowChart(field, query),
+      sizeY: distinct <= 2 ? 4 : 6,
+    };
+  } else {
+    return tableMiniBar(query);
+  }
 }
 
 function countDistinctSQL(field: Field, table: Table): ExampleInfo {
   const column = field.name;
-  return {
+  return scalar({
     name: `Distinct ${field.display_name}`,
     sql: lines(
       `SELECT count(distinct ${postgresQuote(column)}) as ${postgresQuote('distinct_' + column)}`,
       `FROM ${postgresQuote(table.name)}`,
     ),
-    display: 'scalar',
-  };
+  });
 }
+
+// ----------------------------------------------------------------
+// Numeric columns
+// ----------------------------------------------------------------
+
+const numberFieldTypes = ['int2', 'int4', 'int8', 'float4', 'float8', 'numeric'];
 
 function avgSQL(field: Field, table: Table): ExampleInfo {
   const column = field.name;
-  return {
+  return scalar({
     name: `Average ${field.display_name}`,
     sql: lines(
       `SELECT avg(${postgresQuote(column)}) as ${postgresQuote('avg_' + column)}`,
       `FROM ${postgresQuote(table.name)}`,
     ),
-    display: 'scalar',
-  };
+  });
 }
+
+// ----------------------------------------------------------------
+// Text columns
+// ----------------------------------------------------------------
 
 function textGeneralizedSQL(field: Field, table: Table, averageLength: number): ExampleInfo {
   const column = field.name;
@@ -96,6 +153,10 @@ function textGeneralizedSQL(field: Field, table: Table, averageLength: number): 
     sql: lines(`SELECT ${bucket} || ${stars}, count(*)`, `FROM ${postgresQuote(table.name)}`, `GROUP BY ${bucket}`),
   });
 }
+
+// ----------------------------------------------------------------
+// Datetime columns
+// ----------------------------------------------------------------
 
 function yearlyGeneralizedSQL(field: Field, table: Table): ExampleInfo {
   const column = field.name;
@@ -110,6 +171,10 @@ function yearlyGeneralizedSQL(field: Field, table: Table): ExampleInfo {
     ),
   });
 }
+
+// ----------------------------------------------------------------
+// Example builder
+// ----------------------------------------------------------------
 
 function columnExampleQueries(field: Field, table: Table, aidColumns: string[]): ExampleInfo[] {
   try {
@@ -154,17 +219,6 @@ function columnExampleQueries(field: Field, table: Table, aidColumns: string[]):
   }
 }
 
-function makeQuery({
-  name,
-  sql,
-  sizeX = 6,
-  sizeY = 4,
-  display = 'table',
-  visualizationSettings = {},
-}: ExampleInfo): ExampleQuery {
-  return { name, sql, sizeX, sizeY, display, visualizationSettings };
-}
-
 export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSection[] {
   const exampleQueries = table.fields.flatMap((field) => columnExampleQueries(field, table, aidColumns));
 
@@ -179,11 +233,12 @@ export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSect
     {
       title: '# Overview',
       queries: [
-        makeQuery({
-          name: 'Rows in table',
-          sql: lines('SELECT count(*)', `FROM ${table.name}`),
-          display: 'scalar',
-        }),
+        makeQuery(
+          scalar({
+            name: 'Rows in table',
+            sql: lines('SELECT count(*)', `FROM ${table.name}`),
+          }),
+        ),
         ...aidColumns.map((aidColumn) =>
           makeQuery({
             ...countDistinctSQL(findField(aidColumn), table),
