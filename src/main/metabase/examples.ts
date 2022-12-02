@@ -18,7 +18,8 @@ export type ExampleQuery = {
 
 /** A section for a group of examples. */
 type ExamplesSection = {
-  title: string | null; // Markdown text as the section heading.
+  title: string; // Markdown text as the section heading.
+  titleSizeY?: number; // Title height. Defaults to 1.
   queries: ExampleQuery[]; // Cards in section.
 };
 
@@ -137,7 +138,7 @@ export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSect
 
   return [
     {
-      title: 'Overview',
+      title: '# Overview',
       queries: [
         {
           name: `Count of ${table.display_name}`,
@@ -150,7 +151,7 @@ export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSect
       ],
     },
     {
-      title: `Overview of ${table.display_name} columns`,
+      title: `# Overview of ${table.display_name} columns`,
       queries: exampleInfos.map(({ name, sql }) => {
         return {
           name: name,

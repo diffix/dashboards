@@ -5,6 +5,7 @@ import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
 import { delay, getUsername } from '../service-utils';
+import { CardLayout, Rectangle } from './card-layout';
 import { exampleQueries, ExampleQuery } from './examples';
 import { Table } from './types';
 
@@ -406,6 +407,7 @@ export async function getOrCreateTableExamples(tableName: string, aidColumns: st
   const dashboard = await post('api/dashboard', {
     collection_id: collectionId,
     name: `${tableMetadata.display_name} Dashboard`,
+    description: 'Dashboard with SQL query examples',
   });
   const dashboardId = dashboard.id as number;
 
@@ -413,13 +415,72 @@ export async function getOrCreateTableExamples(tableName: string, aidColumns: st
   await put(`/api/dashboard/${dashboardId}`, { collection_position: 1 });
 
   // Add queries to dashboard.
+
+  const layout = new CardLayout();
+  type CardData = {
+    id: number;
+    cardId: number | null;
+    data: string | ExampleQuery;
+    layout: Rectangle;
+  };
+  const cards: CardData[] = [];
+
   const sections = exampleQueries(tableMetadata, aidColumns);
   for (const section of sections) {
+    if (section.title) {
+      // Add section title.
+      const { id } = await post(`/api/dashboard/${dashboardId}/cards`, { cardId: null });
+      const rect = layout.putSection(section.titleSizeY || 1);
+      cards.push({
+        id: id as number,
+        cardId: null,
+        data: section.title,
+        layout: rect,
+      });
+    } else {
+      // Add only line break.
+      layout.putSection(0);
+    }
+
+    // Add section queries.
     for (const query of section.queries) {
       const queryId = await addQueryToCollection(query, anonDatabaseId, collectionId);
-      await post(`/api/dashboard/${dashboardId}/cards`, { cardId: queryId });
+      const { id } = await post(`/api/dashboard/${dashboardId}/cards`, { cardId: queryId });
+      const rect = layout.putCard(query.sizeX, query.sizeY);
+      cards.push({
+        id: id as number,
+        cardId: queryId,
+        data: query,
+        layout: rect,
+      });
     }
   }
+
+  // Organize layout of cards.
+  await put(`/api/dashboard/${dashboardId}/cards`, {
+    cards: cards.map((card) => {
+      return {
+        id: card.id,
+        card_id: card.cardId,
+        parameter_mappings: [],
+        series: [],
+        visualization_settings:
+          typeof card.data === 'string'
+            ? {
+                text: card.data,
+                virtual_card: {
+                  name: null,
+                  display: 'text',
+                  visualization_settings: {},
+                  dataset_query: {},
+                  archived: false,
+                },
+              }
+            : {}, // Visualization inherited from card.
+        ...card.layout,
+      };
+    }),
+  });
 
   return collectionId;
 }
