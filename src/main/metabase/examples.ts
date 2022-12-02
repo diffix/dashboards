@@ -96,8 +96,8 @@ function columnExampleQueries(field: Field, table: Table, aidColumns: string[]):
       // No sensible example for columns being just row IDs.
       return [];
     } else if (aidColumns.includes(field.name)) {
-      // Never SELECT/GROUP BY AIDs directly, also no point in generalizing.
-      return [countDistinctSQL(field.name, table.name)];
+      // Query is generated in 'Overview' section.
+      return [];
     } else if (field.database_type === 'text' && field.fingerprint) {
       if (field.fingerprint.global['distinct-count'] && field.fingerprint.global['distinct-count'] < 10) {
         // Few distinct values - can GROUP BY directly.
@@ -153,10 +153,16 @@ export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSect
       title: '# Overview',
       queries: [
         makeQuery({
-          name: `Count of ${table.display_name}`,
+          name: 'Rows in table',
           sql: lines('SELECT count(*)', `FROM ${table.name}`),
           display: 'scalar',
         }),
+        ...aidColumns.map((aidColumn) =>
+          makeQuery({
+            ...countDistinctSQL(aidColumn, table.name),
+            name: 'Distinct entities',
+          }),
+        ),
       ],
     },
     {
