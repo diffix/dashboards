@@ -40,6 +40,12 @@ function lines(...lines: string[]) {
   return lines.join('\n');
 }
 
+function distinctValues(field: Field): number | undefined {
+  return field.fingerprint.global['distinct-count'];
+}
+
+const DISTINCT_THRESHOLD = 10;
+
 // ----------------------------------------------------------------
 // Visualization
 // ----------------------------------------------------------------
@@ -59,12 +65,25 @@ function tableMiniBar(example: ExampleQuery): ExampleQuery {
   };
 }
 
-function rowChart(field: Field, example: ExampleQuery): ExampleQuery {
+function rowChart(dimensionName: string, example: ExampleQuery): ExampleQuery {
   return {
     display: 'row',
     visualizationSettings: {
-      'graph.dimensions': [field.name],
+      'graph.dimensions': [dimensionName],
       'graph.metrics': ['count'],
+    },
+    ...example,
+  };
+}
+
+function histogram(dimensionName: string, example: ExampleQuery): ExampleQuery {
+  return {
+    sizeY: 5,
+    display: 'bar',
+    visualizationSettings: {
+      'graph.dimensions': [dimensionName],
+      'graph.metrics': ['count'],
+      'graph.x_axis.scale': 'histogram',
     },
     ...example,
   };
@@ -93,10 +112,10 @@ function rawGroupBySQL(field: Field, table: Table): ExampleQuery {
     ),
   };
 
-  const distinct = field.fingerprint.global['distinct-count'];
+  const distinct = distinctValues(field);
   if (typeof distinct === 'number' && distinct <= 5) {
     return {
-      ...rowChart(field, query),
+      ...rowChart(column, query),
       sizeY: distinct <= 2 ? 4 : 6,
     };
   } else {
@@ -132,6 +151,76 @@ function avgSQL(field: Field, table: Table): ExampleQuery {
   });
 }
 
+const BIN_SIZES_INTEGER = [1, 2, 3, 5, 10, 15, 20];
+const BIN_SIZES_REAL = [1, 1.25, 2, 2.5, 3, 5, 7.5, 10];
+const BIN_SIZE_EPSILON = 0.0001;
+const NUM_BINS = 10;
+
+/** Rounds to closest value in binSizes, adjusted to the appropriate power of 10. */
+function roundBinSize(x: number, binSizes: number[]): number {
+  if (x <= BIN_SIZE_EPSILON) return BIN_SIZE_EPSILON;
+  if (x > binSizes.at(-1)!) return 10 * roundBinSize(x / 10, binSizes);
+  if (x < 1) return roundBinSize(10 * x, binSizes) / 10;
+
+  for (let i = 0; i < binSizes.length - 1; i++) {
+    if (x <= (binSizes[i] + binSizes[i + 1]) / 2) return binSizes[i];
+  }
+
+  return binSizes.at(-1)!;
+}
+
+function numericExamples(field: Field, table: Table): ExampleQuery[] {
+  const distinct = distinctValues(field);
+
+  if (typeof distinct === 'number' && distinct <= DISTINCT_THRESHOLD) {
+    // Few distinct values - can GROUP BY directly.
+    return [rawGroupBySQL(field, table)];
+  }
+
+  const fingerprint = field.fingerprint.type?.['type/Number'];
+  if (typeof distinct !== 'number' || !fingerprint) {
+    // If we have no metadata, go with simple queries.
+    // This should not happen under normal circumstances.
+    return [countDistinctSQL(field, table), avgSQL(field, table)];
+  }
+
+  const isInteger = ['int2', 'int4', 'int8'].includes(field.database_type);
+  const binSize = roundBinSize(
+    (fingerprint.max - fingerprint.min) / NUM_BINS,
+    isInteger ? BIN_SIZES_INTEGER : BIN_SIZES_REAL,
+  );
+
+  const column = field.name;
+  const binExpr = `diffix.floor_by(${postgresQuote(column)}, ${binSize})`;
+
+  return [
+    histogram(column, {
+      name: `${table.display_name} by ${field.display_name}`,
+      sql: lines(
+        `SELECT ${binExpr} AS ${postgresQuote(column)}, count(*)`,
+        `FROM ${postgresQuote(table.name)}`,
+        `GROUP BY ${binExpr}`,
+        `ORDER BY ${binExpr} ASC`,
+      ),
+    }),
+  ];
+}
+
+// ----------------------------------------------------------------
+// Text columns
+// ----------------------------------------------------------------
+
+function textExamples(field: Field, table: Table): ExampleQuery[] {
+  const distinct = distinctValues(field);
+
+  if (typeof distinct === 'number' && distinct <= DISTINCT_THRESHOLD) {
+    // Few distinct values - can GROUP BY directly.
+    return [rawGroupBySQL(field, table)];
+  } else {
+    return [countDistinctSQL(field, table)];
+  }
+}
+
 // ----------------------------------------------------------------
 // Datetime columns
 // ----------------------------------------------------------------
@@ -149,6 +238,11 @@ function yearlyGeneralizedSQL(field: Field, table: Table): ExampleQuery {
       `ORDER BY ${bucket} ASC`,
     ),
   });
+}
+
+function datetimeExamples(field: Field, table: Table): ExampleQuery[] {
+  // TODO: using timestamps fingerprint is possible, but we need to pull in some datetime lib.
+  return [yearlyGeneralizedSQL(field, table)];
 }
 
 // ----------------------------------------------------------------
@@ -205,23 +299,11 @@ function columnExampleQueries(field: Field, table: Table, aidColumns: string[]):
       // Query is generated in 'Overview' section.
       return [];
     } else if (field.database_type === 'text' && field.fingerprint) {
-      if (field.fingerprint.global['distinct-count'] && field.fingerprint.global['distinct-count'] < 10) {
-        // Few distinct values - can GROUP BY directly.
-        return [rawGroupBySQL(field, table)];
-      } else {
-        return [countDistinctSQL(field, table)];
-      }
+      return textExamples(field, table);
     } else if (numberFieldTypes.includes(field.database_type) && field.fingerprint) {
-      if (field.fingerprint.global['distinct-count'] && field.fingerprint.global['distinct-count'] < 10) {
-        // Few distinct values - can GROUP BY directly.
-        return [rawGroupBySQL(field, table)];
-      } else {
-        // TODO: Construct stable generalization. Temporarily revert to the average.
-        return [avgSQL(field, table)];
-      }
+      return numericExamples(field, table);
     } else if (field.database_type === 'timestamp') {
-      // TODO: using timestamps fingerprint is possible, but we need to pull in some datetime lib.
-      return [yearlyGeneralizedSQL(field, table)];
+      return datetimeExamples(field, table);
     } else {
       // Fallback to the count distinct for anything else.
       return [countDistinctSQL(field, table)];
