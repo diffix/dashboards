@@ -417,13 +417,7 @@ export async function getOrCreateTableExamples(tableName: string, aidColumns: st
   // Add queries to dashboard.
 
   const layout = new CardLayout();
-  type CardData = {
-    id: number;
-    cardId: number | null;
-    data: string | ExampleQuery;
-    layout: Rectangle;
-  };
-  const cards: CardData[] = [];
+  const cards: Array<{ id: number; cardId: number | null; data: string | ExampleQuery; layout: Rectangle }> = [];
 
   const sections = exampleQueries(tableMetadata, aidColumns);
   for (const section of sections) {
