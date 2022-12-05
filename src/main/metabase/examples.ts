@@ -1,4 +1,4 @@
-import { find } from 'lodash';
+import _, { find } from 'lodash';
 import { postgresQuote } from '../../shared';
 import { Field, Table } from './types';
 
@@ -260,8 +260,8 @@ function groupBy2ColumnsSQL(fieldA: Field, fieldB: Field, table: Table): Example
     ),
   };
 
-  const distinctA = fieldA.fingerprint.global['distinct-count'];
-  const distinctB = fieldB.fingerprint.global['distinct-count'];
+  const distinctA = distinctValues(fieldA);
+  const distinctB = distinctValues(fieldB);
   if (typeof distinctA === 'number' && distinctA <= 5 && typeof distinctB === 'number' && distinctA <= 5) {
     return {
       sizeY: 6,
@@ -316,20 +316,21 @@ function columnExampleQueries(field: Field, table: Table, aidColumns: string[]):
 
 function makeMultipleColumnQueries(fields: Field[], table: Table, aidColumns: string[]): ExampleQuery[] {
   // Candidates are non-ID fields, with at least 2 distinct entries, having the least distinct entries
-  const candidateFields = fields
+  const candidateFields = _(fields)
     .filter(
       (field) =>
-        !aidColumns.includes(field.name) &&
-        field.fingerprint &&
-        field.semantic_type !== 'type/PK' &&
-        field.database_type !== 'serial' &&
-        field.fingerprint.global['distinct-count'] &&
-        field.fingerprint.global['distinct-count'] >= 2 &&
-        field.fingerprint.global['distinct-count'] <= 20,
+        !!(
+          !aidColumns.includes(field.name) &&
+          field.fingerprint &&
+          field.semantic_type !== 'type/PK' &&
+          field.database_type !== 'serial' &&
+          distinctValues(field) &&
+          distinctValues(field)! >= 2 &&
+          distinctValues(field)! <= 20
+        ),
     )
-    .sort(
-      (fieldA, fieldB) => fieldA.fingerprint!.global['distinct-count']! - fieldB.fingerprint!.global['distinct-count']!,
-    );
+    .sortBy(distinctValues)
+    .value();
 
   if (candidateFields.length >= 2) {
     return [groupBy2ColumnsSQL(candidateFields[0], candidateFields[1], table)];
