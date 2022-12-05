@@ -89,6 +89,7 @@ function rawGroupBySQL(field: Field, table: Table): ExampleQuery {
       `SELECT ${postgresQuote(column)}, count(*)`,
       `FROM ${postgresQuote(table.name)}`,
       `GROUP BY ${postgresQuote(column)}`,
+      field.database_type === 'text' ? `ORDER BY count(*) DESC` : `ORDER BY ${postgresQuote(column)} ASC`,
     ),
   };
 
@@ -132,22 +133,6 @@ function avgSQL(field: Field, table: Table): ExampleQuery {
 }
 
 // ----------------------------------------------------------------
-// Text columns
-// ----------------------------------------------------------------
-
-function textGeneralizedSQL(field: Field, table: Table, averageLength: number): ExampleQuery {
-  const column = field.name;
-  const nChars = Math.ceil(averageLength / 4);
-  const stars = "'" + '*'.repeat(Math.ceil(averageLength - nChars)) + "'";
-  const bucket = `substring(${postgresQuote(column)}, 1, ${nChars})`;
-
-  return tableMiniBar({
-    name: `${table.display_name} by ${field.display_name}`,
-    sql: lines(`SELECT ${bucket} || ${stars}, count(*)`, `FROM ${postgresQuote(table.name)}`, `GROUP BY ${bucket}`),
-  });
-}
-
-// ----------------------------------------------------------------
 // Datetime columns
 // ----------------------------------------------------------------
 
@@ -161,6 +146,7 @@ function yearlyGeneralizedSQL(field: Field, table: Table): ExampleQuery {
       `SELECT ${bucket} as ${postgresQuote(column + '_year')}, count(*)`,
       `FROM ${postgresQuote(table.name)}`,
       `GROUP BY ${bucket}`,
+      `ORDER BY ${bucket} ASC`,
     ),
   });
 }
@@ -182,14 +168,7 @@ function columnExampleQueries(field: Field, table: Table, aidColumns: string[]):
         // Few distinct values - can GROUP BY directly.
         return [rawGroupBySQL(field, table)];
       } else {
-        const averageLength = field.fingerprint.type?.['type/Text']?.['average-length'];
-
-        // The `< 20`: we want to generalize surnames and categories but not sentences, paragraphs or addresses.
-        if (averageLength && averageLength < 20) {
-          return [textGeneralizedSQL(field, table, averageLength)];
-        } else {
-          return [countDistinctSQL(field, table)];
-        }
+        return [countDistinctSQL(field, table)];
       }
     } else if (numberFieldTypes.includes(field.database_type) && field.fingerprint) {
       if (field.fingerprint.global['distinct-count'] && field.fingerprint.global['distinct-count'] < 10) {
