@@ -46,6 +46,15 @@ function distinctValues(field: Field): number | undefined {
 
 const DISTINCT_THRESHOLD = 10;
 
+const colors = ['#88BF4D', '#A989C5', '#EF8C8C', '#F9D45C', '#F2A86F', '#98D9D9', '#7172AD'];
+let nextColorIndex = 0;
+
+function pickColor() {
+  const color = colors[nextColorIndex];
+  nextColorIndex = (nextColorIndex + 1) % colors.length;
+  return color;
+}
+
 // ----------------------------------------------------------------
 // Visualization
 // ----------------------------------------------------------------
@@ -71,6 +80,7 @@ function rowChart(dimensionName: string, example: ExampleQuery): ExampleQuery {
     visualizationSettings: {
       'graph.dimensions': [dimensionName],
       'graph.metrics': ['count'],
+      'graph.colors': [pickColor()],
     },
     ...example,
   };
@@ -84,6 +94,7 @@ function histogram(dimensionName: string, example: ExampleQuery): ExampleQuery {
       'graph.dimensions': [dimensionName],
       'graph.metrics': ['count'],
       'graph.x_axis.scale': 'histogram',
+      'graph.colors': [pickColor()],
     },
     ...example,
   };
@@ -340,6 +351,7 @@ function makeMultipleColumnQueries(fields: Field[], table: Table, aidColumns: st
 }
 
 export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSection[] {
+  nextColorIndex = 0; // For determinism.
   const columnQueries = table.fields.flatMap((field) => columnExampleQueries(field, table, aidColumns));
   const multipleColumnQueries = makeMultipleColumnQueries(table.fields, table, aidColumns);
 
