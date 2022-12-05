@@ -152,6 +152,47 @@ function yearlyGeneralizedSQL(field: Field, table: Table): ExampleQuery {
 }
 
 // ----------------------------------------------------------------
+// Multiple columns
+// ----------------------------------------------------------------
+
+function groupBy2ColumnsSQL(fieldA: Field, fieldB: Field, table: Table): ExampleQuery {
+  const query: ExampleQuery = {
+    name: `${table.display_name} by ${fieldA.display_name}, ${fieldB.display_name}`,
+    sql: lines(
+      `SELECT ${postgresQuote(fieldA.name)}, ${postgresQuote(fieldB.name)}, count(*)`,
+      `FROM ${postgresQuote(table.name)}`,
+      `GROUP BY ${postgresQuote(fieldA.name)}, ${postgresQuote(fieldB.name)}`,
+      `ORDER BY count(*) DESC`,
+    ),
+  };
+
+  const distinctA = fieldA.fingerprint.global['distinct-count'];
+  const distinctB = fieldB.fingerprint.global['distinct-count'];
+  if (typeof distinctA === 'number' && distinctA <= 5 && typeof distinctB === 'number' && distinctA <= 5) {
+    return {
+      sizeY: 6,
+      display: 'bar',
+      visualizationSettings: {
+        'graph.dimensions': [fieldB.name, fieldA.name],
+        'graph.metrics': ['count'],
+      },
+      ...query,
+    };
+  } else {
+    return {
+      sizeY: 6,
+      display: 'table',
+      visualizationSettings: {
+        'table.pivot': true,
+        'table.cell_column': 'count',
+        'table.pivot_column': fieldA.name,
+      },
+      ...query,
+    };
+  }
+}
+
+// ----------------------------------------------------------------
 // Example builder
 // ----------------------------------------------------------------
 
@@ -191,8 +232,33 @@ function columnExampleQueries(field: Field, table: Table, aidColumns: string[]):
   }
 }
 
+function makeMultipleColumnQueries(fields: Field[], table: Table, aidColumns: string[]): ExampleQuery[] {
+  // Candidates are non-ID fields, with at least 2 distinct entries, having the least distinct entries
+  const candidateFields = fields
+    .filter(
+      (field) =>
+        !aidColumns.includes(field.name) &&
+        field.fingerprint &&
+        field.semantic_type !== 'type/PK' &&
+        field.database_type !== 'serial' &&
+        field.fingerprint.global['distinct-count'] &&
+        field.fingerprint.global['distinct-count'] >= 2 &&
+        field.fingerprint.global['distinct-count'] <= 20,
+    )
+    .sort(
+      (fieldA, fieldB) => fieldA.fingerprint!.global['distinct-count']! - fieldB.fingerprint!.global['distinct-count']!,
+    );
+
+  if (candidateFields.length >= 2) {
+    return [groupBy2ColumnsSQL(candidateFields[0], candidateFields[1], table)];
+  } else {
+    return [];
+  }
+}
+
 export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSection[] {
-  const exampleQueries = table.fields.flatMap((field) => columnExampleQueries(field, table, aidColumns));
+  const columnQueries = table.fields.flatMap((field) => columnExampleQueries(field, table, aidColumns));
+  const multipleColumnQueries = makeMultipleColumnQueries(table.fields, table, aidColumns);
 
   function findField(name: string) {
     const field = find(table.fields, { name });
@@ -217,7 +283,11 @@ export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSect
     },
     {
       title: `# Overview of ${table.display_name} columns`,
-      queries: exampleQueries,
+      queries: columnQueries,
+    },
+    {
+      title: `# ${table.display_name} by multiple columns`,
+      queries: multipleColumnQueries,
     },
   ];
 }
