@@ -89,6 +89,7 @@ function rawGroupBySQL(field: Field, table: Table): ExampleQuery {
       `SELECT ${postgresQuote(column)}, count(*)`,
       `FROM ${postgresQuote(table.name)}`,
       `GROUP BY ${postgresQuote(column)}`,
+      field.database_type === 'text' ? `ORDER BY count(*) DESC` : `ORDER BY ${postgresQuote(column)} ASC`,
     ),
   };
 
@@ -142,8 +143,13 @@ function textGeneralizedSQL(field: Field, table: Table, averageLength: number): 
   const bucket = `substring(${postgresQuote(column)}, 1, ${nChars})`;
 
   return tableMiniBar({
-    name: `${table.display_name} by ${field.display_name}`,
-    sql: lines(`SELECT ${bucket} || ${stars}, count(*)`, `FROM ${postgresQuote(table.name)}`, `GROUP BY ${bucket}`),
+    name: `${table.display_name} by ${field.display_name} ${nChars} initial characters`,
+    sql: lines(
+      `SELECT ${bucket} || ${stars} as ${postgresQuote(field.name + '_starts_with')}, count(*)`,
+      `FROM ${postgresQuote(table.name)}`,
+      `GROUP BY ${bucket}`,
+      `ORDER BY count(*) DESC`,
+    ),
   });
 }
 
@@ -161,6 +167,7 @@ function yearlyGeneralizedSQL(field: Field, table: Table): ExampleQuery {
       `SELECT ${bucket} as ${postgresQuote(column + '_year')}, count(*)`,
       `FROM ${postgresQuote(table.name)}`,
       `GROUP BY ${bucket}`,
+      `ORDER BY ${bucket} ASC`,
     ),
   });
 }
