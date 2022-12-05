@@ -13,33 +13,26 @@ type ExamplesSection = {
   queries: ExampleQuery[]; // Cards in section.
 };
 
+type Display = 'table' | 'bar' | 'row' | 'scalar' | 'map'; // Other types TBD.
+
 /** An example query card. */
 export type ExampleQuery = {
   name: string; // Title of card.
   sql: string; // SQL query.
-  sizeX: number; // Grid of 18 units wide.
-  sizeY: number; // Height of card in units.
-  display: Display;
-  visualizationSettings: Record<string, unknown>; // To be typed later.
-
-  // There's also row/col properties, but we'll make some rectangle
-  // packing algorithm to arrange cards automatically in a section.
+  sizeX?: number; // Grid of 18 units wide. Defaults to 6.
+  sizeY?: number; // Height of card in units. Defaults to 4.
+  display?: Display; // Display type. Defaults to 'table';
+  visualizationSettings?: Record<string, unknown>; // To be typed later.
 };
 
-type Display = 'table' | 'bar' | 'row' | 'scalar' | 'map'; // Other types TBD.
-
-type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
-type ExampleInfo = AtLeast<ExampleQuery, 'name' | 'sql'>;
-
-/** Makes a query with reasonable defaults. */
-function makeQuery({
+export function withDefaults({
   name,
   sql,
   sizeX = 6,
   sizeY = 4,
   display = 'table',
   visualizationSettings = {},
-}: ExampleInfo): ExampleQuery {
+}: ExampleQuery): Required<ExampleQuery> {
   return { name, sql, sizeX, sizeY, display, visualizationSettings };
 }
 
@@ -51,7 +44,7 @@ function lines(...lines: string[]) {
 // Visualization
 // ----------------------------------------------------------------
 
-function tableMiniBar(example: ExampleInfo): ExampleInfo {
+function tableMiniBar(example: ExampleQuery): ExampleQuery {
   return {
     sizeY: 6,
     display: 'table',
@@ -66,7 +59,7 @@ function tableMiniBar(example: ExampleInfo): ExampleInfo {
   };
 }
 
-function rowChart(field: Field, example: ExampleInfo): ExampleInfo {
+function rowChart(field: Field, example: ExampleQuery): ExampleQuery {
   return {
     display: 'row',
     visualizationSettings: {
@@ -77,7 +70,7 @@ function rowChart(field: Field, example: ExampleInfo): ExampleInfo {
   };
 }
 
-function scalar(example: ExampleInfo): ExampleInfo {
+function scalar(example: ExampleQuery): ExampleQuery {
   return {
     display: 'scalar',
     ...example,
@@ -88,9 +81,9 @@ function scalar(example: ExampleInfo): ExampleInfo {
 // All columns
 // ----------------------------------------------------------------
 
-function rawGroupBySQL(field: Field, table: Table): ExampleInfo {
+function rawGroupBySQL(field: Field, table: Table): ExampleQuery {
   const column = field.name;
-  const query: ExampleInfo = {
+  const query: ExampleQuery = {
     name: `${table.display_name} by ${field.display_name}`,
     sql: lines(
       `SELECT ${postgresQuote(column)}, count(*)`,
@@ -110,7 +103,7 @@ function rawGroupBySQL(field: Field, table: Table): ExampleInfo {
   }
 }
 
-function countDistinctSQL(field: Field, table: Table): ExampleInfo {
+function countDistinctSQL(field: Field, table: Table): ExampleQuery {
   const column = field.name;
   return scalar({
     name: `Distinct ${field.display_name}`,
@@ -127,7 +120,7 @@ function countDistinctSQL(field: Field, table: Table): ExampleInfo {
 
 const numberFieldTypes = ['int2', 'int4', 'int8', 'float4', 'float8', 'numeric'];
 
-function avgSQL(field: Field, table: Table): ExampleInfo {
+function avgSQL(field: Field, table: Table): ExampleQuery {
   const column = field.name;
   return scalar({
     name: `Average ${field.display_name}`,
@@ -142,7 +135,7 @@ function avgSQL(field: Field, table: Table): ExampleInfo {
 // Text columns
 // ----------------------------------------------------------------
 
-function textGeneralizedSQL(field: Field, table: Table, averageLength: number): ExampleInfo {
+function textGeneralizedSQL(field: Field, table: Table, averageLength: number): ExampleQuery {
   const column = field.name;
   const nChars = Math.ceil(averageLength / 4);
   const stars = "'" + '*'.repeat(Math.ceil(averageLength - nChars)) + "'";
@@ -158,7 +151,7 @@ function textGeneralizedSQL(field: Field, table: Table, averageLength: number): 
 // Datetime columns
 // ----------------------------------------------------------------
 
-function yearlyGeneralizedSQL(field: Field, table: Table): ExampleInfo {
+function yearlyGeneralizedSQL(field: Field, table: Table): ExampleQuery {
   const column = field.name;
   const bucket = `extract(year from ${postgresQuote(column)})`;
 
@@ -176,7 +169,7 @@ function yearlyGeneralizedSQL(field: Field, table: Table): ExampleInfo {
 // Example builder
 // ----------------------------------------------------------------
 
-function columnExampleQueries(field: Field, table: Table, aidColumns: string[]): ExampleInfo[] {
+function columnExampleQueries(field: Field, table: Table, aidColumns: string[]): ExampleQuery[] {
   try {
     if (field.semantic_type === 'type/PK' || field.database_type === 'serial') {
       // No sensible example for columns being just row IDs.
@@ -233,23 +226,19 @@ export function exampleQueries(table: Table, aidColumns: string[]): ExamplesSect
     {
       title: '# Overview',
       queries: [
-        makeQuery(
-          scalar({
-            name: 'Rows in table',
-            sql: lines('SELECT count(*)', `FROM ${table.name}`),
-          }),
-        ),
-        ...aidColumns.map((aidColumn) =>
-          makeQuery({
-            ...countDistinctSQL(findField(aidColumn), table),
-            name: 'Distinct entities',
-          }),
-        ),
+        scalar({
+          name: 'Rows in table',
+          sql: lines('SELECT count(*)', `FROM ${table.name}`),
+        }),
+        ...aidColumns.map((aidColumn) => ({
+          ...countDistinctSQL(findField(aidColumn), table),
+          name: 'Distinct entities',
+        })),
       ],
     },
     {
       title: `# Overview of ${table.display_name} columns`,
-      queries: exampleQueries.map(makeQuery),
+      queries: exampleQueries,
     },
   ];
 }

@@ -6,7 +6,7 @@ import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
 import { delay, getUsername } from '../service-utils';
 import { CardLayout, Rectangle } from './card-layout';
-import { exampleQueries, ExampleQuery } from './examples';
+import { exampleQueries, ExampleQuery, withDefaults } from './examples';
 import { Table } from './types';
 
 type RequestOptions = Partial<ClientRequestConstructorOptions> & {
@@ -437,7 +437,7 @@ export async function getOrCreateTableExamples(tableName: string, aidColumns: st
     }
 
     // Add section queries.
-    for (const query of section.queries) {
+    for (const query of section.queries.map(withDefaults)) {
       const queryId = await addQueryToCollection(query, anonDatabaseId, collectionId);
       const { id } = await post(`/api/dashboard/${dashboardId}/cards`, { cardId: queryId });
       const rect = layout.putCard(query.sizeX, query.sizeY);
