@@ -9,8 +9,16 @@ import { Button, Dropdown, Menu, message, Popconfirm, Table, Tooltip } from 'ant
 import React, { FunctionComponent, useState } from 'react';
 import { TFunc, useT } from '../shared-react';
 import { ROW_INDEX_COLUMN } from '../shared/constants';
-import { getUniqueKey, useCachedLoadable, useIsLoading, useTableActions, useTableListLoadable } from '../state';
-import { ImportedTable } from '../types';
+import {
+  getUniqueKey,
+  useCachedLoadable,
+  useIsLoading,
+  useMetabaseStatus,
+  usePostgresqlStatus,
+  useTableActions,
+  useTableListLoadable,
+} from '../state';
+import { ImportedTable, ServiceStatus } from '../types';
 
 const { Column } = Table;
 
@@ -131,9 +139,21 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
   const tableList = useCachedLoadable(tableListLodable, []);
   const tableListIsLoading = useIsLoading(tableListLodable);
 
+  // TODO: Checking metabase status to show the table list spinner is temporary.
+  // We should be showing the list even if metabase is down, just not allow to use the
+  // buttons relying on metabase.
+  const postgresqlStatus = usePostgresqlStatus();
+  const metabaseStatus = useMetabaseStatus();
+
   return (
     <div className="TableList">
-      <Table dataSource={tableList} loading={tableListIsLoading} rowKey="name">
+      <Table
+        dataSource={tableList}
+        loading={
+          tableListIsLoading || postgresqlStatus === ServiceStatus.Starting || metabaseStatus === ServiceStatus.Starting
+        }
+        rowKey="name"
+      >
         <Column title={t('Name')} dataIndex="name" />
         <Column
           title={t('Protected entities')}
