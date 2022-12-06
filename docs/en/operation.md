@@ -21,8 +21,6 @@ If you experience something different, please refer to the section [Troubleshoot
 
 ## Data Import
 
-If you do not want to import your data and prefer to experiment with the sample data provided, skip to the section [Using Metabase](#using-metabase).
-
 In order to anonymize and explore your data in **Diffix Dashboards** you need to import it first. The process to import a CSV file into
 **Diffix Dashboards** is straightforward. Request a new import on the `Admin Panel` tab and follow instructions in the left-hand side bar.
 
@@ -36,58 +34,42 @@ When you click on the icon, it will cause the respective Metabase tab to reload 
 
 ## Using Metabase
 
-When you click the `+ New Metabase Tab` button in the top portion of **Diffix Dashboards**, you'll be taken to a Metabase instance.
+In order to start using Metabase and analyze the imported data, use one of the options in the dropdown menu near the
+table name.
 
-This section gives a brief overview of how to navigate Metabase. If you're already familiar with it, you will find it works
-just like regular Metabase you would open in a web browser tab, except for a few notable differences.
+![](images/analyze_options.png#480)
 
-Start by clicking `Browse data` in the left-hand sidebar and then choose how do you want to explore your data:
+Select `New SQL query` to start writing a SQL query. Select `Table Overview` to see some sample queries and chart
+that are automatically built for you (this might take a while on first run). You can use Metabase to modify and extend
+the examples.
 
-### Anonymized access
-
-The `Anonymized access` data source accesses your data with **Diffix Fir** anonymization enabled for all tables (except ones you
-explicitly marked to not contain personal data during import).
-
-When you choose a table with personal data, you will see a notification `There was a problem with your question`. This means **Diffix Fir** blocked access to
-the direct preview of the table which Metabase offers by default. Navigate to `Summarize` and choose `Group by` columns (make sure to not pick
-the column which identifies the protected entity). Click `Done` to view an anonymized summary of the data.
-
-![](images/summarize.png#480)
-
-Next, you can click `Visualization` in the lower left portion of the screen to present your Metabase question in a chart.
-
-Finally, you can click `Save` and add your newly created chart to a dashboard, which will be accessible after you exit and start **Diffix Dashboards** again.
-
-In order to compose an anonymized SQL query directly, use the `+ New` button, select `SQL query`, `Anonymized access` and type SQL as you normally would.
-
-![](images/sql_query.png#480)
-
-In case you stumble upon a SQL feature blocked by **Diffix Fir** you should see an error message providing a hint as to what is wrong.
-In the example below we have tried to `SELECT` the protected entity ID directly.
-
-![](images/protected_entity_error.png#480)
-
-### Direct access
-
-The `Direct access` data source contains the same data tables as `Anonymized access`, but access to the data bypasses **Diffix Fir** completely.
-
-You can use all the features of Metabase without restrictions or use it to compare anonymized results versus non-anonymized ones.
-
-**CAUTION**: All the questions, SQL queries and dashboards using `Direct access` as data source will **not be anonymous**.
-
-### Metabase and Diffix
-
-This section lists a few notable differences between the regular Metabase experience and the one you will have with **Diffix Dashboards**.
+If you're already familiar with Metabase, you will find it works just like regular Metabase you would open in a web
+browser tab, except for a few notable differences:
 
 **No login** - **Diffix Dashboards** arranges a Metabase session for you, so you don't have to register or login.
 
 **Local data** - all the data and dashboards are local and cannot be collaborated on remotely.
 
-**Limitations of automatic data exploration tools** - **Diffix Dashboards** operates using **Diffix Fir** anonymization software
-(see [Anonymization](anonymization.md) for more details) and because of that it limits the SQL features available to the user. When
-exploring data via the `Anonymized access` data source you might stumble upon functions returning errors, because **Diffix Fir** treats them as non-privacy
-preserving and blocks them. If you find anything blocking you, please contact us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org),
-we will be happy to discuss your use case and help. Use `Direct access` instead of `Anonymized access` data source to bypass anonymization.
+**Limitations of automatic data exploration tools** - **Diffix Dashboards** operates using **Diffix Fir** anonymization
+(see [Anonymization](anonymization.md) for more details), and because of that it limits the SQL features available to
+the user. When exploring data via the `Anonymized access` data source you might stumble upon functions returning errors,
+because **Diffix Fir** treats them as non-privacy preserving and blocks them.
+
+In case you stumble upon a SQL feature blocked by **Diffix Fir** you should see an error message providing a hint as to
+what is wrong. In the example below we have tried to `SELECT` the protected entity ID directly.
+
+![](images/protected_entity_error.png#480)
+
+If you find anything blocking you, please contact us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org), we
+will be happy to discuss your use case and help.
+
+Use `Direct access` instead of `Anonymized access` data source to bypass anonymization completely. You have this option
+if you use the `+ New` button within Metabase to start building a SQL query.
+
+![](images/sql_query.png#480)
+
+**CAUTION**: All the questions, SQL queries and dashboards using `Direct access` as data source will **not be
+anonymous**.
 
 ## Troubleshooting
 
