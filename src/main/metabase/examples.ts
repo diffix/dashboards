@@ -46,6 +46,7 @@ function distinctValues(field: Field): number | undefined {
 
 const DISTINCT_THRESHOLD = 10;
 
+// Taken from Metabase's accent colors. We cycle these colors to make graphs more distinct.
 const colors = ['#88BF4D', '#A989C5', '#EF8C8C', '#F9D45C', '#F2A86F', '#98D9D9', '#7172AD'];
 let nextColorIndex = 0;
 
