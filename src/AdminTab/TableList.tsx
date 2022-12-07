@@ -6,7 +6,7 @@ import {
   QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { Button, Dropdown, Menu, message, Popconfirm, Table, Tooltip } from 'antd';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { TFunc, useT } from '../shared-react';
 import { ROW_INDEX_COLUMN } from '../shared/constants';
 import {
@@ -47,6 +47,16 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
   const [examplesInProgress, setExamplesInProgress] = useState(false);
   const { getTableExamples, removeTable } = useTableActions();
 
+  const messageKey = useRef(getUniqueKey());
+
+  useEffect(() => {
+    const handleClickAnywhere = () => {
+      if (!examplesInProgress) message.destroy(messageKey.current);
+    };
+    document.addEventListener('mousedown', handleClickAnywhere);
+    return () => document.removeEventListener('mousedown', handleClickAnywhere);
+  }, [examplesInProgress]);
+
   const menu = (
     <Menu>
       <Menu.Item
@@ -61,38 +71,54 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
         key={`${table.name}-examples`}
         disabled={examplesInProgress}
         onClick={async () => {
-          const messageKey = getUniqueKey();
-
           const messageTimeout = setTimeout(
             () =>
               message.loading({
                 content: t('Examples for {{tableName}} under construction...', { tableName: table.name }),
-                key: messageKey,
+                key: messageKey.current,
                 duration: 0,
               }),
             1000,
           );
 
           setExamplesInProgress(true);
-          const startTime = performance.now();
-          const examplesCollectionId = await getTableExamples(table).result;
-          const elapsed = performance.now() - startTime;
-          setExamplesInProgress(false);
+          try {
+            const startTime = performance.now();
+            const examplesCollectionId = await getTableExamples(table).result;
+            const elapsed = performance.now() - startTime;
 
-          if (elapsed < 3000) {
-            clearTimeout(messageTimeout);
-            message.destroy(messageKey);
-            onOpenMetabaseTab(`collection/${examplesCollectionId}`);
-          } else {
-            message.success({
-              content: (
-                <Button type="link" onClick={() => onOpenMetabaseTab(`collection/${examplesCollectionId}`)}>
-                  {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
-                </Button>
-              ),
-              key: messageKey,
-              duration: 5,
+            if (elapsed < 3000) {
+              clearTimeout(messageTimeout);
+              message.destroy(messageKey.current);
+              onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+            } else {
+              message.success({
+                content: (
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                      message.destroy(messageKey.current);
+                    }}
+                  >
+                    {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
+                  </Button>
+                ),
+                key: messageKey.current,
+                // We rely on `message.destroy` called on `handleClickAnywhere`.
+                duration: 0,
+              });
+            }
+          } catch (err) {
+            message.error({
+              content: t('Examples for {{tableName}} failed', { tableName: table.name }),
+              key: messageKey.current,
+              // We rely on `message.destroy` called on `handleClickAnywhere`.
+              duration: 0,
             });
+            console.warn('Error when building examples', table.name, err);
+          } finally {
+            setExamplesInProgress(false);
           }
         }}
       >

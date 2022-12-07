@@ -67,7 +67,8 @@
         "Cancel": "Cancel",
         "Click here to analyze in Metabase": "Click here to analyze in Metabase",
         "Examples for {{tableName}} under construction...": "Examples for {{tableName}} under construction...",
-        "Examples for {{tableName}} ready. Click to view": "Examples for {{tableName}} ready. Click to view"
+        "Examples for {{tableName}} ready. Click to view": "Examples for {{tableName}} ready. Click to view",
+        "Examples for {{tableName}} failed": "Examples for {{tableName}} failed"
       }
     }
   },
