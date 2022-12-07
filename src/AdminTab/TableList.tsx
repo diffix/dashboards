@@ -6,8 +6,8 @@ import {
   QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { Button, Dropdown, Menu, message, Popconfirm, Table, Tooltip } from 'antd';
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
-import { TFunc, useT } from '../shared-react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
+import { TFunc, useStaticValue, useT } from '../shared-react';
 import { ROW_INDEX_COLUMN } from '../shared/constants';
 import {
   getUniqueKey,
@@ -47,15 +47,15 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
   const [examplesInProgress, setExamplesInProgress] = useState(false);
   const { getTableExamples, removeTable } = useTableActions();
 
-  const messageKey = useRef(getUniqueKey());
+  const messageKey = useStaticValue(() => getUniqueKey());
 
   useEffect(() => {
     const handleClickAnywhere = () => {
-      if (!examplesInProgress) message.destroy(messageKey.current);
+      if (!examplesInProgress) message.destroy(messageKey);
     };
     document.addEventListener('mousedown', handleClickAnywhere);
     return () => document.removeEventListener('mousedown', handleClickAnywhere);
-  }, [examplesInProgress]);
+  }, [examplesInProgress, messageKey]);
 
   const menu = (
     <Menu>
@@ -75,7 +75,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
             () =>
               message.loading({
                 content: t('Examples for {{tableName}} under construction...', { tableName: table.name }),
-                key: messageKey.current,
+                key: messageKey,
                 duration: 0,
               }),
             1000,
@@ -89,7 +89,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
 
             if (elapsed < 3000) {
               clearTimeout(messageTimeout);
-              message.destroy(messageKey.current);
+              message.destroy(messageKey);
               onOpenMetabaseTab(`collection/${examplesCollectionId}`);
             } else {
               message.success({
@@ -98,13 +98,13 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
                     type="link"
                     onClick={() => {
                       onOpenMetabaseTab(`collection/${examplesCollectionId}`);
-                      message.destroy(messageKey.current);
+                      message.destroy(messageKey);
                     }}
                   >
                     {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
                   </Button>
                 ),
-                key: messageKey.current,
+                key: messageKey,
                 // We rely on `message.destroy` called on `handleClickAnywhere`.
                 duration: 0,
               });
@@ -112,7 +112,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
           } catch (err) {
             message.error({
               content: t('Examples for {{tableName}} failed', { tableName: table.name }),
-              key: messageKey.current,
+              key: messageKey,
               // We rely on `message.destroy` called on `handleClickAnywhere`.
               duration: 0,
             });
