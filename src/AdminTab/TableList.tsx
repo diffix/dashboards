@@ -122,7 +122,7 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
           }
         }}
       >
-        {t('Table Overview')}
+        {t('Example SQL queries')}
       </Menu.Item>
       <Popconfirm
         title={t('Remove table `{{name}}`?', { name: table.name })}
