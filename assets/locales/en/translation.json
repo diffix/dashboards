@@ -113,6 +113,8 @@
       "{{lastCompletedImport}} imported successfully. Click or drag another file to this area": "{{lastCompletedImport}} imported successfully. Click or drag another file to this area"
     },
     "SchemaLoadStep": {
+      "Schema discovery failed": "Schema discovery failed",
+      "Something went wrong while loading the schema.": "Something went wrong while loading the schema.",
       "{{stepNumber}}. Data Preview": "{{stepNumber}}. Data Preview",
       "Loading schema": "Loading schema",
       "Here is what {{fileName}} looks like:": "Here is what {{fileName}} looks like:",

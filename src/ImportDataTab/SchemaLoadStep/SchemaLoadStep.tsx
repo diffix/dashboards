@@ -44,7 +44,7 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
               )}
             </div>
             <DataPreviewTable schema={schema.data} />
-            {fileLarge ? (
+            {fileLarge && (
               <Alert
                 className="SchemaLoadStep-notice"
                 message={
@@ -60,7 +60,7 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
                 showIcon
                 icon={<InfoCircleOutlined />}
               />
-            ) : undefined}
+            )}
           </div>
           {/* Render next step */}
           <Divider />
