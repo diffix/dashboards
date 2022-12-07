@@ -116,7 +116,9 @@
       "{{stepNumber}}. Data Preview": "{{stepNumber}}. Data Preview",
       "Loading schema": "Loading schema",
       "Here is what {{fileName}} looks like:": "Here is what {{fileName}} looks like:",
-      "(only the first {{count}} rows are shown)": "(only the first {{count}} rows are shown)"
+      "(only the first {{count}} rows are shown)": "(only the first {{count}} rows are shown)",
+      "CAUTION:": "CAUTION:",
+      "Diffix Dashboards is alpha software. We have not tested for datasets this large (> {{thresholdMB}} MB), and so it is possible that certain features may become unresponsive or not work correctly.": "Diffix Dashboards is alpha software. We have not tested for datasets this large (> {{thresholdMB}} MB), and so it is possible that certain features may become unresponsive or not work correctly."
     },
     "AidSelectionStep": {
       "{{stepNumber}}. Select the protected entity": "{{stepNumber}}. Select the protected entity",

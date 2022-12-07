@@ -1,4 +1,5 @@
-import { Divider, Result, Space, Spin, Typography } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Alert, Divider, Result, Space, Spin, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { PREVIEW_ROWS_COUNT } from '../../shared/constants';
 import { useT } from '../../shared-react';
@@ -8,6 +9,8 @@ import { ImportDataNavAnchor, ImportDataNavStep } from '../import-data-nav';
 import { DataPreviewTable } from './DataPreviewTable';
 
 const { Text, Title } = Typography;
+
+const FILE_SIZE_THRESHOLD_MB = 300;
 
 export type SchemaLoadStepProps = {
   file: File;
@@ -22,6 +25,7 @@ export type SchemaLoadStepData = {
 export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ children, file, parseOptions }) => {
   const t = useT('ImportDataTab::SchemaLoadStep');
   const schema = useSchema(file, parseOptions);
+  const fileLarge = file.size > FILE_SIZE_THRESHOLD_MB * 1000000;
 
   switch (schema.state) {
     case 'hasData':
@@ -40,6 +44,23 @@ export const SchemaLoadStep: FunctionComponent<SchemaLoadStepProps> = ({ childre
               )}
             </div>
             <DataPreviewTable schema={schema.data} />
+            {fileLarge ? (
+              <Alert
+                className="SchemaLoadStep-notice"
+                message={
+                  <>
+                    <strong>{t('CAUTION:')}</strong>{' '}
+                    {t(
+                      'Diffix Dashboards is alpha software. We have not tested for datasets this large (> {{thresholdMB}} MB), and so it is possible that certain features may become unresponsive or not work correctly.',
+                      { thresholdMB: FILE_SIZE_THRESHOLD_MB },
+                    )}
+                  </>
+                }
+                type="info"
+                showIcon
+                icon={<InfoCircleOutlined />}
+              />
+            ) : undefined}
           </div>
           {/* Render next step */}
           <Divider />
