@@ -39,7 +39,7 @@ table name.
 
 ![](images/analyze_options.png#480)
 
-Select `New SQL query` to start writing a SQL query. Select `Example SQL queries` to see some sample queries and chart
+Select `New SQL query` to start writing a SQL query. Select `Example SQL queries` to see some sample queries and charts
 that are automatically built for you (this might take a while on first run). You can use Metabase to modify and extend
 the examples.
 
