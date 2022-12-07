@@ -6,8 +6,8 @@ import {
   QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { Button, Dropdown, Menu, message, Popconfirm, Table, Tooltip } from 'antd';
-import React, { FunctionComponent, useState } from 'react';
-import { TFunc, useT } from '../shared-react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
+import { TFunc, useStaticValue, useT } from '../shared-react';
 import { ROW_INDEX_COLUMN } from '../shared/constants';
 import {
   getUniqueKey,
@@ -47,6 +47,16 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
   const [examplesInProgress, setExamplesInProgress] = useState(false);
   const { getTableExamples, removeTable } = useTableActions();
 
+  const messageKey = useStaticValue(() => getUniqueKey());
+
+  useEffect(() => {
+    const handleClickAnywhere = () => {
+      if (!examplesInProgress) message.destroy(messageKey);
+    };
+    document.addEventListener('mousedown', handleClickAnywhere);
+    return () => document.removeEventListener('mousedown', handleClickAnywhere);
+  }, [examplesInProgress, messageKey]);
+
   const menu = (
     <Menu>
       <Menu.Item
@@ -61,8 +71,6 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
         key={`${table.name}-examples`}
         disabled={examplesInProgress}
         onClick={async () => {
-          const messageKey = getUniqueKey();
-
           const messageTimeout = setTimeout(
             () =>
               message.loading({
@@ -74,29 +82,47 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
           );
 
           setExamplesInProgress(true);
-          const startTime = performance.now();
-          const examplesCollectionId = await getTableExamples(table).result;
-          const elapsed = performance.now() - startTime;
-          setExamplesInProgress(false);
+          try {
+            const startTime = performance.now();
+            const examplesCollectionId = await getTableExamples(table).result;
+            const elapsed = performance.now() - startTime;
 
-          if (elapsed < 3000) {
-            clearTimeout(messageTimeout);
-            message.destroy(messageKey);
-            onOpenMetabaseTab(`collection/${examplesCollectionId}`);
-          } else {
-            message.success({
-              content: (
-                <Button type="link" onClick={() => onOpenMetabaseTab(`collection/${examplesCollectionId}`)}>
-                  {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
-                </Button>
-              ),
+            if (elapsed < 3000) {
+              clearTimeout(messageTimeout);
+              message.destroy(messageKey);
+              onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+            } else {
+              message.success({
+                content: (
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                      message.destroy(messageKey);
+                    }}
+                  >
+                    {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
+                  </Button>
+                ),
+                key: messageKey,
+                // We rely on `message.destroy` called on `handleClickAnywhere`.
+                duration: 0,
+              });
+            }
+          } catch (err) {
+            message.error({
+              content: t('Examples for {{tableName}} failed', { tableName: table.name }),
               key: messageKey,
-              duration: 5,
+              // We rely on `message.destroy` called on `handleClickAnywhere`.
+              duration: 0,
             });
+            console.warn('Error when building examples', table.name, err);
+          } finally {
+            setExamplesInProgress(false);
           }
         }}
       >
-        {t('Table Overview')}
+        {t('Example SQL queries')}
       </Menu.Item>
       <Popconfirm
         title={t('Remove table `{{name}}`?', { name: table.name })}
