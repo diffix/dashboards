@@ -146,13 +146,27 @@ export function startPostgres(): ChildProcessWithoutNullStreams {
   return postgresql;
 }
 
-export async function shutdownPostgres(): Promise<void> {
-  console.info('Shutting down PostgreSQL...');
+function gracefulShutdown() {
   // On Windows, if we let the OS handle shutdown, it will not be graceful, and next start
   // is in recovery mode.
   // On Linux, `postgresql?.kill()` works fine, but the common `pg_ctl` is just as good.
-  execFile(path.join(postgresBinPath, 'pg_ctl'), ['-w', '-D', postgresConfig.dataDirectory, 'stop']);
-  return waitForPostgresqlStatus(ServiceStatus.Stopped);
+  execFile(path.join(postgresBinPath, 'pg_ctl'), ['-D', postgresConfig.dataDirectory, 'stop', '-m', 'fast']);
+}
+
+function forcefulShutdown() {
+  execFile(path.join(postgresBinPath, 'pg_ctl'), ['-D', postgresConfig.dataDirectory, 'stop', '-m', 'immediate']);
+}
+
+export async function shutdownPostgres(): Promise<void> {
+  console.info('Shutting down PostgreSQL...');
+  gracefulShutdown();
+
+  return waitForPostgresqlStatus(ServiceStatus.Stopped).catch(() => {
+    console.error('PostgreSQL graceful shutdown failed! Stopping process forcefully...');
+    forcefulShutdown();
+
+    return waitForPostgresqlStatus(ServiceStatus.Stopped);
+  });
 }
 
 export function getPostgresqlStatus(): ServiceStatus {
