@@ -59,7 +59,7 @@
       "Per Row": "Per Row",
       "Column: {{column}}": "Column: {{column}}",
       "Columns: {{columns}}": "Columns: {{columns}}",
-      "TableDropdown": {
+      "TableActions": {
         "New SQL query": "New SQL query",
         "Example SQL queries": "Example SQL queries",
         "Remove": "Remove",

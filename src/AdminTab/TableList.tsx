@@ -28,14 +28,14 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
   }
 }
 
-type TableDropdownProps = {
+type TableActionsProps = {
   table: ImportedTable;
   onOpenMetabaseTab: (initialPath?: string) => void;
   showMetabaseHint: boolean;
 };
 
-const TableActions: FunctionComponent<TableDropdownProps> = ({ table, onOpenMetabaseTab, showMetabaseHint }) => {
-  const t = useT('AdminTab::TableList::TableDropdown');
+const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetabaseTab, showMetabaseHint }) => {
+  const t = useT('AdminTab::TableList::TableActions');
 
   const [examplesInProgress, setExamplesInProgress] = useState(false);
   const { getTableExamples, removeTable } = useTableActions();
