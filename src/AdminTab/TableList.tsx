@@ -64,6 +64,7 @@ const TableActions: FunctionComponent<TableDropdownProps> = ({ table, onOpenMeta
       <Space>
         <Tooltip title={t('New SQL query')}>
           <Button
+            type="text"
             shape="circle"
             icon={<ConsoleSqlOutlined />}
             onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
@@ -76,6 +77,7 @@ const TableActions: FunctionComponent<TableDropdownProps> = ({ table, onOpenMeta
           onVisibleChange={setExamplesTooltipVisible}
         >
           <Button
+            type="text"
             shape="circle"
             icon={<BarChartOutlined />}
             disabled={examplesInProgress}
@@ -144,7 +146,7 @@ const TableActions: FunctionComponent<TableDropdownProps> = ({ table, onOpenMeta
             okText={t('Remove')}
             cancelText={t('Cancel')}
           >
-            <Button shape="circle" icon={<DeleteOutlined />} disabled={examplesInProgress} />
+            <Button type="text" shape="circle" icon={<DeleteOutlined />} disabled={examplesInProgress} />
           </Popconfirm>
         </Tooltip>
       </Space>
