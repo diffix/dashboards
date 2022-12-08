@@ -59,10 +59,11 @@
       "Per Row": "Per Row",
       "Column: {{column}}": "Column: {{column}}",
       "Columns: {{columns}}": "Columns: {{columns}}",
-      "TableDropdown": {
+      "TableActions": {
         "New SQL query": "New SQL query",
         "Example SQL queries": "Example SQL queries",
         "Remove": "Remove",
+        "Remove table": "Remove table",
         "Remove table `{{name}}`?": "Remove table `{{name}}`?",
         "Cancel": "Cancel",
         "Click here to analyze in Metabase": "Click here to analyze in Metabase",

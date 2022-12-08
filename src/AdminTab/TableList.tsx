@@ -1,11 +1,5 @@
-import {
-  BarChartOutlined,
-  ConsoleSqlOutlined,
-  DeleteOutlined,
-  EllipsisOutlined,
-  QuestionCircleOutlined,
-} from '@ant-design/icons';
-import { Button, Dropdown, Menu, message, Popconfirm, Table, Tooltip } from 'antd';
+import { BarChartOutlined, ConsoleSqlOutlined, DeleteOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { Button, message, Popconfirm, Space, Table, Tooltip } from 'antd';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { TFunc, useStaticValue, useT } from '../shared-react';
 import { ROW_INDEX_COLUMN } from '../shared/constants';
@@ -34,16 +28,15 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
   }
 }
 
-type TableDropdownProps = {
+type TableActionsProps = {
   table: ImportedTable;
   onOpenMetabaseTab: (initialPath?: string) => void;
   showMetabaseHint: boolean;
 };
 
-const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMetabaseTab, showMetabaseHint }) => {
-  const t = useT('AdminTab::TableList::TableDropdown');
+const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetabaseTab, showMetabaseHint }) => {
+  const t = useT('AdminTab::TableList::TableActions');
 
-  const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
   const [examplesInProgress, setExamplesInProgress] = useState(false);
   const { getTableExamples, removeTable } = useTableActions();
 
@@ -57,86 +50,9 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
     return () => document.removeEventListener('mousedown', handleClickAnywhere);
   }, [examplesInProgress, messageKey]);
 
-  const menu = (
-    <Menu>
-      <Menu.Item
-        icon={<ConsoleSqlOutlined />}
-        key={`${table.name}-new-sql`}
-        onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
-      >
-        {t('New SQL query')}
-      </Menu.Item>
-      <Menu.Item
-        icon={<BarChartOutlined />}
-        key={`${table.name}-examples`}
-        disabled={examplesInProgress}
-        onClick={async () => {
-          const messageTimeout = setTimeout(
-            () =>
-              message.loading({
-                content: t('Examples for {{tableName}} under construction...', { tableName: table.name }),
-                key: messageKey,
-                duration: 0,
-              }),
-            1000,
-          );
-
-          setExamplesInProgress(true);
-          try {
-            const startTime = performance.now();
-            const examplesCollectionId = await getTableExamples(table).result;
-            const elapsed = performance.now() - startTime;
-
-            if (elapsed < 3000) {
-              clearTimeout(messageTimeout);
-              message.destroy(messageKey);
-              onOpenMetabaseTab(`collection/${examplesCollectionId}`);
-            } else {
-              message.success({
-                content: (
-                  <Button
-                    type="link"
-                    onClick={() => {
-                      onOpenMetabaseTab(`collection/${examplesCollectionId}`);
-                      message.destroy(messageKey);
-                    }}
-                  >
-                    {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
-                  </Button>
-                ),
-                key: messageKey,
-                // We rely on `message.destroy` called on `handleClickAnywhere`.
-                duration: 0,
-              });
-            }
-          } catch (err) {
-            message.error({
-              content: t('Examples for {{tableName}} failed', { tableName: table.name }),
-              key: messageKey,
-              // We rely on `message.destroy` called on `handleClickAnywhere`.
-              duration: 0,
-            });
-            console.warn('Error when building examples', table.name, err);
-          } finally {
-            setExamplesInProgress(false);
-          }
-        }}
-      >
-        {t('Example SQL queries')}
-      </Menu.Item>
-      <Popconfirm
-        title={t('Remove table `{{name}}`?', { name: table.name })}
-        icon={<QuestionCircleOutlined />}
-        onConfirm={() => removeTable(table.name)}
-        okText={t('Remove')}
-        cancelText={t('Cancel')}
-      >
-        <Menu.Item icon={<DeleteOutlined />} key={`${table.name}-remove`} disabled={examplesInProgress}>
-          {t('Remove')}
-        </Menu.Item>
-      </Popconfirm>
-    </Menu>
-  );
+  const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
+  // Manage visibility manually because a programmatic tab change leaves a dangling tooltip.
+  const [examplesTooltipVisible, setExamplesTooltipVisible] = useState(false);
 
   return (
     <Tooltip
@@ -145,11 +61,95 @@ const TableDropdown: FunctionComponent<TableDropdownProps> = ({ table, onOpenMet
       title={t('Click here to analyze in Metabase')}
       onVisibleChange={(visible) => visible || setMetabaseHintHovered(true)}
     >
-      <Dropdown overlay={menu} trigger={['click']}>
-        <Button type={showMetabaseHint && !metabaseHintHovered ? 'primary' : 'text'} shape="circle" size="large">
-          <EllipsisOutlined />
-        </Button>
-      </Dropdown>
+      <Space>
+        <Tooltip title={t('New SQL query')}>
+          <Button
+            type="text"
+            shape="circle"
+            icon={<ConsoleSqlOutlined />}
+            onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
+          />
+        </Tooltip>
+
+        <Tooltip
+          title={t('Example SQL queries')}
+          visible={examplesTooltipVisible}
+          onVisibleChange={setExamplesTooltipVisible}
+        >
+          <Button
+            type="text"
+            shape="circle"
+            icon={<BarChartOutlined />}
+            disabled={examplesInProgress}
+            onClick={async () => {
+              const messageTimeout = setTimeout(
+                () =>
+                  message.loading({
+                    content: t('Examples for {{tableName}} under construction...', { tableName: table.name }),
+                    key: messageKey,
+                    duration: 0,
+                  }),
+                1000,
+              );
+
+              setExamplesInProgress(true);
+              try {
+                const startTime = performance.now();
+                const examplesCollectionId = await getTableExamples(table).result;
+                const elapsed = performance.now() - startTime;
+
+                if (elapsed < 3000) {
+                  clearTimeout(messageTimeout);
+                  message.destroy(messageKey);
+                  setExamplesTooltipVisible(false);
+                  onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                } else {
+                  message.success({
+                    content: (
+                      <Button
+                        type="link"
+                        onClick={() => {
+                          setExamplesTooltipVisible(false);
+                          onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                          message.destroy(messageKey);
+                        }}
+                      >
+                        {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
+                      </Button>
+                    ),
+                    key: messageKey,
+                    // We rely on `message.destroy` called on `handleClickAnywhere`.
+                    duration: 0,
+                  });
+                }
+              } catch (err) {
+                message.error({
+                  content: t('Examples for {{tableName}} failed', { tableName: table.name }),
+                  key: messageKey,
+                  // We rely on `message.destroy` called on `handleClickAnywhere`.
+                  duration: 0,
+                });
+                console.warn('Error when building examples', table.name, err);
+              } finally {
+                setExamplesInProgress(false);
+              }
+            }}
+          />
+        </Tooltip>
+
+        <Tooltip title={t('Remove table')}>
+          <Popconfirm
+            placement="bottomRight"
+            title={t('Remove table `{{name}}`?', { name: table.name })}
+            icon={<QuestionCircleOutlined />}
+            onConfirm={() => removeTable(table.name)}
+            okText={t('Remove')}
+            cancelText={t('Cancel')}
+          >
+            <Button type="text" shape="circle" icon={<DeleteOutlined />} disabled={examplesInProgress} />
+          </Popconfirm>
+        </Tooltip>
+      </Space>
     </Tooltip>
   );
 };
@@ -190,7 +190,7 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
           key="actions"
           align="right"
           render={(_: unknown, table: ImportedTable, index: number) => (
-            <TableDropdown
+            <TableActions
               table={table}
               onOpenMetabaseTab={onOpenMetabaseTab}
               showMetabaseHint={showMetabaseHint && index === 0}
