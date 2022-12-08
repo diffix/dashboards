@@ -125,6 +125,10 @@ export const App: FunctionComponent = () => {
 
   useCheckUpdates();
 
+  useEffect(() => {
+    window.storeGet(SHOW_METABASE_HINT_KEY, true).then((r) => setShowMetabaseHint(r as boolean));
+  }, []);
+
   function openMetabaseTab(initialPath?: string) {
     updateState((state) => {
       const metabaseTab = newMetabaseTab(t, initialPath);
@@ -144,9 +148,6 @@ export const App: FunctionComponent = () => {
       setWindowTitle(state);
     });
   }
-
-  window.storeGet(SHOW_METABASE_HINT_KEY, true).then((r) => setShowMetabaseHint(r as boolean));
-
   function onEdit(targetKey: unknown, action: 'add' | 'remove'): void {
     switch (action) {
       case 'add':

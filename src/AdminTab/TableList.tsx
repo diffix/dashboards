@@ -34,7 +34,7 @@ type TableDropdownProps = {
   showMetabaseHint: boolean;
 };
 
-const TableActions: FunctionComponent<TableDropdownProps> = ({ table, onOpenMetabaseTab }) => {
+const TableActions: FunctionComponent<TableDropdownProps> = ({ table, onOpenMetabaseTab, showMetabaseHint }) => {
   const t = useT('AdminTab::TableList::TableDropdown');
 
   const [examplesInProgress, setExamplesInProgress] = useState(false);
@@ -50,97 +50,105 @@ const TableActions: FunctionComponent<TableDropdownProps> = ({ table, onOpenMeta
     return () => document.removeEventListener('mousedown', handleClickAnywhere);
   }, [examplesInProgress, messageKey]);
 
+  const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
   // Manage visibility manually because a programmatic tab change leaves a dangling tooltip.
   const [examplesTooltipVisible, setExamplesTooltipVisible] = useState(false);
 
   return (
-    <Space>
-      <Tooltip title={t('New SQL query')}>
-        <Button
-          shape="circle"
-          icon={<ConsoleSqlOutlined />}
-          onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
-        />
-      </Tooltip>
+    <Tooltip
+      placement="left"
+      visible={showMetabaseHint && !metabaseHintHovered}
+      title={t('Click here to analyze in Metabase')}
+      onVisibleChange={(visible) => visible || setMetabaseHintHovered(true)}
+    >
+      <Space>
+        <Tooltip title={t('New SQL query')}>
+          <Button
+            shape="circle"
+            icon={<ConsoleSqlOutlined />}
+            onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
+          />
+        </Tooltip>
 
-      <Tooltip
-        title={t('Example SQL queries')}
-        visible={examplesTooltipVisible}
-        onVisibleChange={setExamplesTooltipVisible}
-      >
-        <Button
-          shape="circle"
-          icon={<BarChartOutlined />}
-          disabled={examplesInProgress}
-          onClick={async () => {
-            const messageTimeout = setTimeout(
-              () =>
-                message.loading({
-                  content: t('Examples for {{tableName}} under construction...', { tableName: table.name }),
-                  key: messageKey,
-                  duration: 0,
-                }),
-              1000,
-            );
+        <Tooltip
+          title={t('Example SQL queries')}
+          visible={examplesTooltipVisible}
+          onVisibleChange={setExamplesTooltipVisible}
+        >
+          <Button
+            shape="circle"
+            icon={<BarChartOutlined />}
+            disabled={examplesInProgress}
+            onClick={async () => {
+              const messageTimeout = setTimeout(
+                () =>
+                  message.loading({
+                    content: t('Examples for {{tableName}} under construction...', { tableName: table.name }),
+                    key: messageKey,
+                    duration: 0,
+                  }),
+                1000,
+              );
 
-            setExamplesInProgress(true);
-            try {
-              const startTime = performance.now();
-              const examplesCollectionId = await getTableExamples(table).result;
-              const elapsed = performance.now() - startTime;
+              setExamplesInProgress(true);
+              try {
+                const startTime = performance.now();
+                const examplesCollectionId = await getTableExamples(table).result;
+                const elapsed = performance.now() - startTime;
 
-              if (elapsed < 3000) {
-                clearTimeout(messageTimeout);
-                message.destroy(messageKey);
-                setExamplesTooltipVisible(false);
-                onOpenMetabaseTab(`collection/${examplesCollectionId}`);
-              } else {
-                message.success({
-                  content: (
-                    <Button
-                      type="link"
-                      onClick={() => {
-                        setExamplesTooltipVisible(false);
-                        onOpenMetabaseTab(`collection/${examplesCollectionId}`);
-                        message.destroy(messageKey);
-                      }}
-                    >
-                      {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
-                    </Button>
-                  ),
+                if (elapsed < 3000) {
+                  clearTimeout(messageTimeout);
+                  message.destroy(messageKey);
+                  setExamplesTooltipVisible(false);
+                  onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                } else {
+                  message.success({
+                    content: (
+                      <Button
+                        type="link"
+                        onClick={() => {
+                          setExamplesTooltipVisible(false);
+                          onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                          message.destroy(messageKey);
+                        }}
+                      >
+                        {t('Examples for {{tableName}} ready. Click to view', { tableName: table.name })}
+                      </Button>
+                    ),
+                    key: messageKey,
+                    // We rely on `message.destroy` called on `handleClickAnywhere`.
+                    duration: 0,
+                  });
+                }
+              } catch (err) {
+                message.error({
+                  content: t('Examples for {{tableName}} failed', { tableName: table.name }),
                   key: messageKey,
                   // We rely on `message.destroy` called on `handleClickAnywhere`.
                   duration: 0,
                 });
+                console.warn('Error when building examples', table.name, err);
+              } finally {
+                setExamplesInProgress(false);
               }
-            } catch (err) {
-              message.error({
-                content: t('Examples for {{tableName}} failed', { tableName: table.name }),
-                key: messageKey,
-                // We rely on `message.destroy` called on `handleClickAnywhere`.
-                duration: 0,
-              });
-              console.warn('Error when building examples', table.name, err);
-            } finally {
-              setExamplesInProgress(false);
-            }
-          }}
-        />
-      </Tooltip>
+            }}
+          />
+        </Tooltip>
 
-      <Tooltip title={t('Remove table')}>
-        <Popconfirm
-          placement="bottomRight"
-          title={t('Remove table `{{name}}`?', { name: table.name })}
-          icon={<QuestionCircleOutlined />}
-          onConfirm={() => removeTable(table.name)}
-          okText={t('Remove')}
-          cancelText={t('Cancel')}
-        >
-          <Button shape="circle" icon={<DeleteOutlined />} disabled={examplesInProgress} />
-        </Popconfirm>
-      </Tooltip>
-    </Space>
+        <Tooltip title={t('Remove table')}>
+          <Popconfirm
+            placement="bottomRight"
+            title={t('Remove table `{{name}}`?', { name: table.name })}
+            icon={<QuestionCircleOutlined />}
+            onConfirm={() => removeTable(table.name)}
+            okText={t('Remove')}
+            cancelText={t('Cancel')}
+          >
+            <Button shape="circle" icon={<DeleteOutlined />} disabled={examplesInProgress} />
+          </Popconfirm>
+        </Tooltip>
+      </Space>
+    </Tooltip>
   );
 };
 
