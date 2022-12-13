@@ -1,5 +1,5 @@
 import _, { find } from 'lodash';
-import { postgresQuote } from '../../shared';
+import { postgresQuote, roundBinSize } from '../../shared';
 import { Field, Table } from './types';
 
 // ----------------------------------------------------------------
@@ -165,21 +165,7 @@ function avgSQL(field: Field, table: Table): ExampleQuery {
 
 const BIN_SIZES_INTEGER = [1, 2, 3, 5, 10, 15, 20];
 const BIN_SIZES_REAL = [1, 1.25, 2, 2.5, 3, 5, 7.5, 10];
-const BIN_SIZE_EPSILON = 0.0001;
 const NUM_BINS = 10;
-
-/** Rounds to closest value in binSizes, adjusted to the appropriate power of 10. */
-function roundBinSize(x: number, binSizes: number[]): number {
-  if (x <= BIN_SIZE_EPSILON) return BIN_SIZE_EPSILON;
-  if (x > binSizes.at(-1)!) return 10 * roundBinSize(x / 10, binSizes);
-  if (x < 1) return roundBinSize(10 * x, binSizes) / 10;
-
-  for (let i = 0; i < binSizes.length - 1; i++) {
-    if (x <= (binSizes[i] + binSizes[i + 1]) / 2) return binSizes[i];
-  }
-
-  return binSizes.at(-1)!;
-}
 
 function numericExamples(field: Field, table: Table): ExampleQuery[] {
   const distinct = distinctValues(field);

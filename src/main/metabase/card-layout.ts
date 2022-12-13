@@ -74,6 +74,8 @@ export class CardLayout {
   }
 
   putSection(sizeY: number): Rectangle {
+    if (sizeY < 0) throw new Error('Invalid section size');
+
     const emptyRow = this.findEmptyRow();
     if (sizeY > 0) {
       this.fillGrid(emptyRow, 0, ROW_WIDTH, sizeY);
