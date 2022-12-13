@@ -22,6 +22,8 @@ jobs:
         run: echo "$env:GITHUB_WORKSPACE\pgsql\bin" >> $env:GITHUB_PATH
       - name: Install node libraries
         run: npm install
+      - name: Test
+        run: npm test
       - name: Make setup package
         run: npm run make
       - name: Upload setup package
