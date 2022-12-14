@@ -9,8 +9,8 @@ beforeEach(() => {
 test('Adds newlines and sections', () => {
   expect(layout.putSection(0)).toEqual({ col: 0, row: 0, sizeX: 18, sizeY: 0 });
   expect(layout.putSection(1)).toEqual({ col: 0, row: 0, sizeX: 18, sizeY: 1 });
-  expect(layout.putSection(2)).toEqual({ col: 0, row: 2, sizeX: 18, sizeY: 2 });
-  expect(layout.putSection(1)).toEqual({ col: 0, row: 5, sizeX: 18, sizeY: 1 });
+  expect(layout.putSection(2)).toEqual({ col: 0, row: 1, sizeX: 18, sizeY: 2 });
+  expect(layout.putSection(1)).toEqual({ col: 0, row: 3, sizeX: 18, sizeY: 1 });
 });
 
 test('Rejects nonsense', () => {

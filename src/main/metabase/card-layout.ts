@@ -23,7 +23,7 @@ export class CardLayout {
     if (length === 0) {
       return 0;
     } else {
-      const lastUsedRow = Math.floor(length / ROW_WIDTH);
+      const lastUsedRow = Math.floor((length - 1) / ROW_WIDTH);
       return lastUsedRow + 1;
     }
   }
