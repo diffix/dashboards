@@ -75,3 +75,18 @@ export function isPostgresIdentifier(name: string): boolean {
 export function postgresQuote(name: string): string {
   return isPostgresIdentifier(name) ? name : `"${name}"`;
 }
+
+const BIN_SIZE_EPSILON = 0.0001;
+
+/** Rounds to closest value in binSizes, adjusted to the appropriate power of 10. */
+export function roundBinSize(x: number, binSizes: number[]): number {
+  if (x <= BIN_SIZE_EPSILON) return BIN_SIZE_EPSILON;
+  if (x > binSizes.at(-1)!) return 10 * roundBinSize(x / 10, binSizes);
+  if (x < 1) return roundBinSize(10 * x, binSizes) / 10;
+
+  for (let i = 0; i < binSizes.length - 1; i++) {
+    if (x <= (binSizes[i] + binSizes[i + 1]) / 2) return binSizes[i];
+  }
+
+  return binSizes.at(-1)!;
+}
