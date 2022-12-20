@@ -24,12 +24,48 @@ async function syncTables(): Promise<void> {
 // Table CRUD
 // ----------------------------------------------------------------
 
+function parsePostgresType(type: string): ColumnType | null {
+  switch (type) {
+    case 'text':
+      return 'text';
+    case 'real':
+      return 'real';
+    case 'integer':
+      return 'integer';
+    case 'boolean':
+      return 'boolean';
+    case 'timestamp without time zone':
+      return 'timestamp';
+  }
+
+  console.warn(`Unknown column type '${type}'`);
+  return null;
+}
+
 export async function loadTables(): Promise<ImportedTable[]> {
   const { adminUser } = postgresConfig;
 
-  const allTables = await sql`SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner = ${adminUser}`;
+  const allTables = await sql`
+    SELECT t.tablename AS table_name, array_agg(ARRAY[c.column_name, c.data_type] ORDER BY c.ordinal_position) AS columns
+    FROM pg_catalog.pg_tables t
+    INNER JOIN information_schema.columns c
+    ON t.tablename = c.table_name AND t.schemaname = c.table_schema
+    WHERE t.tableowner = ${adminUser}
+    GROUP BY t.tablename
+  `;
 
-  const tables: ImportedTable[] = allTables.map((row) => ({ name: row.tablename, aidColumns: [] }));
+  const tables: ImportedTable[] = allTables.map((row) => {
+    const columns = row.columns as Array<[string, string]>;
+
+    return {
+      name: row.table_name,
+      columns: columns
+        .map(([name, type]) => ({ name, type: parsePostgresType(type) }))
+        .filter((c) => c.type !== null) as TableColumn[],
+      aidColumns: [],
+    };
+  });
+
   const tableNames = tables.map((table) => `'${table.name}'`).join(', ');
 
   const aids = await sql`
