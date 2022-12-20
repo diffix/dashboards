@@ -161,9 +161,9 @@ export type TableListProps = {
 
 export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab, showMetabaseHint }) => {
   const t = useT('AdminTab::TableList');
-  const tableListLodable = useTableListLoadable();
-  const tableList = useCachedLoadable(tableListLodable, []);
-  const tableListIsLoading = useIsLoading(tableListLodable);
+  const tableListLoadable = useTableListLoadable();
+  const tableList = useCachedLoadable(tableListLoadable, []);
+  const tableListIsLoading = useIsLoading(tableListLoadable);
 
   // TODO: Checking metabase status to show the table list spinner is temporary.
   // We should be showing the list even if metabase is down, just not allow to use the
