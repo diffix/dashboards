@@ -6,7 +6,18 @@ import { i18nConfig } from '../shared/constants';
 export type TFunc = TFunction<typeof i18nConfig.ns, string>;
 
 export function useT(prefix?: string): TFunc {
-  return useTranslation(i18nConfig.ns, { keyPrefix: prefix }).t;
+  const { t, i18n } = useTranslation(i18nConfig.ns, { keyPrefix: prefix });
+  return (...args: Parameters<typeof t>) => {
+    const key = args[0];
+    if (typeof key === 'string' && !i18n.exists(key)) {
+      // Trim qualifier prefix on missing resource.
+      const result = t(...args);
+      const parts = result.split(i18nConfig.keySeparator);
+      return parts.at(-1);
+    } else {
+      return t(...args);
+    }
+  };
 }
 
 /**
