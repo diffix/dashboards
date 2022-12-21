@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { FormOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, message, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { useT } from '../shared-react';
@@ -17,12 +17,14 @@ export type AdminTabProps = {
   showMetabaseHint: boolean;
   onOpenMetabaseTab: (initialPath?: string) => void;
   onOpenImportDataTab: () => void;
+  onOpenQueryTab: () => void;
 };
 
 export const AdminTab: FunctionComponent<AdminTabProps> = ({
   showMetabaseHint,
   onOpenMetabaseTab,
   onOpenImportDataTab,
+  onOpenQueryTab,
 }) => {
   const t = useT('AdminTab');
   const postgresqlStatus = usePostgresqlStatus();
@@ -56,9 +58,20 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
         <div className="AdminTab-tables">
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
-            <Button onClick={openImportDataTab} type="primary" size="large" icon={<PlusOutlined />}>
-              {t('Import Table')}
-            </Button>
+            <span>
+              <Button onClick={onOpenQueryTab} type="ghost" size="large" icon={<FormOutlined />}>
+                {t('Query Builder')}
+              </Button>
+              <Button
+                onClick={openImportDataTab}
+                type="primary"
+                size="large"
+                icon={<PlusOutlined />}
+                style={{ marginLeft: '12px' }}
+              >
+                {t('Import Table')}
+              </Button>
+            </span>
           </div>
           <TableList onOpenMetabaseTab={onOpenMetabaseTab} showMetabaseHint={showMetabaseHint} />
         </div>
