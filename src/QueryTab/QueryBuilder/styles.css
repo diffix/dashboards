@@ -1,0 +1,36 @@
+.ColumnSelector,
+.AggregateSelector,
+.FilterSelector {
+  margin-top: 24px;
+}
+
+.query-builder-list {
+  margin-bottom: 12px;
+}
+
+.query-builder-select {
+  width: 100%;
+}
+
+.AggColumnSelector {
+  flex-grow: 1;
+  margin-left: 8px;
+}
+
+.AggColumnSelector-select {
+  width: 100%;
+}
+
+.FilterValueEditor {
+  flex-grow: 1;
+  margin-left: 6px;
+}
+
+.FilterValueEditor .FilterValueEditor-input-boolean,
+.FilterValueEditor .FilterValueEditor-input-number {
+  min-width: 120px;
+}
+
+.FilterValueEditor .FilterValueEditor-input-text {
+  width: 100%;
+}
