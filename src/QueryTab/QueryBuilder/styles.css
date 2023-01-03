@@ -12,6 +12,10 @@
   width: 100%;
 }
 
+.ColumnSelector-column-name.ant-btn {
+  margin-left: -8px;
+}
+
 .AggColumnSelector {
   flex-grow: 1;
   margin-left: 8px;
@@ -33,4 +37,20 @@
 
 .FilterValueEditor .FilterValueEditor-input-text {
   width: 100%;
+}
+
+.GeneralizationControls-input-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.GeneralizationControls.valid .GeneralizationControls-label {
+  color: #1890ff;
+}
+
+.GeneralizationControls.valid .ant-input-number {
+  border: 1px solid #1890ff;
 }

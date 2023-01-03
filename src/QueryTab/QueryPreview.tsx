@@ -1,20 +1,20 @@
 import { Button, Space, Typography } from 'antd';
 import { find } from 'lodash';
 import React, { FunctionComponent } from 'react';
+import { escape } from 'sqlstring';
 import { postgresQuote } from '../shared';
 import { useT } from '../shared-react';
 import { useTableListCached } from '../state';
 import { ImportedTable } from '../types';
-import { Aggregate, BucketColumn, Filter, NumericGeneralization, Query, StringGeneralization } from './types';
-import { escape } from 'sqlstring';
+import { Aggregate, BucketColumn, Filter, Query } from './types';
 
 import './QueryPreview.css';
 
-function makeBinSQL(columnName: string, { binSize }: NumericGeneralization) {
+function makeBinSQL(columnName: string, binSize: number) {
   return `diffix.floor_by(${columnName}, ${binSize}) AS ${columnName}`;
 }
 
-function makeSubstringSQL(columnName: string, { substringStart, substringLength }: StringGeneralization) {
+function makeSubstringSQL(columnName: string, substringStart: number, substringLength: number) {
   return `substring(${columnName}, ${substringStart}, ${substringLength}) AS ${columnName}`;
 }
 
@@ -24,9 +24,13 @@ function bucketToSQL(column: BucketColumn) {
   switch (column.type) {
     case 'integer':
     case 'real':
-      return column.generalization ? makeBinSQL(columnName, column.generalization) : columnName;
+      return column.generalization.active && column.generalization.binSize !== null
+        ? makeBinSQL(columnName, column.generalization.binSize)
+        : columnName;
     case 'text':
-      return column.generalization ? makeSubstringSQL(columnName, column.generalization) : columnName;
+      return column.generalization.active && column.generalization.substringLength !== null
+        ? makeSubstringSQL(columnName, column.generalization.substringStart ?? 1, column.generalization.substringLength)
+        : columnName;
     default:
       return columnName;
   }

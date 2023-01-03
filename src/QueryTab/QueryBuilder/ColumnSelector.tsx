@@ -1,24 +1,37 @@
-import { ArrowDownOutlined, ArrowUpOutlined, CloseOutlined } from '@ant-design/icons';
+import { ArrowDownOutlined, ArrowUpOutlined, CloseOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
 import { Button, List, Select, Typography } from 'antd';
 import { find, findIndex } from 'lodash';
 import React, { FunctionComponent } from 'react';
 import { useT } from '../../shared-react';
 import { TableColumn } from '../../types';
-import { BucketColumn } from '../types';
+import { BucketColumn, GeneralizationState } from '../types';
+import { GeneralizationControls } from './GeneralizationControls';
 import { CommonProps, removeAt, swap } from './utils';
 
 import './styles.css';
 
+const initialGeneralization: GeneralizationState = {
+  active: false,
+  binSize: null,
+  substringStart: null,
+  substringLength: null,
+};
+
 function makeBucketColumn(c: TableColumn): BucketColumn {
-  const { name, type } = c;
-  switch (type) {
+  return {
+    ...c,
+    generalization: initialGeneralization,
+  };
+}
+
+function canGeneralize(c: BucketColumn) {
+  switch (c.type) {
     case 'integer':
     case 'real':
-      return { name, type, generalization: null };
     case 'text':
-      return { name, type, generalization: null };
+      return true;
     default:
-      return { name, type };
+      return false;
   }
 }
 
@@ -94,7 +107,33 @@ export const ColumnSelector: FunctionComponent<ColumnSelectorProps> = ({ query, 
                   />,
                 ]}
               >
-                {column.name}
+                <div>
+                  {canGeneralize(column) ? (
+                    <Button
+                      className="ColumnSelector-column-name"
+                      size="small"
+                      type="text"
+                      onClick={() =>
+                        updateQuery((query) => {
+                          const columnDraft = find(query.columns, { name: column.name });
+                          if (columnDraft) {
+                            columnDraft.generalization.active = !columnDraft.generalization.active;
+                          } else {
+                            console.warn(`Column '${column.name}' not found.`);
+                          }
+                        })
+                      }
+                    >
+                      {column.name}
+                      {column.generalization.active ? <UpOutlined /> : <DownOutlined />}
+                    </Button>
+                  ) : (
+                    column.name
+                  )}
+                  {column.generalization.active && (
+                    <GeneralizationControls query={query} updateQuery={updateQuery} columnName={column.name} />
+                  )}
+                </div>
               </List.Item>
             )}
           />

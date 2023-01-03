@@ -1,4 +1,4 @@
-import { BooleanColumn, ColumnType, IntegerColumn, RealColumn, TextColumn, TimestampColumn } from '../types';
+import { ColumnType, TableColumn } from '../types';
 
 export type NumericGeneralization = {
   binSize: number;
@@ -9,12 +9,16 @@ export type StringGeneralization = {
   substringLength: number;
 };
 
-export type BucketColumn =
-  | (IntegerColumn & { generalization: NumericGeneralization | null })
-  | (RealColumn & { generalization: NumericGeneralization | null })
-  | (TextColumn & { generalization: StringGeneralization | null })
-  | TimestampColumn
-  | BooleanColumn;
+export type GeneralizationState = {
+  active: boolean;
+  binSize: number | null;
+  substringStart: number | null;
+  substringLength: number | null;
+};
+
+export type BucketColumn = TableColumn & {
+  generalization: GeneralizationState;
+};
 
 export type TableReference = string;
 export type ColumnReference = string;
