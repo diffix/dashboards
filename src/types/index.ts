@@ -103,6 +103,7 @@ declare global {
     metabaseEvents: EventEmitter;
     i18n: i18n;
     i18nMissingKeys: Record<string, unknown>;
+    copyToClipboard(text: string): void;
     onPostgresqlStatusUpdate(status: ServiceStatus): void;
     onMetabaseStatusUpdate(status: ServiceStatus): void;
     getServicesStatus: (name: ServiceName) => ServiceStatus;

@@ -115,15 +115,19 @@ export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query }) =>
   const t = useT('QueryPreview');
   const tables = useTableListCached();
   const table: ImportedTable | null = (query.table && find(tables, { name: query.table })) || null;
+  const querySQL = queryToSQL(query, table);
 
   return (
     <div className="QueryPreview">
       <Typography.Title level={4}>{t('Query Preview')}</Typography.Title>
-      <pre className="QueryPreview-output">{queryToSQL(query, table)}</pre>
+      <pre className="QueryPreview-output">{querySQL}</pre>
       <Space>
-        {/* TODO: Handle actions. */}
-        <Button type="primary">Copy to Clipboard</Button>
-        <Button type="primary">Open in Metabase</Button>
+        <Button type="primary" disabled={!querySQL} onClick={() => window.copyToClipboard(querySQL)}>
+          {t('Copy to Clipboard')}
+        </Button>
+        <Button type="primary" disabled={!querySQL}>
+          {t('Open in Metabase')}
+        </Button>
       </Space>
     </div>
   );

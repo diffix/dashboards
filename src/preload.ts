@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { clipboard, ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
 import i18n from 'i18next';
 import { set } from 'lodash';
@@ -60,6 +60,10 @@ async function newTask<T>(signal: AbortSignal, runner: (taskId: string) => Promi
     taskDone = true;
   }
 }
+
+window.copyToClipboard = (text) => {
+  clipboard.writeText(text);
+};
 
 window.onPostgresqlStatusUpdate = (_status) => {};
 window.onMetabaseStatusUpdate = (_status) => {};
