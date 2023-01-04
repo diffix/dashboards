@@ -68,6 +68,7 @@ const AggColumnSelector: FunctionComponent<AggColumnSelectorProps> = ({
             }
           })
         }
+        getPopupContainer={(triggerNode) => triggerNode.parentElement}
       />
     </div>
   );
@@ -204,6 +205,7 @@ export const AggregateSelector: FunctionComponent<AggregateSelectorProps> = ({
               }
             })
           }
+          getPopupContainer={(triggerNode) => triggerNode.parentElement}
         />
       </div>
     </div>

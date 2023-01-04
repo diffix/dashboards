@@ -23,6 +23,7 @@ export const TableSelector: FunctionComponent<TableSelectorProps> = ({ tables, q
         value={query.table ?? undefined}
         options={tables.map((t) => ({ value: t.name, label: t.name }))}
         onChange={(newTable) => updateQuery(defaultQuery(newTable))}
+        getPopupContainer={(triggerNode) => triggerNode.parentElement}
       />
     </div>
   );

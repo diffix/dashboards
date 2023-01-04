@@ -158,6 +158,7 @@ export const ColumnSelector: FunctionComponent<ColumnSelectorProps> = ({ query, 
               }
             })
           }
+          getPopupContainer={(triggerNode) => triggerNode.parentElement}
         />
       </div>
     </div>

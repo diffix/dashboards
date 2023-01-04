@@ -56,6 +56,7 @@ const FilterValueEditor: FunctionComponent<FilterValueEditorProps> = ({ column, 
             size="small"
             value={filter.value ? 'true' : 'false'}
             onChange={(newValue) => updateFilterValue(newValue === 'true')}
+            getPopupContainer={(triggerNode) => triggerNode.parentElement}
           >
             <Select.Option value="true">{t('true')}</Select.Option>
             <Select.Option value="false">{t('false')}</Select.Option>
@@ -158,6 +159,7 @@ export const FilterSelector: FunctionComponent<FilterSelectorProps> = ({ query, 
             }
           })
         }
+        getPopupContainer={(triggerNode) => triggerNode.parentElement}
       />
     </div>
   );
