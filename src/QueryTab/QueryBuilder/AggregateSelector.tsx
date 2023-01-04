@@ -168,6 +168,7 @@ export const AggregateSelector: FunctionComponent<AggregateSelectorProps> = ({
       <div>
         <Select
           className="AggregateSelector-Select query-builder-select"
+          popupClassName="query-builder-select-dropdown"
           placeholder={t('Add an aggregate')}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           value={[] as any}

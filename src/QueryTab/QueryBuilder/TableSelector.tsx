@@ -18,6 +18,7 @@ export const TableSelector: FunctionComponent<TableSelectorProps> = ({ tables, q
       <Typography.Title level={4}>{t('From table')}</Typography.Title>
       <Select
         className="TableSelector-Select query-builder-select"
+        popupClassName="query-builder-select-dropdown"
         placeholder={t('Select a table')}
         showSearch
         value={query.table ?? undefined}

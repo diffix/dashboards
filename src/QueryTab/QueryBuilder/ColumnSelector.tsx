@@ -143,6 +143,7 @@ export const ColumnSelector: FunctionComponent<ColumnSelectorProps> = ({ query, 
       <div>
         <Select
           className="query-builder-select"
+          popupClassName="query-builder-select-dropdown"
           placeholder={t('Add a column')}
           showSearch
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

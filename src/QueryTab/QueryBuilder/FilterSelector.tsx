@@ -140,6 +140,7 @@ export const FilterSelector: FunctionComponent<FilterSelectorProps> = ({ query, 
       )}
       <Select
         className="FilterSelector-Select query-builder-select"
+        popupClassName="query-builder-select-dropdown"
         placeholder={t('Filter by column')}
         showSearch
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -12,6 +12,11 @@
   width: 100%;
 }
 
+/* Hack for jumpy dropdown at the bottom of the page. */
+.query-builder-select-dropdown.ant-select-dropdown-placement-topLeft {
+  animation-duration: 0s !important;
+}
+
 .ColumnSelector-column-name.ant-btn {
   margin-left: -8px;
 }
