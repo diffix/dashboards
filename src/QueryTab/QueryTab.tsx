@@ -1,5 +1,5 @@
-import { Col, Row } from 'antd';
-import React, { FunctionComponent } from 'react';
+import { Affix, Col, Row } from 'antd';
+import React, { FunctionComponent, useRef } from 'react';
 import { useImmer } from 'use-immer';
 import { defaultQuery, QueryBuilder } from './QueryBuilder';
 import { QueryPreview } from './QueryPreview';
@@ -12,17 +12,20 @@ export type QueryTabProps = {
 };
 
 export const QueryTab: FunctionComponent<QueryTabProps> = ({ initialTable }) => {
+  const tabRef = useRef<HTMLDivElement>(null);
   const [query, updateQuery] = useImmer<Query>(() => defaultQuery(initialTable));
 
   return (
-    <div className="QueryTab">
+    <div className="QueryTab" ref={tabRef}>
       <div className="QueryTab-content">
         <Row gutter={[32, 32]}>
           <Col xs={24} lg={12}>
             <QueryBuilder query={query} updateQuery={updateQuery} />
           </Col>
           <Col xs={24} lg={12}>
-            <QueryPreview query={query} />
+            <Affix target={() => tabRef.current}>
+              <QueryPreview query={query} />
+            </Affix>
           </Col>
         </Row>
       </div>

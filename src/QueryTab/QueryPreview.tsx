@@ -120,7 +120,9 @@ export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query }) =>
   return (
     <div className="QueryPreview">
       <Typography.Title level={4}>{t('Query Preview')}</Typography.Title>
-      <pre className="QueryPreview-output">{querySQL}</pre>
+      <div className="QueryPreview-output">
+        <pre className="QueryPreview-output-content">{querySQL}</pre>
+      </div>
       <Space>
         <Button type="primary" disabled={!querySQL} onClick={() => window.copyToClipboard(querySQL)}>
           {t('Copy to Clipboard')}

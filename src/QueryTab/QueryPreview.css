@@ -1,7 +1,22 @@
+.QueryPreview {
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
 .QueryPreview-output {
   padding: 16px;
+  margin-bottom: 1em;
   background: #fcfcfc;
   border: 1px solid #d9d9d9;
+  flex-basis: auto;
+  flex-shrink: 1;
+  overflow: auto;
+}
+
+.QueryPreview-output-content {
+  margin: 0;
   min-height: 400px;
   font-size: 1.1em;
+  overflow: visible;
 }
