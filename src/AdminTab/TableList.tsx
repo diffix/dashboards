@@ -67,7 +67,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
             type="text"
             shape="circle"
             icon={<ConsoleSqlOutlined />}
-            onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
+            onClick={() => onOpenMetabaseTab(`/question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
           />
         </Tooltip>
 
@@ -98,7 +98,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
                   clearTimeout(messageTimeout);
                   message.destroy(messageKey);
                   setExamplesTooltipOpen(false);
-                  onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                  onOpenMetabaseTab(`/collection/${examplesCollectionId}`);
                 } else {
                   message.success({
                     content: (
@@ -106,7 +106,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
                         type="link"
                         onClick={() => {
                           setExamplesTooltipOpen(false);
-                          onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                          onOpenMetabaseTab(`/collection/${examplesCollectionId}`);
                           message.destroy(messageKey);
                         }}
                       >

@@ -82,7 +82,7 @@ function newQueryTab(t: TFunc): TabData {
 }
 
 function blankMetabasePath(): string {
-  return 'collection/root';
+  return '/collection/root';
 }
 
 function newMetabaseTab(t: TFunc, initialPath?: string): TabData {
@@ -339,14 +339,14 @@ export const App: FunctionComponent = () => {
                 tab.type === 'admin' ? (
                   <AdminTab
                     showMetabaseHint={showMetabaseHint}
-                    onOpenMetabaseTab={(initialPath?: string) => openMetabaseTab(initialPath)}
+                    onOpenMetabaseTab={(initialPath) => openMetabaseTab(initialPath)}
                     onOpenImportDataTab={openImportDataTab}
                     onOpenQueryTab={openQueryTab}
                   />
                 ) : tab.type === 'import' ? (
                   <ImportDataTab isActive={tab.id === activeTab} onImportCompleted={() => onImportCompleted(tab.id)} />
                 ) : tab.type === 'query' ? (
-                  <QueryTab initialTable={null} />
+                  <QueryTab initialTable={null} onOpenMetabaseTab={(initialPath) => openMetabaseTab(initialPath)} />
                 ) : tab.type === 'metabase' ? (
                   <MetabaseTab refreshNonce={tab.refreshNonce} startUrlPath={tab.startUrlPath} />
                 ) : (

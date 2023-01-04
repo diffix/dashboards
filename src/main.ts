@@ -14,6 +14,7 @@ import { appResourcesLocation, isMac } from './main/config';
 import { sendToRenderer } from './main/ipc';
 import { getAppLanguage } from './main/language';
 import {
+  getAnonymizedAccessDbId,
   getMetabaseStatus,
   getOrCreateTableExamples,
   initializeMetabase,
@@ -322,6 +323,10 @@ function setupIPC() {
   ipcMain.handle('load_tables', (_event, taskId: string) => {
     console.info(`(${taskId}) Loading imported tables.`);
     return runTask(taskId, (_signal) => loadTables());
+  });
+
+  ipcMain.handle('get_anon_db_id', () => {
+    return getAnonymizedAccessDbId();
   });
 
   ipcMain.handle('remove_table', (_event, taskId: string, tableName: string) => {

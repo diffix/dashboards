@@ -99,6 +99,14 @@ window.getTableExamples = (table: ImportedTable, signal: AbortSignal) =>
     return result;
   });
 
+window.getAnonymizedAccessDbId = () => {
+  return ipcRenderer.invoke('get_anon_db_id');
+};
+
+window.base64Encode = (data: string) => {
+  return Buffer.from(data).toString('base64');
+};
+
 window.storeSet = (key: string, value: unknown) => ipcRenderer.invoke('store_set', key, value);
 window.storeGet = (key: string, defaultValue?: unknown) => ipcRenderer.invoke('store_get', key, defaultValue);
 window.storeDelete = (key: string) => ipcRenderer.invoke('store_delete', key);

@@ -9,9 +9,10 @@ import './QueryTab.css';
 
 export type QueryTabProps = {
   initialTable: string | null;
+  onOpenMetabaseTab: (initialPath?: string) => void;
 };
 
-export const QueryTab: FunctionComponent<QueryTabProps> = ({ initialTable }) => {
+export const QueryTab: FunctionComponent<QueryTabProps> = ({ initialTable, onOpenMetabaseTab }) => {
   const tabRef = useRef<HTMLDivElement>(null);
   const [query, updateQuery] = useImmer<Query>(() => defaultQuery(initialTable));
 
@@ -24,7 +25,7 @@ export const QueryTab: FunctionComponent<QueryTabProps> = ({ initialTable }) => 
           </Col>
           <Col xs={24} lg={12}>
             <Affix target={() => tabRef.current}>
-              <QueryPreview query={query} />
+              <QueryPreview query={query} onOpenMetabaseTab={onOpenMetabaseTab} />
             </Affix>
           </Col>
         </Row>

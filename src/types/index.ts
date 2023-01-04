@@ -51,7 +51,7 @@ export type TableColumn = IntegerColumn | RealColumn | TextColumn | BooleanColum
 
 export type ColumnType = TableColumn['type'];
 
-// Query request
+// Tables
 
 export type InitialQueryPayloads = { sqlPayload: string };
 export type ImportedTable = {
@@ -110,6 +110,8 @@ declare global {
     loadTables(signal: AbortSignal): Promise<ImportedTable[]>;
     removeTable(tableName: string, signal: AbortSignal): Promise<void>;
     getTableExamples(table: ImportedTable, signal: AbortSignal): Promise<number>;
+    getAnonymizedAccessDbId(): Promise<number>;
+    base64Encode(data: string): string;
     storeSet(key: string, value: unknown): Promise<void>;
     storeGet(key: string, defaultValue?: unknown): Promise<unknown>;
     storeDelete(key: string): Promise<unknown>;

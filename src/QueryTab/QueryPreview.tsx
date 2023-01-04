@@ -1,9 +1,10 @@
-import { Button, Space, Typography } from 'antd';
+import { Button, message, Space, Typography } from 'antd';
 import { find } from 'lodash';
 import React, { FunctionComponent } from 'react';
 import { escape } from 'sqlstring';
-import { postgresQuote } from '../shared';
+import { makeSqlPayload, postgresQuote } from '../shared';
 import { useT } from '../shared-react';
+import { TOAST_DURATION } from '../shared/constants';
 import { useTableListCached } from '../state';
 import { ImportedTable } from '../types';
 import { Aggregate, BucketColumn, Filter, Query } from './types';
@@ -107,11 +108,17 @@ function queryToSQL(query: Query, table: ImportedTable | null) {
   return sql.join('\n');
 }
 
+function makeNotebookPath(databaseId: number, sql: string) {
+  const sqlPayload = makeSqlPayload(databaseId, sql);
+  return `/question/notebook#${window.base64Encode(JSON.stringify(sqlPayload))}`;
+}
+
 export type QueryPreviewProps = {
   query: Query;
+  onOpenMetabaseTab: (initialPath?: string) => void;
 };
 
-export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query }) => {
+export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query, onOpenMetabaseTab }) => {
   const t = useT('QueryPreview');
   const tables = useTableListCached();
   const table: ImportedTable | null = (query.table && find(tables, { name: query.table })) || null;
@@ -127,7 +134,22 @@ export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query }) =>
         <Button type="primary" disabled={!querySQL} onClick={() => window.copyToClipboard(querySQL)}>
           {t('Copy to Clipboard')}
         </Button>
-        <Button type="primary" disabled={!querySQL}>
+        <Button
+          type="primary"
+          disabled={!querySQL}
+          onClick={async () => {
+            try {
+              const anonDbId = await window.getAnonymizedAccessDbId();
+              onOpenMetabaseTab(makeNotebookPath(anonDbId, querySQL));
+            } catch (e) {
+              console.error(e);
+              message.error({
+                content: t('Failed to open Metabase.'),
+                duration: TOAST_DURATION,
+              });
+            }
+          }}
+        >
           {t('Open in Metabase')}
         </Button>
       </Space>
