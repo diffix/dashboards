@@ -52,7 +52,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
 
   const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
   // Manage visibility manually because a programmatic tab change leaves a dangling tooltip.
-  const [examplesTooltipVisible, setExamplesTooltipOpen] = useState(false);
+  const [examplesTooltipOpen, setExamplesTooltipOpen] = useState(false);
 
   return (
     <Tooltip
@@ -71,7 +71,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
           />
         </Tooltip>
 
-        <Tooltip title={t('Example SQL queries')} open={examplesTooltipVisible} onOpenChange={setExamplesTooltipOpen}>
+        <Tooltip title={t('Example SQL queries')} open={examplesTooltipOpen} onOpenChange={setExamplesTooltipOpen}>
           <Button
             type="text"
             shape="circle"

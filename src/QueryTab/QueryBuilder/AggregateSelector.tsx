@@ -54,7 +54,6 @@ const AggColumnSelector: FunctionComponent<AggColumnSelectorProps> = ({
         size="small"
         placeholder={t('Select a column')}
         showSearch
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         value={agg.column}
         options={validColumns.map((c) => ({ value: c.name, label: c.name }))}
         onChange={(column: string) =>
