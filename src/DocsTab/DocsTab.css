@@ -17,7 +17,7 @@
 
 .DocsTab-content {
   padding: 0 0 96px 0;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .DocsTab-content > .Markdown {

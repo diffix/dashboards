@@ -25,8 +25,6 @@ import { useCheckUpdates } from './use-check-updates';
 
 import './App.css';
 
-const { TabPane } = Tabs;
-
 type CommonTabData = {
   id: string;
   title: string;
@@ -333,10 +331,12 @@ export const App: FunctionComponent = () => {
             activeKey={activeTab}
             onChange={setActiveTab}
             onEdit={onEdit}
-          >
-            {tabs.map((tab) => (
-              <TabPane tab={tabTitle(tab)} key={tab.id} closable={tab.type !== 'admin'}>
-                {tab.type === 'admin' ? (
+            items={tabs.map((tab) => ({
+              key: tab.id,
+              label: tabTitle(tab),
+              closable: tab.type !== 'admin',
+              children:
+                tab.type === 'admin' ? (
                   <AdminTab
                     showMetabaseHint={showMetabaseHint}
                     onOpenMetabaseTab={(initialPath?: string) => openMetabaseTab(initialPath)}
@@ -364,10 +364,9 @@ export const App: FunctionComponent = () => {
                     section={tab.section}
                     scrollInvalidator={tab.scrollInvalidator}
                   />
-                )}
-              </TabPane>
-            ))}
-          </Tabs>
+                ),
+            }))}
+          />
         </div>
       </DocsFunctionsContext.Provider>
     </ConfigProvider>

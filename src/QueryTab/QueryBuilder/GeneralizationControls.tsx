@@ -12,6 +12,8 @@ import './styles.css';
 const MIN_BIN_SIZE_REAL = 0.000001;
 const MIN_BIN_SIZE_INTEGER = 1;
 
+const MAX_SUBSTRING_INPUT = 1_000_000;
+
 function minBinSize(columnType: ColumnType) {
   return columnType === 'real' ? MIN_BIN_SIZE_REAL : MIN_BIN_SIZE_INTEGER;
 }
@@ -74,8 +76,9 @@ export const GeneralizationControls: FunctionComponent<GeneralizationControlsPro
               size="small"
               placeholder="1"
               min={1}
+              max={MAX_SUBSTRING_INPUT}
               value={generalization.substringStart as number}
-              onChange={(substringStart) => updateColumn({ substringStart: Math.round(substringStart) })}
+              onChange={(substringStart) => updateColumn({ substringStart: Math.round(substringStart ?? 1) })}
             />
           </div>
           <div className="GeneralizationControls-input-row">
@@ -85,8 +88,9 @@ export const GeneralizationControls: FunctionComponent<GeneralizationControlsPro
               precision={0}
               size="small"
               min={1}
+              max={MAX_SUBSTRING_INPUT}
               value={generalization.substringLength as number}
-              onChange={(substringLength) => updateColumn({ substringLength: Math.round(substringLength) })}
+              onChange={(substringLength) => updateColumn({ substringLength: Math.round(substringLength ?? 1) })}
             />
           </div>
         </div>

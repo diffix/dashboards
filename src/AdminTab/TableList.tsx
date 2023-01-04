@@ -52,14 +52,14 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
 
   const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
   // Manage visibility manually because a programmatic tab change leaves a dangling tooltip.
-  const [examplesTooltipVisible, setExamplesTooltipVisible] = useState(false);
+  const [examplesTooltipVisible, setExamplesTooltipOpen] = useState(false);
 
   return (
     <Tooltip
       placement="left"
-      visible={showMetabaseHint && !metabaseHintHovered}
+      open={showMetabaseHint && !metabaseHintHovered}
       title={t('Click here to analyze in Metabase')}
-      onVisibleChange={(visible) => visible || setMetabaseHintHovered(true)}
+      onOpenChange={(open) => open || setMetabaseHintHovered(true)}
     >
       <Space>
         <Tooltip title={t('New SQL query')}>
@@ -71,11 +71,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
           />
         </Tooltip>
 
-        <Tooltip
-          title={t('Example SQL queries')}
-          visible={examplesTooltipVisible}
-          onVisibleChange={setExamplesTooltipVisible}
-        >
+        <Tooltip title={t('Example SQL queries')} open={examplesTooltipVisible} onOpenChange={setExamplesTooltipOpen}>
           <Button
             type="text"
             shape="circle"
@@ -101,7 +97,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
                 if (elapsed < 3000) {
                   clearTimeout(messageTimeout);
                   message.destroy(messageKey);
-                  setExamplesTooltipVisible(false);
+                  setExamplesTooltipOpen(false);
                   onOpenMetabaseTab(`collection/${examplesCollectionId}`);
                 } else {
                   message.success({
@@ -109,7 +105,7 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
                       <Button
                         type="link"
                         onClick={() => {
-                          setExamplesTooltipVisible(false);
+                          setExamplesTooltipOpen(false);
                           onOpenMetabaseTab(`collection/${examplesCollectionId}`);
                           message.destroy(messageKey);
                         }}

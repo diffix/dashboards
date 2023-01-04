@@ -1,6 +1,6 @@
 .QueryTab {
   height: 100%;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .QueryTab-content {
