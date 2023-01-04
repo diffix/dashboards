@@ -7,8 +7,6 @@ import { useInViewport } from 'react-in-viewport';
 import { useImmer } from 'use-immer';
 import { useStaticValue, useT } from '../shared-react';
 
-const { Step } = Steps;
-
 // Nav state
 
 export enum ImportDataNavStep {
@@ -258,37 +256,41 @@ const ImportDataNavSteps = React.memo<{ steps: ImportDataNavStepState[]; focused
           navFunctions.scrollToStep(step);
         }}
         size="small"
-      >
-        <Step
-          status={status(ImportDataNavStep.CsvImport)}
-          title={mapText(
-            t('{{stepNumber}}. Select File', { stepNumber: 1 }),
-            focusedStep === ImportDataNavStep.CsvImport,
-          )}
-          description={t('Load data from CSV')}
-        />
-        <Step
-          status={status(ImportDataNavStep.DataPreview)}
-          title={mapText(
-            t('{{stepNumber}}. Data Preview', { stepNumber: 2 }),
-            focusedStep === ImportDataNavStep.DataPreview,
-          )}
-          description={t('Preview contents of the file')}
-        />
-        <Step
-          status={status(ImportDataNavStep.AidSelection)}
-          title={mapText(
-            t('{{stepNumber}}. Protected Entity', { stepNumber: 3 }),
-            focusedStep === ImportDataNavStep.AidSelection,
-          )}
-          description={t('Identify the protected entity in the data')}
-        />
-        <Step
-          status={status(ImportDataNavStep.Import)}
-          title={mapText(t('{{stepNumber}}. Table Name', { stepNumber: 4 }), focusedStep === ImportDataNavStep.Import)}
-          description={t('Select table name and finalize import')}
-        />
-      </Steps>
+        items={[
+          {
+            status: status(ImportDataNavStep.CsvImport),
+            title: mapText(
+              t('{{stepNumber}}. Select File', { stepNumber: 1 }),
+              focusedStep === ImportDataNavStep.CsvImport,
+            ),
+            description: t('Load data from CSV'),
+          },
+          {
+            status: status(ImportDataNavStep.DataPreview),
+            title: mapText(
+              t('{{stepNumber}}. Data Preview', { stepNumber: 2 }),
+              focusedStep === ImportDataNavStep.DataPreview,
+            ),
+            description: t('Preview contents of the file'),
+          },
+          {
+            status: status(ImportDataNavStep.AidSelection),
+            title: mapText(
+              t('{{stepNumber}}. Protected Entity', { stepNumber: 3 }),
+              focusedStep === ImportDataNavStep.AidSelection,
+            ),
+            description: t('Identify the protected entity in the data'),
+          },
+          {
+            status: status(ImportDataNavStep.Import),
+            title: mapText(
+              t('{{stepNumber}}. Table Name', { stepNumber: 4 }),
+              focusedStep === ImportDataNavStep.Import,
+            ),
+            description: t('Select table name and finalize import'),
+          },
+        ]}
+      />
     );
   },
 );
