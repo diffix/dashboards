@@ -20,9 +20,9 @@ function aggLabel(aggType: AggregateType, t: TFunc) {
     case 'count-distinct-column':
       return t('Count of distinct');
     case 'sum':
-      return t('Sum of ');
+      return t('Sum of');
     case 'avg':
-      return t('Average of ');
+      return t('Average of');
     default:
       throw new Error('Invalid aggregate type.');
   }
@@ -39,7 +39,7 @@ const AggColumnSelector: FunctionComponent<AggColumnSelectorProps> = ({
   query,
   updateQuery,
 }) => {
-  const t = useT('QueryBuilder::AggColumnSelector');
+  const t = useT('QueryTab::QueryBuilder::AggColumnSelector');
 
   const agg = find(query.aggregates, { key });
 
@@ -85,7 +85,7 @@ export const AggregateSelector: FunctionComponent<AggregateSelectorProps> = ({
   query,
   updateQuery,
 }) => {
-  const t = useT('QueryBuilder::AggregateSelector');
+  const t = useT('QueryTab::QueryBuilder::AggregateSelector');
 
   const aggregableColumns = queryableColumns.filter(
     (c) => !query.columns.some((selectedColumn) => selectedColumn.name === c.name),

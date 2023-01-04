@@ -28,7 +28,7 @@ type FilterValueEditorProps = CommonProps & {
 };
 
 const FilterValueEditor: FunctionComponent<FilterValueEditorProps> = ({ column, query, updateQuery }) => {
-  const t = useT('QueryBuilder::FilterValueEditor');
+  const t = useT('QueryTab::QueryBuilder::FilterSelector::FilterValueEditor');
 
   const filter = find(query.filters, { column });
 
@@ -97,7 +97,7 @@ export type FilterSelectorProps = CommonProps & {
 };
 
 export const FilterSelector: FunctionComponent<FilterSelectorProps> = ({ query, updateQuery, queryableColumns }) => {
-  const t = useT('QueryBuilder::FilterSelector');
+  const t = useT('QueryTab::QueryBuilder::FilterSelector');
 
   const filterableColumns = queryableColumns.filter(
     (c) => c.type !== 'timestamp' && !find(query.filters, { column: c.name }),

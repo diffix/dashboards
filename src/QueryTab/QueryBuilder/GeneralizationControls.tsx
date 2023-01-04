@@ -25,7 +25,7 @@ export const GeneralizationControls: FunctionComponent<GeneralizationControlsPro
   updateQuery,
   columnName,
 }) => {
-  const t = useT('QueryBuilder::ColumnSelector::GeneralizationControls');
+  const t = useT('QueryTab::QueryBuilder::ColumnSelector::GeneralizationControls');
 
   function updateColumn(values: Partial<GeneralizationState>) {
     updateQuery((query) => {

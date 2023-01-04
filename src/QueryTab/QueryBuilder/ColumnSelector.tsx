@@ -40,7 +40,7 @@ export type ColumnSelectorProps = CommonProps & {
 };
 
 export const ColumnSelector: FunctionComponent<ColumnSelectorProps> = ({ query, updateQuery, queryableColumns }) => {
-  const t = useT('QueryBuilder::ColumnSelector');
+  const t = useT('QueryTab::QueryBuilder::ColumnSelector');
 
   const bucketableColumns = queryableColumns.filter(
     (c) =>

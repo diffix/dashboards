@@ -119,7 +119,7 @@ export type QueryPreviewProps = {
 };
 
 export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query, onOpenMetabaseTab }) => {
-  const t = useT('QueryPreview');
+  const t = useT('QueryTab::QueryPreview');
   const tables = useTableListCached();
   const table: ImportedTable | null = (query.table && find(tables, { name: query.table })) || null;
   const querySQL = queryToSQL(query, table);

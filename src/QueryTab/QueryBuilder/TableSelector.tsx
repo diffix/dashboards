@@ -11,7 +11,7 @@ export type TableSelectorProps = CommonProps & {
 };
 
 export const TableSelector: FunctionComponent<TableSelectorProps> = ({ tables, query, updateQuery }) => {
-  const t = useT('QueryBuilder::TableSelector');
+  const t = useT('QueryTab::QueryBuilder::TableSelector');
 
   return (
     <div className="TableSelector">

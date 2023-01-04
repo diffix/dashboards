@@ -5,6 +5,7 @@
     "Import": "Import",
     "New Metabase Tab": "New Metabase Tab",
     "Documentation": "Documentation",
+    "Query Builder": "Query Builder",
     "Diffix Dashboards": "Diffix Dashboards",
     "Refresh to reveal newly imported tables (currently running queries will abort)": "Refresh to reveal newly imported tables (currently running queries will abort)",
 
@@ -50,6 +51,7 @@
     "Services": "Services",
     "Diffix Dashboards": "Diffix Dashboards",
     "Imported Tables": "Imported Tables",
+    "Query Builder": "Query Builder",
     "Import Table": "Import Table",
     "PostgreSQL database is not yet ready": "PostgreSQL database is not yet ready",
     "TableList": {
@@ -71,6 +73,45 @@
         "Examples for {{tableName}} ready. Click to view": "Examples for {{tableName}} ready. Click to view",
         "Examples for {{tableName}} failed": "Examples for {{tableName}} failed"
       }
+    }
+  },
+  "QueryTab": {
+    "QueryBuilder": {
+      "TableSelector": {
+        "From table": "From table",
+        "Select a table": "Select a table"
+      },
+      "ColumnSelector": {
+        "Select columns": "Select columns",
+        "Add a column": "Add a column",
+        "GeneralizationControls": {
+          "Bin size": "Bin size",
+          "Substring start": "Substring start",
+          "Substring length": "Substring length"
+        }
+      },
+      "AggregateSelector": {
+        "Summarize": "Summarize",
+        "Add an aggregate": "Add an aggregate",
+        "Count of rows": "Count of rows",
+        "Count of entities": "Count of entities",
+        "Count of column": "Count of column",
+        "Count of distinct": "Count of distinct",
+        "Sum of": "Sum of",
+        "Average of": "Average of"
+      },
+      "FilterSelector": {
+        "Filter by": "Filter by",
+        "Filter by column": "Filter by column",
+        "FilterValueEditor": { "true": "true", "false": "false" }
+      },
+      "AggColumnSelector": { "Select a column": "Select a column" }
+    },
+    "QueryPreview": {
+      "Query Preview": "Query Preview",
+      "Copy to Clipboard": "Copy to Clipboard",
+      "Open in Metabase": "Open in Metabase",
+      "Failed to open Metabase.": "Failed to open Metabase."
     }
   },
   "ImportDataTab": {
