@@ -20,3 +20,13 @@
   font-size: 1.1em;
   overflow: visible;
 }
+
+.QueryPreview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.QueryPreview-actions-space {
+  flex: auto;
+}

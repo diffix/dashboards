@@ -1,6 +1,6 @@
-import { Button, message, Space, Typography } from 'antd';
-import { find } from 'lodash';
-import React, { FunctionComponent } from 'react';
+import { Button, Checkbox, message, Typography } from 'antd';
+import { find, groupBy } from 'lodash';
+import React, { FunctionComponent, useState } from 'react';
 import { escape } from 'sqlstring';
 import { makeSqlPayload, postgresQuote } from '../shared';
 import { useT } from '../shared-react';
@@ -11,13 +11,7 @@ import { Aggregate, BucketColumn, Filter, Query } from './types';
 
 import './QueryPreview.css';
 
-function makeBinSQL(columnName: string, binSize: number) {
-  return `diffix.floor_by(${columnName}, ${binSize}) AS ${columnName}`;
-}
-
-function makeSubstringSQL(columnName: string, substringStart: number, substringLength: number) {
-  return `substring(${columnName}, ${substringStart}, ${substringLength}) AS ${columnName}`;
-}
+type SelectExpression = { expr: string; alias: string; explicitAlias: boolean };
 
 const extractMapping: Record<string, string> = {
   year: 'year',
@@ -31,55 +25,82 @@ const extractMapping: Record<string, string> = {
   quarterOfYear: 'quarter',
 };
 
-function bucketToSQL(column: BucketColumn) {
-  const columnName = postgresQuote(column.name);
+function bucketToSQL(column: BucketColumn): SelectExpression {
   const { generalization } = column;
+  const escapedName = postgresQuote(column.name);
+
+  const columnReference = { expr: escapedName, alias: column.name, explicitAlias: false };
 
   switch (column.type) {
     case 'integer':
     case 'real':
       return generalization.active && generalization.binSize !== null
-        ? makeBinSQL(columnName, generalization.binSize)
-        : columnName;
+        ? {
+            expr: `diffix.floor_by(${escapedName}, ${generalization.binSize})`,
+            alias: column.name,
+            explicitAlias: true,
+          }
+        : columnReference;
     case 'text':
       return generalization.active && generalization.substringLength !== null
-        ? makeSubstringSQL(columnName, generalization.substringStart ?? 1, generalization.substringLength)
-        : columnName;
+        ? {
+            expr: `substring(${escapedName}, ${generalization.substringStart ?? 1}, ${generalization.substringLength})`,
+            alias: column.name,
+            explicitAlias: true,
+          }
+        : columnReference;
     case 'timestamp':
       if (generalization.active && generalization.timestampBinning.startsWith('extract:')) {
         const field = extractMapping[generalization.timestampBinning.substring('extract:'.length)];
-        return `extract(${field} from ${columnName}) AS ${postgresQuote(column.name + '_' + field)}`;
+        return {
+          expr: `extract(${field} from ${escapedName})`,
+          alias: `${column.name}_${field}`,
+          explicitAlias: true,
+        };
       }
 
       if (generalization.active && generalization.timestampBinning.startsWith('date_trunc:')) {
         const field = generalization.timestampBinning.substring('date_trunc:'.length);
-        return `date_trunc('${field}', ${columnName}) AS ${columnName}`;
+        return {
+          expr: `date_trunc('${field}', ${escapedName})`,
+          alias: column.name,
+          explicitAlias: true,
+        };
       }
 
-      return columnName;
+      return columnReference;
     default:
-      return columnName;
+      return columnReference;
   }
 }
 
-function aggregateToSQL(agg: Aggregate, table: ImportedTable) {
+function aggregateToSQL(agg: Aggregate, table: ImportedTable): SelectExpression {
   switch (agg.type) {
     case 'count-rows':
-      return `count(*)`;
+      return { expr: `count(*)`, alias: 'count', explicitAlias: false };
     case 'count-column':
-      return `count(${postgresQuote(agg.column)}) AS ${postgresQuote('count_' + agg.column)}`;
+      return { expr: `count(${postgresQuote(agg.column)})`, alias: `count_${agg.column}`, explicitAlias: true };
     case 'count-distinct-column':
-      return `count(DISTINCT ${postgresQuote(agg.column)}) AS ${postgresQuote('distinct_' + agg.column)}`;
+      return {
+        expr: `count(DISTINCT ${postgresQuote(agg.column)})}`,
+        alias: `distinct_${agg.column}`,
+        explicitAlias: true,
+      };
     case 'count-entities':
       if (table.aidColumns.length > 0) {
-        return `count(DISTINCT ${postgresQuote(table.aidColumns[0])}) AS ${postgresQuote('num_entities')}`;
+        return {
+          expr: `count(DISTINCT ${postgresQuote(table.aidColumns[0])}`,
+          alias: 'num_entities',
+          explicitAlias: true,
+        };
       } else {
-        return `count(*)`; // GUI should not allow this; fall back to count(*) just in case.
+        // GUI should not allow this; fall back to count(*) just in case.
+        return { expr: `count(*)`, alias: 'count', explicitAlias: false };
       }
     case 'sum':
-      return `sum(${postgresQuote(agg.column)}) AS ${postgresQuote('sum_' + agg.column)}`;
+      return { expr: `sum(${postgresQuote(agg.column)})`, alias: `sum_${agg.column}`, explicitAlias: true };
     case 'avg':
-      return `avg(${postgresQuote(agg.column)}) AS ${postgresQuote('avg_' + agg.column)}`;
+      return { expr: `avg(${postgresQuote(agg.column)})`, alias: `avg_${agg.column}`, explicitAlias: true };
     default:
       throw new Error('Unknown aggregate.');
   }
@@ -89,7 +110,7 @@ function filterToSQL(filter: Filter) {
   return `${postgresQuote(filter.column)} = ${escape(filter.value)}`;
 }
 
-function queryToSQL(query: Query, table: ImportedTable | null) {
+function queryToSQL(query: Query, table: ImportedTable | null, wrapInSubquery: boolean) {
   if (!query.table || !table) {
     return '';
   }
@@ -99,18 +120,29 @@ function queryToSQL(query: Query, table: ImportedTable | null) {
 
   // SELECT
   sql.push('SELECT');
-  const select: string[] = [];
 
+  const select: SelectExpression[] = [];
   for (const bucket of query.columns) {
     select.push(bucketToSQL(bucket));
   }
-
   for (const agg of query.aggregates) {
     select.push(aggregateToSQL(agg, table));
   }
 
-  select.forEach((clause, i) => {
-    sql.push(`${INDENT}${clause}${i < select.length - 1 ? ',' : ''}`);
+  // Resolve ambiguous names.
+  const selectByAlias = groupBy(select, 'alias');
+  Object.values(selectByAlias).forEach((selectExprs) => {
+    if (selectExprs.length > 1) {
+      selectExprs.forEach((selectExpr, i) => {
+        selectExpr.alias += (i + 1).toString();
+        selectExpr.explicitAlias = true;
+      });
+    }
+  });
+
+  select.forEach(({ expr, alias, explicitAlias }, i) => {
+    const aliasStr = explicitAlias ? ` AS ${postgresQuote(alias)}` : '';
+    sql.push(`${INDENT}${expr}${aliasStr}${i < select.length - 1 ? ',' : ''}`);
   });
 
   // FROM
@@ -130,6 +162,16 @@ function queryToSQL(query: Query, table: ImportedTable | null) {
     sql.push(`GROUP BY ${query.columns.map((_, i) => i + 1).join(', ')}`);
   }
 
+  if (wrapInSubquery) {
+    return [
+      'SELECT',
+      ...select.map(({ alias }, i) => `${INDENT}${postgresQuote(alias)}${i < select.length - 1 ? ',' : ''}`),
+      'FROM (',
+      ...sql.map((line) => INDENT + line),
+      ') x',
+    ].join('\n');
+  }
+
   return sql.join('\n');
 }
 
@@ -147,7 +189,8 @@ export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query, onOp
   const t = useT('QueryTab::QueryPreview');
   const tables = useTableListCached();
   const table: ImportedTable | null = (query.table && find(tables, { name: query.table })) || null;
-  const querySQL = queryToSQL(query, table);
+  const [wrapInSubquery, setWrapInSubquery] = useState(false);
+  const querySQL = queryToSQL(query, table, wrapInSubquery);
 
   return (
     <div className="QueryPreview">
@@ -155,7 +198,11 @@ export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query, onOp
       <div className="QueryPreview-output">
         <pre className="QueryPreview-output-content">{querySQL}</pre>
       </div>
-      <Space>
+      <div className="QueryPreview-actions">
+        <Checkbox checked={wrapInSubquery} onChange={(e) => setWrapInSubquery(e.target.checked)}>
+          {t('Wrap in subquery')}
+        </Checkbox>
+        <div className="QueryPreview-actions-space" />
         <Button type="primary" disabled={!querySQL} onClick={() => window.copyToClipboard(querySQL)}>
           {t('Copy to Clipboard')}
         </Button>
@@ -177,7 +224,7 @@ export const QueryPreview: FunctionComponent<QueryPreviewProps> = ({ query, onOp
         >
           {t('Open in Metabase')}
         </Button>
-      </Space>
+      </div>
     </div>
   );
 };

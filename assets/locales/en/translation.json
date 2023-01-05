@@ -128,6 +128,7 @@
     },
     "QueryPreview": {
       "Query Preview": "Query Preview",
+      "Wrap in subquery": "Wrap in subquery",
       "Copy to Clipboard": "Copy to Clipboard",
       "Open in Metabase": "Open in Metabase",
       "Failed to open Metabase.": "Failed to open Metabase."
