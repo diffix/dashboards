@@ -94,7 +94,7 @@ export const AggregateSelector: FunctionComponent<AggregateSelectorProps> = ({
 
   return (
     <div className="AggregateSelector">
-      <Typography.Title level={4}>{t('Summarize')}</Typography.Title>
+      <Typography.Title level={4}>{t('Aggregate')}</Typography.Title>
 
       {query.aggregates.length > 0 && (
         <div className="query-builder-list">

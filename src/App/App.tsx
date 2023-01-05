@@ -40,6 +40,7 @@ type ImportDataTabData = CommonTabData & {
 
 type QueryTabData = CommonTabData & {
   type: 'query';
+  initialTable: string | null;
 };
 
 type MetabaseTabData = CommonTabData & {
@@ -77,8 +78,8 @@ function newImportDataTab(t: TFunc): TabData {
   };
 }
 
-function newQueryTab(t: TFunc): TabData {
-  return { id: (nextTabId++).toString(), title: t('Query Builder'), type: 'query' };
+function newQueryTab(t: TFunc, initialTable: string | null): TabData {
+  return { id: (nextTabId++).toString(), title: t('Query Builder'), type: 'query', initialTable };
 }
 
 function blankMetabasePath(): string {
@@ -156,9 +157,9 @@ export const App: FunctionComponent = () => {
     });
   }
 
-  function openQueryTab() {
+  function openQueryTab(initialTable: string | null) {
     updateState((state) => {
-      const importDataTab = newQueryTab(t);
+      const importDataTab = newQueryTab(t, initialTable);
       state.tabs.push(importDataTab);
       state.activeTab = importDataTab.id;
       setWindowTitle(state);
@@ -346,7 +347,10 @@ export const App: FunctionComponent = () => {
                 ) : tab.type === 'import' ? (
                   <ImportDataTab isActive={tab.id === activeTab} onImportCompleted={() => onImportCompleted(tab.id)} />
                 ) : tab.type === 'query' ? (
-                  <QueryTab initialTable={null} onOpenMetabaseTab={(initialPath) => openMetabaseTab(initialPath)} />
+                  <QueryTab
+                    initialTable={tab.initialTable}
+                    onOpenMetabaseTab={(initialPath) => openMetabaseTab(initialPath)}
+                  />
                 ) : tab.type === 'metabase' ? (
                   <MetabaseTab refreshNonce={tab.refreshNonce} startUrlPath={tab.startUrlPath} />
                 ) : (

@@ -1,4 +1,10 @@
-import { BarChartOutlined, ConsoleSqlOutlined, DeleteOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import {
+  BarChartOutlined,
+  ConsoleSqlOutlined,
+  DeleteOutlined,
+  FormOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons';
 import { Button, message, Popconfirm, Space, Table, Tooltip } from 'antd';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { TFunc, useStaticValue, useT } from '../shared-react';
@@ -31,10 +37,16 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
 type TableActionsProps = {
   table: ImportedTable;
   onOpenMetabaseTab: (initialPath?: string) => void;
+  onOpenQueryTab: (initialTable: string | null) => void;
   showMetabaseHint: boolean;
 };
 
-const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetabaseTab, showMetabaseHint }) => {
+const TableActions: FunctionComponent<TableActionsProps> = ({
+  table,
+  onOpenMetabaseTab,
+  onOpenQueryTab,
+  showMetabaseHint,
+}) => {
   const t = useT('AdminTab::TableList::TableActions');
 
   const [examplesInProgress, setExamplesInProgress] = useState(false);
@@ -69,6 +81,10 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
             icon={<ConsoleSqlOutlined />}
             onClick={() => onOpenMetabaseTab(`/question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
           />
+        </Tooltip>
+
+        <Tooltip title={t('Open in Query Builder')}>
+          <Button type="text" shape="circle" icon={<FormOutlined />} onClick={() => onOpenQueryTab(table.name)} />
         </Tooltip>
 
         <Tooltip title={t('Example SQL queries')} open={examplesTooltipOpen} onOpenChange={setExamplesTooltipOpen}>
@@ -152,10 +168,15 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
 
 export type TableListProps = {
   onOpenMetabaseTab: (initialPath?: string) => void;
+  onOpenQueryTab: (initialTable: string | null) => void;
   showMetabaseHint: boolean;
 };
 
-export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab, showMetabaseHint }) => {
+export const TableList: FunctionComponent<TableListProps> = ({
+  onOpenMetabaseTab,
+  onOpenQueryTab,
+  showMetabaseHint,
+}) => {
   const t = useT('AdminTab::TableList');
   const tableListLoadable = useTableListLoadable();
   const tableList = useCachedLoadable(tableListLoadable, []);
@@ -189,6 +210,7 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
             <TableActions
               table={table}
               onOpenMetabaseTab={onOpenMetabaseTab}
+              onOpenQueryTab={onOpenQueryTab}
               showMetabaseHint={showMetabaseHint && index === 0}
             />
           )}

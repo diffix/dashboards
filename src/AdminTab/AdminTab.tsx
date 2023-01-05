@@ -1,4 +1,4 @@
-import { FormOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { Button, message, Typography } from 'antd';
 import React, { FunctionComponent } from 'react';
 import { useT } from '../shared-react';
@@ -17,7 +17,7 @@ export type AdminTabProps = {
   showMetabaseHint: boolean;
   onOpenMetabaseTab: (initialPath?: string) => void;
   onOpenImportDataTab: () => void;
-  onOpenQueryTab: () => void;
+  onOpenQueryTab: (initialTable: string | null) => void;
 };
 
 export const AdminTab: FunctionComponent<AdminTabProps> = ({
@@ -59,9 +59,6 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
             <span>
-              <Button onClick={onOpenQueryTab} type="ghost" size="large" icon={<FormOutlined />}>
-                {t('Query Builder')}
-              </Button>
               <Button
                 onClick={openImportDataTab}
                 type="primary"
@@ -73,7 +70,11 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
               </Button>
             </span>
           </div>
-          <TableList onOpenMetabaseTab={onOpenMetabaseTab} showMetabaseHint={showMetabaseHint} />
+          <TableList
+            onOpenMetabaseTab={onOpenMetabaseTab}
+            onOpenQueryTab={onOpenQueryTab}
+            showMetabaseHint={showMetabaseHint}
+          />
         </div>
       </div>
     </div>

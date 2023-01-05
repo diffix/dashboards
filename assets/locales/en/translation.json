@@ -63,6 +63,7 @@
       "Columns: {{columns}}": "Columns: {{columns}}",
       "TableActions": {
         "New SQL query": "New SQL query",
+        "Open in Query Builder": "Open in Query Builder",
         "Example SQL queries": "Example SQL queries",
         "Remove": "Remove",
         "Remove table": "Remove table",
@@ -109,7 +110,7 @@
         }
       },
       "AggregateSelector": {
-        "Summarize": "Summarize",
+        "Aggregate": "Aggregate",
         "Add an aggregate": "Add an aggregate",
         "Count of rows": "Count of rows",
         "Count of entities": "Count of entities",
