@@ -5,7 +5,7 @@ import React, { FunctionComponent } from 'react';
 import { useT } from '../../shared-react';
 import { TableColumn } from '../../types';
 import { BucketColumn, GeneralizationState } from '../types';
-import { GeneralizationControls } from './GeneralizationControls';
+import { GeneralizationControls, TIMESTAMP_BIN_VALUES } from './GeneralizationControls';
 import { CommonProps, removeAt, swap } from './utils';
 
 import './styles.css';
@@ -15,6 +15,7 @@ const initialGeneralization: GeneralizationState = {
   binSize: null,
   substringStart: null,
   substringLength: null,
+  timestampBinning: TIMESTAMP_BIN_VALUES[0],
 };
 
 function makeBucketColumn(c: TableColumn): BucketColumn {
@@ -29,6 +30,7 @@ function canGeneralize(c: BucketColumn) {
     case 'integer':
     case 'real':
     case 'text':
+    case 'timestamp':
       return true;
     default:
       return false;

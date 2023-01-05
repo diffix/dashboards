@@ -59,3 +59,7 @@
 .GeneralizationControls.valid .ant-input-number {
   border: 1px solid #1890ff;
 }
+
+.GeneralizationControls-timestamp-select {
+  min-width: 160px;
+}

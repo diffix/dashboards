@@ -87,7 +87,25 @@
         "GeneralizationControls": {
           "Bin size": "Bin size",
           "Substring start": "Substring start",
-          "Substring length": "Substring length"
+          "Substring length": "Substring length",
+          "By": "By",
+          "Timestamp": {
+            "date_trunc:minute": "Minute",
+            "date_trunc:hour": "Hour",
+            "date_trunc:day": "Day",
+            "date_trunc:week": "Week",
+            "date_trunc:month": "Month",
+            "date_trunc:quarter": "Quarter",
+            "extract:year": "Year",
+            "extract:minute": "Minute of Hour",
+            "extract:hour": "Hour of Day",
+            "extract:dayOfWeek": "Day of Week",
+            "extract:dayOfMonth": "Day of Month",
+            "extract:dayOfYear": "Day of Year",
+            "extract:weekOfYear": "Week of Year",
+            "extract:monthOfYear": "Month of Year",
+            "extract:quarterOfYear": "Quarter of Year"
+          }
         }
       },
       "AggregateSelector": {

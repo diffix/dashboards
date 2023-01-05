@@ -1,4 +1,4 @@
-import { InputNumber } from 'antd';
+import { InputNumber, Select } from 'antd';
 import { find } from 'lodash';
 import React, { FunctionComponent } from 'react';
 import { useT } from '../../shared-react';
@@ -7,6 +7,24 @@ import { ColumnReference, GeneralizationState } from '../types';
 import { CommonProps } from './utils';
 
 import './styles.css';
+
+export const TIMESTAMP_BIN_VALUES = [
+  'date_trunc:minute',
+  'date_trunc:hour',
+  'date_trunc:day',
+  'date_trunc:week',
+  'date_trunc:month',
+  'date_trunc:quarter',
+  'extract:year',
+  'extract:minute',
+  'extract:hour',
+  'extract:dayOfWeek',
+  'extract:dayOfMonth',
+  'extract:dayOfYear',
+  'extract:weekOfYear',
+  'extract:monthOfYear',
+  'extract:quarterOfYear',
+];
 
 // Values lower than this will cause the anonymizer to crash.
 const MIN_BIN_SIZE_REAL = 0.000001;
@@ -91,6 +109,23 @@ export const GeneralizationControls: FunctionComponent<GeneralizationControlsPro
               max={MAX_SUBSTRING_INPUT}
               value={generalization.substringLength as number}
               onChange={(substringLength) => updateColumn({ substringLength: Math.round(substringLength ?? 1) })}
+            />
+          </div>
+        </div>
+      );
+    }
+    case 'timestamp': {
+      return (
+        <div className="GeneralizationControls valid">
+          <div className="GeneralizationControls-input-row">
+            <span className="GeneralizationControls-label">{t('By')}</span>
+            <Select
+              className="GeneralizationControls-timestamp-select"
+              size="small"
+              value={generalization.timestampBinning}
+              options={TIMESTAMP_BIN_VALUES.map((value) => ({ value, label: t('Timestamp::' + value) }))}
+              onChange={(timestampBinning) => updateColumn({ timestampBinning })}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
             />
           </div>
         </div>

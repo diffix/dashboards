@@ -14,6 +14,7 @@ export type GeneralizationState = {
   binSize: number | null;
   substringStart: number | null;
   substringLength: number | null;
+  timestampBinning: string;
 };
 
 export type BucketColumn = TableColumn & {

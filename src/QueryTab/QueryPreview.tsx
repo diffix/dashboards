@@ -19,19 +19,44 @@ function makeSubstringSQL(columnName: string, substringStart: number, substringL
   return `substring(${columnName}, ${substringStart}, ${substringLength}) AS ${columnName}`;
 }
 
+const extractMapping: Record<string, string> = {
+  year: 'year',
+  minute: 'minute',
+  hour: 'hour',
+  dayOfWeek: 'dow',
+  dayOfMonth: 'day',
+  dayOfYear: 'doy',
+  weekOfYear: 'week',
+  monthOfYear: 'month',
+  quarterOfYear: 'quarter',
+};
+
 function bucketToSQL(column: BucketColumn) {
   const columnName = postgresQuote(column.name);
+  const { generalization } = column;
 
   switch (column.type) {
     case 'integer':
     case 'real':
-      return column.generalization.active && column.generalization.binSize !== null
-        ? makeBinSQL(columnName, column.generalization.binSize)
+      return generalization.active && generalization.binSize !== null
+        ? makeBinSQL(columnName, generalization.binSize)
         : columnName;
     case 'text':
-      return column.generalization.active && column.generalization.substringLength !== null
-        ? makeSubstringSQL(columnName, column.generalization.substringStart ?? 1, column.generalization.substringLength)
+      return generalization.active && generalization.substringLength !== null
+        ? makeSubstringSQL(columnName, generalization.substringStart ?? 1, generalization.substringLength)
         : columnName;
+    case 'timestamp':
+      if (generalization.active && generalization.timestampBinning.startsWith('extract:')) {
+        const field = extractMapping[generalization.timestampBinning.substring('extract:'.length)];
+        return `extract(${field} from ${columnName}) AS ${postgresQuote(column.name + '_' + field)}`;
+      }
+
+      if (generalization.active && generalization.timestampBinning.startsWith('date_trunc:')) {
+        const field = generalization.timestampBinning.substring('date_trunc:'.length);
+        return `date_trunc('${field}', ${columnName}) AS ${columnName}`;
+      }
+
+      return columnName;
     default:
       return columnName;
   }
@@ -49,7 +74,7 @@ function aggregateToSQL(agg: Aggregate, table: ImportedTable) {
       if (table.aidColumns.length > 0) {
         return `count(DISTINCT ${postgresQuote(table.aidColumns[0])}) AS ${postgresQuote('num_entities')}`;
       } else {
-        return `count(*)`; // GUI should not allow this; fall back to count*) just in case.
+        return `count(*)`; // GUI should not allow this; fall back to count(*) just in case.
       }
     case 'sum':
       return `sum(${postgresQuote(agg.column)}) AS ${postgresQuote('sum_' + agg.column)}`;
