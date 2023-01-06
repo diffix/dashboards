@@ -82,14 +82,14 @@ function aggregateToSQL(agg: Aggregate, table: ImportedTable): SelectExpression 
       return { expr: `count(${postgresQuote(agg.column)})`, alias: `count_${agg.column}`, explicitAlias: true };
     case 'count-distinct-column':
       return {
-        expr: `count(DISTINCT ${postgresQuote(agg.column)})}`,
+        expr: `count(DISTINCT ${postgresQuote(agg.column)})`,
         alias: `distinct_${agg.column}`,
         explicitAlias: true,
       };
     case 'count-entities':
       if (table.aidColumns.length > 0) {
         return {
-          expr: `count(DISTINCT ${postgresQuote(table.aidColumns[0])}`,
+          expr: `count(DISTINCT ${postgresQuote(table.aidColumns[0])})`,
           alias: 'num_entities',
           explicitAlias: true,
         };
