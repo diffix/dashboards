@@ -1,6 +1,6 @@
 .AdminTab {
   height: 100%;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .AdminTab-content {

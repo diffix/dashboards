@@ -55,6 +55,7 @@ export const AidSelectionStep: FunctionComponent<AidSelectionProps> = ({ schema,
               value={aidColumn ? aidColumn : undefined}
               filterOption={true}
               disabled={publicTable}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
             >
               {schema.columns.map((column, index) => (
                 <Option key={index} value={column.name}>

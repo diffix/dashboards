@@ -5,6 +5,7 @@
     "Import": "Import",
     "New Metabase Tab": "New Metabase Tab",
     "Documentation": "Documentation",
+    "Query Builder": "Query Builder",
     "Diffix Dashboards": "Diffix Dashboards",
     "Refresh to reveal newly imported tables (currently running queries will abort)": "Refresh to reveal newly imported tables (currently running queries will abort)",
 
@@ -50,6 +51,7 @@
     "Services": "Services",
     "Diffix Dashboards": "Diffix Dashboards",
     "Imported Tables": "Imported Tables",
+    "Query Builder": "Query Builder",
     "Import Table": "Import Table",
     "PostgreSQL database is not yet ready": "PostgreSQL database is not yet ready",
     "TableList": {
@@ -61,6 +63,7 @@
       "Columns: {{columns}}": "Columns: {{columns}}",
       "TableActions": {
         "New SQL query": "New SQL query",
+        "Open in Query Builder": "Open in Query Builder",
         "Example SQL queries": "Example SQL queries",
         "Remove": "Remove",
         "Remove table": "Remove table",
@@ -71,6 +74,64 @@
         "Examples for {{tableName}} ready. Click to view": "Examples for {{tableName}} ready. Click to view",
         "Examples for {{tableName}} failed": "Examples for {{tableName}} failed"
       }
+    }
+  },
+  "QueryTab": {
+    "QueryBuilder": {
+      "TableSelector": {
+        "From table": "From table",
+        "Select a table": "Select a table"
+      },
+      "ColumnSelector": {
+        "Select columns": "Select columns",
+        "Add a column": "Add a column",
+        "GeneralizationControls": {
+          "Bin size": "Bin size",
+          "Substring start": "Substring start",
+          "Substring length": "Substring length",
+          "By": "By",
+          "Timestamp": {
+            "date_trunc:minute": "Minute",
+            "date_trunc:hour": "Hour",
+            "date_trunc:day": "Day",
+            "date_trunc:week": "Week",
+            "date_trunc:month": "Month",
+            "date_trunc:quarter": "Quarter",
+            "extract:year": "Year",
+            "extract:minute": "Minute of Hour",
+            "extract:hour": "Hour of Day",
+            "extract:dayOfWeek": "Day of Week",
+            "extract:dayOfMonth": "Day of Month",
+            "extract:dayOfYear": "Day of Year",
+            "extract:weekOfYear": "Week of Year",
+            "extract:monthOfYear": "Month of Year",
+            "extract:quarterOfYear": "Quarter of Year"
+          }
+        }
+      },
+      "AggregateSelector": {
+        "Aggregate": "Aggregate",
+        "Add an aggregate": "Add an aggregate",
+        "Count of rows": "Count of rows",
+        "Count of entities": "Count of entities",
+        "Count of column": "Count of column",
+        "Count of distinct": "Count of distinct",
+        "Sum of": "Sum of",
+        "Average of": "Average of"
+      },
+      "FilterSelector": {
+        "Filter by": "Filter by",
+        "Filter by column": "Filter by column",
+        "FilterValueEditor": { "true": "true", "false": "false" }
+      },
+      "AggColumnSelector": { "Select a column": "Select a column" }
+    },
+    "QueryPreview": {
+      "Query Preview": "Query Preview",
+      "Wrap in subquery": "Wrap in subquery",
+      "Copy to Clipboard": "Copy to Clipboard",
+      "Open in Metabase": "Open in Metabase",
+      "Failed to open Metabase.": "Failed to open Metabase."
     }
   },
   "ImportDataTab": {

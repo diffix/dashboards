@@ -15,16 +15,15 @@ import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { useImmer } from 'use-immer';
 import { AdminTab } from '../AdminTab';
-import { SHOW_METABASE_HINT_KEY } from '../shared/constants';
 import { DocsFunctionsContext, DocsTab, PageId } from '../DocsTab';
 import { ImportDataTab } from '../ImportDataTab';
 import { MetabaseTab } from '../MetabaseTab';
+import { QueryTab } from '../QueryTab';
 import { getT, TFunc, useStaticValue, useT } from '../shared-react';
+import { SHOW_METABASE_HINT_KEY } from '../shared/constants';
 import { useCheckUpdates } from './use-check-updates';
 
 import './App.css';
-
-const { TabPane } = Tabs;
 
 type CommonTabData = {
   id: string;
@@ -37,6 +36,11 @@ type AdminTabData = CommonTabData & {
 
 type ImportDataTabData = CommonTabData & {
   type: 'import';
+};
+
+type QueryTabData = CommonTabData & {
+  type: 'query';
+  initialTable: string | null;
 };
 
 type MetabaseTabData = CommonTabData & {
@@ -53,7 +57,7 @@ type DocsTabData = CommonTabData & {
   scrollInvalidator: number; // Triggers a scroll when changed
 };
 
-type TabData = AdminTabData | ImportDataTabData | MetabaseTabData | DocsTabData;
+type TabData = AdminTabData | ImportDataTabData | QueryTabData | MetabaseTabData | DocsTabData;
 
 type AppState = {
   tabs: TabData[];
@@ -74,8 +78,12 @@ function newImportDataTab(t: TFunc): TabData {
   };
 }
 
+function newQueryTab(t: TFunc, initialTable: string | null): TabData {
+  return { id: (nextTabId++).toString(), title: t('Query Builder'), type: 'query', initialTable };
+}
+
 function blankMetabasePath(): string {
-  return 'collection/root';
+  return '/collection/root';
 }
 
 function newMetabaseTab(t: TFunc, initialPath?: string): TabData {
@@ -148,6 +156,16 @@ export const App: FunctionComponent = () => {
       setWindowTitle(state);
     });
   }
+
+  function openQueryTab(initialTable: string | null) {
+    updateState((state) => {
+      const importDataTab = newQueryTab(t, initialTable);
+      state.tabs.push(importDataTab);
+      state.activeTab = importDataTab.id;
+      setWindowTitle(state);
+    });
+  }
+
   function onEdit(targetKey: unknown, action: 'add' | 'remove'): void {
     switch (action) {
       case 'add':
@@ -290,6 +308,8 @@ export const App: FunctionComponent = () => {
             {tab.title}
           </span>
         );
+      case 'query':
+        return tab.title;
     }
   }
 
@@ -312,17 +332,25 @@ export const App: FunctionComponent = () => {
             activeKey={activeTab}
             onChange={setActiveTab}
             onEdit={onEdit}
-          >
-            {tabs.map((tab) => (
-              <TabPane tab={tabTitle(tab)} key={tab.id} closable={tab.type !== 'admin'}>
-                {tab.type === 'admin' ? (
+            items={tabs.map((tab) => ({
+              key: tab.id,
+              label: tabTitle(tab),
+              closable: tab.type !== 'admin',
+              children:
+                tab.type === 'admin' ? (
                   <AdminTab
                     showMetabaseHint={showMetabaseHint}
-                    onOpenMetabaseTab={(initialPath?: string) => openMetabaseTab(initialPath)}
+                    onOpenMetabaseTab={(initialPath) => openMetabaseTab(initialPath)}
                     onOpenImportDataTab={openImportDataTab}
+                    onOpenQueryTab={openQueryTab}
                   />
                 ) : tab.type === 'import' ? (
                   <ImportDataTab isActive={tab.id === activeTab} onImportCompleted={() => onImportCompleted(tab.id)} />
+                ) : tab.type === 'query' ? (
+                  <QueryTab
+                    initialTable={tab.initialTable}
+                    onOpenMetabaseTab={(initialPath) => openMetabaseTab(initialPath)}
+                  />
                 ) : tab.type === 'metabase' ? (
                   <MetabaseTab refreshNonce={tab.refreshNonce} startUrlPath={tab.startUrlPath} />
                 ) : (
@@ -340,10 +368,9 @@ export const App: FunctionComponent = () => {
                     section={tab.section}
                     scrollInvalidator={tab.scrollInvalidator}
                   />
-                )}
-              </TabPane>
-            ))}
-          </Tabs>
+                ),
+            }))}
+          />
         </div>
       </DocsFunctionsContext.Provider>
     </ConfigProvider>

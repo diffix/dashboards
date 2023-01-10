@@ -8,26 +8,14 @@ body {
 #root,
 .App,
 .App .ant-tabs,
-.App .ant-tabs .ant-tabs-content {
+.App .ant-tabs-content-holder,
+.App .ant-tabs-content,
+.App .ant-tabs-tabpane {
   height: 100%;
-}
-
-.App {
-  min-width: 400px;
-}
-
-@media screen and (max-width: 400px) {
-  body {
-    overflow-x: auto;
-  }
 }
 
 .App .ant-tabs .ant-tabs-nav {
   margin: 0;
-}
-
-.App-empty {
-  margin-top: 64px;
 }
 
 /* Helpers */

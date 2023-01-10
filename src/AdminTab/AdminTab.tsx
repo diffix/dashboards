@@ -17,12 +17,14 @@ export type AdminTabProps = {
   showMetabaseHint: boolean;
   onOpenMetabaseTab: (initialPath?: string) => void;
   onOpenImportDataTab: () => void;
+  onOpenQueryTab: (initialTable: string | null) => void;
 };
 
 export const AdminTab: FunctionComponent<AdminTabProps> = ({
   showMetabaseHint,
   onOpenMetabaseTab,
   onOpenImportDataTab,
+  onOpenQueryTab,
 }) => {
   const t = useT('AdminTab');
   const postgresqlStatus = usePostgresqlStatus();
@@ -56,11 +58,23 @@ export const AdminTab: FunctionComponent<AdminTabProps> = ({
         <div className="AdminTab-tables">
           <div className="AdminTab-tables-header">
             <Title level={3}>{t('Imported Tables')}</Title>
-            <Button onClick={openImportDataTab} type="primary" size="large" icon={<PlusOutlined />}>
-              {t('Import Table')}
-            </Button>
+            <span>
+              <Button
+                onClick={openImportDataTab}
+                type="primary"
+                size="large"
+                icon={<PlusOutlined />}
+                style={{ marginLeft: '12px' }}
+              >
+                {t('Import Table')}
+              </Button>
+            </span>
           </div>
-          <TableList onOpenMetabaseTab={onOpenMetabaseTab} showMetabaseHint={showMetabaseHint} />
+          <TableList
+            onOpenMetabaseTab={onOpenMetabaseTab}
+            onOpenQueryTab={onOpenQueryTab}
+            showMetabaseHint={showMetabaseHint}
+          />
         </div>
       </div>
     </div>

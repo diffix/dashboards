@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { clipboard, ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
 import i18n from 'i18next';
 import { set } from 'lodash';
@@ -61,6 +61,10 @@ async function newTask<T>(signal: AbortSignal, runner: (taskId: string) => Promi
   }
 }
 
+window.copyToClipboard = (text) => {
+  clipboard.writeText(text);
+};
+
 window.onPostgresqlStatusUpdate = (_status) => {};
 window.onMetabaseStatusUpdate = (_status) => {};
 
@@ -94,6 +98,14 @@ window.getTableExamples = (table: ImportedTable, signal: AbortSignal) =>
     const result = await ipcRenderer.invoke('get_table_examples', taskId, table.name, table.aidColumns);
     return result;
   });
+
+window.getAnonymizedAccessDbId = () => {
+  return ipcRenderer.invoke('get_anon_db_id');
+};
+
+window.base64Encode = (data: string) => {
+  return Buffer.from(data).toString('base64');
+};
 
 window.storeSet = (key: string, value: unknown) => ipcRenderer.invoke('store_set', key, value);
 window.storeGet = (key: string, defaultValue?: unknown) => ipcRenderer.invoke('store_get', key, defaultValue);

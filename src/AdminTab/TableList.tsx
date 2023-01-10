@@ -1,4 +1,10 @@
-import { BarChartOutlined, ConsoleSqlOutlined, DeleteOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import {
+  BarChartOutlined,
+  ConsoleSqlOutlined,
+  DeleteOutlined,
+  FormOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons';
 import { Button, message, Popconfirm, Space, Table, Tooltip } from 'antd';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { TFunc, useStaticValue, useT } from '../shared-react';
@@ -31,10 +37,16 @@ function renderAidColumns(aidColumns: string[], t: TFunc) {
 type TableActionsProps = {
   table: ImportedTable;
   onOpenMetabaseTab: (initialPath?: string) => void;
+  onOpenQueryTab: (initialTable: string | null) => void;
   showMetabaseHint: boolean;
 };
 
-const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetabaseTab, showMetabaseHint }) => {
+const TableActions: FunctionComponent<TableActionsProps> = ({
+  table,
+  onOpenMetabaseTab,
+  onOpenQueryTab,
+  showMetabaseHint,
+}) => {
   const t = useT('AdminTab::TableList::TableActions');
 
   const [examplesInProgress, setExamplesInProgress] = useState(false);
@@ -52,14 +64,14 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
 
   const [metabaseHintHovered, setMetabaseHintHovered] = useState(false);
   // Manage visibility manually because a programmatic tab change leaves a dangling tooltip.
-  const [examplesTooltipVisible, setExamplesTooltipVisible] = useState(false);
+  const [examplesTooltipOpen, setExamplesTooltipOpen] = useState(false);
 
   return (
     <Tooltip
       placement="left"
-      visible={showMetabaseHint && !metabaseHintHovered}
+      open={showMetabaseHint && !metabaseHintHovered}
       title={t('Click here to analyze in Metabase')}
-      onVisibleChange={(visible) => visible || setMetabaseHintHovered(true)}
+      onOpenChange={(open) => open || setMetabaseHintHovered(true)}
     >
       <Space>
         <Tooltip title={t('New SQL query')}>
@@ -67,15 +79,15 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
             type="text"
             shape="circle"
             icon={<ConsoleSqlOutlined />}
-            onClick={() => onOpenMetabaseTab(`question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
+            onClick={() => onOpenMetabaseTab(`/question/notebook#${table.initialQueryPayloads?.sqlPayload || ''}`)}
           />
         </Tooltip>
 
-        <Tooltip
-          title={t('Example SQL queries')}
-          visible={examplesTooltipVisible}
-          onVisibleChange={setExamplesTooltipVisible}
-        >
+        <Tooltip title={t('Open in Query Builder')}>
+          <Button type="text" shape="circle" icon={<FormOutlined />} onClick={() => onOpenQueryTab(table.name)} />
+        </Tooltip>
+
+        <Tooltip title={t('Example SQL queries')} open={examplesTooltipOpen} onOpenChange={setExamplesTooltipOpen}>
           <Button
             type="text"
             shape="circle"
@@ -101,16 +113,16 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
                 if (elapsed < 3000) {
                   clearTimeout(messageTimeout);
                   message.destroy(messageKey);
-                  setExamplesTooltipVisible(false);
-                  onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                  setExamplesTooltipOpen(false);
+                  onOpenMetabaseTab(`/collection/${examplesCollectionId}`);
                 } else {
                   message.success({
                     content: (
                       <Button
                         type="link"
                         onClick={() => {
-                          setExamplesTooltipVisible(false);
-                          onOpenMetabaseTab(`collection/${examplesCollectionId}`);
+                          setExamplesTooltipOpen(false);
+                          onOpenMetabaseTab(`/collection/${examplesCollectionId}`);
                           message.destroy(messageKey);
                         }}
                       >
@@ -156,14 +168,19 @@ const TableActions: FunctionComponent<TableActionsProps> = ({ table, onOpenMetab
 
 export type TableListProps = {
   onOpenMetabaseTab: (initialPath?: string) => void;
+  onOpenQueryTab: (initialTable: string | null) => void;
   showMetabaseHint: boolean;
 };
 
-export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab, showMetabaseHint }) => {
+export const TableList: FunctionComponent<TableListProps> = ({
+  onOpenMetabaseTab,
+  onOpenQueryTab,
+  showMetabaseHint,
+}) => {
   const t = useT('AdminTab::TableList');
-  const tableListLodable = useTableListLoadable();
-  const tableList = useCachedLoadable(tableListLodable, []);
-  const tableListIsLoading = useIsLoading(tableListLodable);
+  const tableListLoadable = useTableListLoadable();
+  const tableList = useCachedLoadable(tableListLoadable, []);
+  const tableListIsLoading = useIsLoading(tableListLoadable);
 
   // TODO: Checking metabase status to show the table list spinner is temporary.
   // We should be showing the list even if metabase is down, just not allow to use the
@@ -193,6 +210,7 @@ export const TableList: FunctionComponent<TableListProps> = ({ onOpenMetabaseTab
             <TableActions
               table={table}
               onOpenMetabaseTab={onOpenMetabaseTab}
+              onOpenQueryTab={onOpenQueryTab}
               showMetabaseHint={showMetabaseHint && index === 0}
             />
           )}

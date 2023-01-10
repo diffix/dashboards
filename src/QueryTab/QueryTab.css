@@ -1,0 +1,10 @@
+.QueryTab {
+  height: 100%;
+  overflow: auto;
+}
+
+.QueryTab-content {
+  padding: 48px 32px 160px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}

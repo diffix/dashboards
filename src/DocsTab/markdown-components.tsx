@@ -45,8 +45,8 @@ const SectionLink: FunctionComponent<SectionLinkProps> = ({ className, section, 
   );
 };
 
-// Removes annoying `onClick` type mismatch error and discards the `node` prop.
-function wrap<TArgs>(fn: (props: TArgs & { onClick: any }) => JSX.Element) {
+// Removes type mismatch errors and discards the `node` prop.
+function wrap<TArgs>(fn: (props: TArgs & { onClick: any; ref: any }) => JSX.Element) {
   return (({ node: _, ...props }: any) => fn(props)) as (args: TArgs) => JSX.Element;
 }
 

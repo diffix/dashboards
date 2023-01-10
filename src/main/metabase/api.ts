@@ -1,6 +1,6 @@
 import { ClientRequestConstructorOptions, net } from 'electron';
 import { find } from 'lodash';
-import { postgresQuote } from '../../shared';
+import { makeSqlPayload, postgresQuote } from '../../shared';
 import { InitialQueryPayloads } from '../../types';
 import { metabaseConfig, postgresConfig } from '../config';
 import { getAppLanguage } from '../language';
@@ -174,19 +174,6 @@ async function getTableId(databaseId: number, tableName: string) {
   } else {
     throw new Error(`Table ${tableName} not found in data source ${databaseId}`);
   }
-}
-
-function makeSqlPayload(databaseId: number, queryString: string) {
-  return {
-    dataset_query: {
-      type: 'native',
-      native: { query: queryString, 'template-tags': {} },
-      database: databaseId,
-    },
-    display: 'table',
-    displayIsLocked: true,
-    parameters: [],
-  };
 }
 
 export async function waitUntilReady(): Promise<void> {
