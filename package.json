@@ -64,7 +64,7 @@
           "config": {
             "repository": {
               "owner": "diffix",
-              "name": "diffix_dashboards"
+              "name": "dashboards"
             },
             "draft": true
           }
