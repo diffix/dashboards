@@ -1,5 +1,5 @@
 ## Changelog
 
-### Next Version
+### Version 0.1.0
 
-- ...
+- Initial Alpha version.
