@@ -1,0 +1,30 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Build services
+        run: npm run build-win
+      - name: Add pg_config to PATH # Needed for building `node-libpq`
+        run: echo "$env:GITHUB_WORKSPACE\pgsql\bin" >> $env:GITHUB_PATH
+      - name: Install node libraries
+        run: npm install
+      - name: Make setup package
+        run: npm run make
+      - name: Publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run publish
