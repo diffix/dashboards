@@ -15,6 +15,7 @@ const bin = makeExecWrappers();
 function makeExecWrappers() {
   const asyncExecFile = util.promisify(execFile);
   const execWrapper = (path: string) => (args: string[]) => asyncExecFile(path, args);
+  const spawnWrapper = (path: string) => (args: string[]) => spawn(path, args);
 
   const pgConfigPath = isWin ? path.join(appResourcesLocation, 'pgsql', 'bin', 'pg_config') : 'pg_config';
   const postgresBinPath = execFileSync(pgConfigPath, ['--bindir'], { timeout: 5000 }).toString().trim();
@@ -23,9 +24,11 @@ function makeExecWrappers() {
 
   return {
     paths: {
-      postgres: path.join(postgresBinPath, 'postgres'),
       socket: path.join(postgresConfig.dataDirectory, 'socket'),
       initPgDiffixScript: path.join(appResourcesLocation, 'scripts', initPgDiffixScriptName),
+    },
+    spawn: {
+      pg_ctl: spawnWrapper(path.join(postgresBinPath, 'pg_ctl')),
     },
     exec: {
       initdb: execWrapper(path.join(postgresBinPath, 'initdb')),
@@ -146,12 +149,13 @@ export async function setupPgDiffix(): Promise<void> {
 
 export function startPostgres(): ChildProcessWithoutNullStreams {
   console.info('Starting PostgreSQL...');
-  const socketArgs = isWin ? [] : ['-k', bin.paths.socket];
 
-  const postgresql = spawn(
-    bin.paths.postgres,
-    ['-p', postgresConfig.port.toString(), '-D', postgresConfig.dataDirectory].concat(socketArgs),
-  );
+  const escape = (str: string) => `"${str}"`;
+
+  const socketArgs = isWin ? [] : ['-k', escape(bin.paths.socket)];
+  const postgresArgs = ['-p', postgresConfig.port.toString()].concat(socketArgs).join(' ');
+
+  const postgresql = bin.spawn.pg_ctl(['-D', postgresConfig.dataDirectory, '-o', postgresArgs, 'start']);
   postgresql.stdout.setEncoding('utf-8');
   postgresql.stderr.setEncoding('utf-8');
   return postgresql;
