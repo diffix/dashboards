@@ -7,40 +7,53 @@ import { ServiceStatus } from '../../types';
 import { appDataLocation, appResourcesLocation, isWin, postgresConfig } from '../config';
 import { delay, forwardLogLines, getUsername, waitForServiceStatus } from '../service-utils';
 
-const asyncExecFile = util.promisify(execFile);
-
-const pgConfigPath = isWin ? path.join(appResourcesLocation, 'pgsql', 'bin', 'pg_config') : 'pg_config';
-const postgresBinPath = execFileSync(pgConfigPath, ['--bindir'], { timeout: 5000 }).toString().trim();
-const postgresPath = path.join(postgresBinPath, 'postgres');
-const psqlPath = path.join(postgresBinPath, 'psql');
-const initdbPath = path.join(postgresBinPath, 'initdb');
-const pgIsReadyPath = path.join(postgresBinPath, 'pg_isready');
-const socketPath = path.join(postgresConfig.dataDirectory, 'socket');
-
-const initPgDiffixScriptName = 'init.sql';
-const initPgDiffixScriptPath = path.join(appResourcesLocation, 'scripts', initPgDiffixScriptName);
-
-let postgresqlStatus = ServiceStatus.Starting;
-
 const setupLog = log.create(postgresConfig.logId);
 setupLog.transports.file.fileName = postgresConfig.logFileName;
+
+const bin = makeExecWrappers();
+
+function makeExecWrappers() {
+  const asyncExecFile = util.promisify(execFile);
+  const execWrapper = (path: string) => (args: string[]) => asyncExecFile(path, args);
+
+  const pgConfigPath = isWin ? path.join(appResourcesLocation, 'pgsql', 'bin', 'pg_config') : 'pg_config';
+  const postgresBinPath = execFileSync(pgConfigPath, ['--bindir'], { timeout: 5000 }).toString().trim();
+
+  const initPgDiffixScriptName = 'init.sql';
+
+  return {
+    paths: {
+      postgres: path.join(postgresBinPath, 'postgres'),
+      socket: path.join(postgresConfig.dataDirectory, 'socket'),
+      initPgDiffixScript: path.join(appResourcesLocation, 'scripts', initPgDiffixScriptName),
+    },
+    exec: {
+      initdb: execWrapper(path.join(postgresBinPath, 'initdb')),
+      pg_ctl: execWrapper(path.join(postgresBinPath, 'pg_ctl')),
+      psql: execWrapper(path.join(postgresBinPath, 'psql')),
+      pg_isready: execWrapper(path.join(postgresBinPath, 'pg_isready')),
+    },
+  };
+}
+// ----------------------------------------------------------------
+// Init & Startup
+// ----------------------------------------------------------------
 
 async function initdb() {
   setupLog.info('Initializing PostgreSQL local database...');
   const { dataDirectory } = postgresConfig;
-  const initDb = await asyncExecFile(initdbPath, ['-U', getUsername(), '-D', dataDirectory, '-E', 'UTF8']);
+  const initDb = await bin.exec.initdb(['-U', getUsername(), '-D', dataDirectory, '-E', 'UTF8']);
 
   forwardLogLines(setupLog.info, 'initdb:', initDb.stderr);
   forwardLogLines(setupLog.info, 'initdb:', initDb.stdout);
-  isWin || fs.mkdirSync(socketPath, { recursive: true });
+  isWin || fs.mkdirSync(bin.paths.socket, { recursive: true });
 }
 
 async function waitUntilReachable(): Promise<void> {
-  const socketArgs = isWin ? [] : ['-h', `${socketPath}`];
+  const socketArgs = isWin ? [] : ['-h', `${bin.paths.socket}`];
   for (let i = 0; i < postgresConfig.connectAttempts; i++) {
     try {
-      await asyncExecFile(
-        pgIsReadyPath,
+      await bin.exec.pg_isready(
         ['-U', `${getUsername()}`, '-d', 'postgres', '-p', postgresConfig.port.toString()].concat(socketArgs),
       );
       return;
@@ -58,9 +71,8 @@ async function waitUntilReachable(): Promise<void> {
 }
 
 async function psqlDetectPgDiffix() {
-  const socketArgs = isWin ? [] : ['-h', `${socketPath}`];
-  const detectPgDiffix = await asyncExecFile(
-    psqlPath,
+  const socketArgs = isWin ? [] : ['-h', `${bin.paths.socket}`];
+  const detectPgDiffix = await bin.exec.psql(
     [
       '-U',
       `${getUsername()}`,
@@ -84,9 +96,8 @@ async function psqlDetectPgDiffix() {
 }
 
 async function psqlRunInitSQL() {
-  const socketArgs = isWin ? [] : ['-h', `${socketPath}`];
-  const psql = await asyncExecFile(
-    psqlPath,
+  const socketArgs = isWin ? [] : ['-h', `${bin.paths.socket}`];
+  const psql = await bin.exec.psql(
     [
       '-v',
       'ON_ERROR_STOP=1',
@@ -97,7 +108,7 @@ async function psqlRunInitSQL() {
       '-p',
       postgresConfig.port.toString(),
       '-f',
-      initPgDiffixScriptPath,
+      bin.paths.initPgDiffixScript,
     ].concat(socketArgs),
   );
   forwardLogLines(setupLog.info, 'psql:', psql.stderr);
@@ -135,10 +146,10 @@ export async function setupPgDiffix(): Promise<void> {
 
 export function startPostgres(): ChildProcessWithoutNullStreams {
   console.info('Starting PostgreSQL...');
-  const socketArgs = isWin ? [] : ['-k', socketPath];
+  const socketArgs = isWin ? [] : ['-k', bin.paths.socket];
 
   const postgresql = spawn(
-    postgresPath,
+    bin.paths.postgres,
     ['-p', postgresConfig.port.toString(), '-D', postgresConfig.dataDirectory].concat(socketArgs),
   );
   postgresql.stdout.setEncoding('utf-8');
@@ -146,15 +157,19 @@ export function startPostgres(): ChildProcessWithoutNullStreams {
   return postgresql;
 }
 
+// ----------------------------------------------------------------
+// Shutdown & Cleanup
+// ----------------------------------------------------------------
+
 function gracefulShutdown() {
   // On Windows, if we let the OS handle shutdown, it will not be graceful, and next start
   // is in recovery mode.
   // On Linux, `postgresql?.kill()` works fine, but the common `pg_ctl` is just as good.
-  execFile(path.join(postgresBinPath, 'pg_ctl'), ['-D', postgresConfig.dataDirectory, 'stop', '-m', 'fast']);
+  bin.exec.pg_ctl(['-D', postgresConfig.dataDirectory, 'stop', '-m', 'fast']);
 }
 
 function forcefulShutdown() {
-  execFile(path.join(postgresBinPath, 'pg_ctl'), ['-D', postgresConfig.dataDirectory, 'stop', '-m', 'immediate']);
+  bin.exec.pg_ctl(['-D', postgresConfig.dataDirectory, 'stop', '-m', 'immediate']);
 }
 
 export async function shutdownPostgres(): Promise<void> {
@@ -169,6 +184,18 @@ export async function shutdownPostgres(): Promise<void> {
   });
 }
 
+export async function cleanAppData(): Promise<void> {
+  console.info(`Cleaning the application data folder ${appDataLocation}...`);
+  await shutdownPostgres();
+  fs.rmSync(appDataLocation, { recursive: true });
+}
+
+// ----------------------------------------------------------------
+// Status
+// ----------------------------------------------------------------
+
+let postgresqlStatus = ServiceStatus.Starting;
+
 export function getPostgresqlStatus(): ServiceStatus {
   return postgresqlStatus;
 }
@@ -179,10 +206,4 @@ export function setPostgresqlStatus(status: ServiceStatus): void {
 
 export function waitForPostgresqlStatus(status: ServiceStatus): Promise<void> {
   return waitForServiceStatus(status, 'PostgreSQL', getPostgresqlStatus);
-}
-
-export async function cleanAppData(): Promise<void> {
-  console.info(`Cleaning the application data folder ${appDataLocation}...`);
-  await shutdownPostgres();
-  fs.rmSync(appDataLocation, { recursive: true });
 }
