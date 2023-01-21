@@ -426,8 +426,12 @@ async function startServices() {
   await setupPostgres();
   postgresql = startPostgres();
 
-  postgresql.stderr.on('data', (data: string) => {
+  // pg_ctl moves postgres stderr to its stdout (on Unix only).
+  postgresql.stdout.on('data', (data: string) => {
     forwardLogLines(log.info, 'postgres:', data);
+  });
+  postgresql.stderr.on('data', (data: string) => {
+    forwardLogLines(log.warn, 'postgres:', data);
   });
 
   postgresql.on('close', (code) => {
