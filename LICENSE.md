@@ -12,7 +12,7 @@ License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved.
 
 Licensor: **Max Planck Gesellschaft (MPG)**
 
-Licensed Work: **Diffix Dashboards 0.1.0**
+Licensed Work: **Diffix Dashboards 0.1.1**
 
 Additional Use Grant:
 
