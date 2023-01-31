@@ -26,7 +26,6 @@ function CsvImportHelp() {
       <Paragraph t={t}>
         <strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text, numeric and
         timestamp).
-        <br />
       </Paragraph>
     </div>
   );
