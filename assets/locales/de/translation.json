@@ -1,3 +1,233 @@
 {
-  "App": {}
+  "App": {
+    "Admin Panel": "Verwaltungsbereich",
+    "Metabase": "Metabase",
+    "Import": "Import",
+    "New Metabase Tab": "Neue Metabase Tab",
+    "Documentation": "Documentation",
+    "Query Builder": "Abfrage-Ersteller",
+    "Diffix Dashboards": "Diffix Dashboards",
+    "Refresh to reveal newly imported tables (currently running queries will abort)": "Aktualisieren, um neu importierte Tabellen anzuzeigen (laufende Abfragen werden abgebrochen)",
+
+    "Menu": {
+      "AppMenu": {
+        "Diffix Dashboards": "Diffix Dashboards",
+        "About Diffix Dashboards": "Über Diffix Dashboards",
+        "Services": "Dienstleistungen",
+        "Hide Diffix Dashboards": "Diffix Dashboards verstecken",
+        "Hide Others": "Andere verstecken",
+        "Show All": "Alle anzeigen",
+        "Quit Diffix Dashboards": "Diffix Dashboards beenden"
+      },
+      "View": {
+        "&View": "Ansicht",
+        "Copy": "Kopieren",
+        "Select All": "Alle auswählen",
+        "Actual Size": "Tatsächliche Größe",
+        "Zoom In": "Vergrößern",
+        "Zoom Out": "Verkleinern",
+        "Toggle Full Screen": "Vollbild umschalten"
+      },
+      "Actions": {
+        "&Actions": "&Aktionen",
+        "Export Logs": "Logs exportieren",
+        "Logs exported successfully": "Logs erfolgreich exportiert",
+        "Failed to export logs": "Export der Logs fehlgeschlagen",
+        "Language": "Sprache"
+      },
+      "Help": {
+        "&Help": "&Hilfe",
+        "Documentation": "Dokumentation",
+        "Changelog": "Änderungsübersicht",
+        "License": "Lizenz",
+        "Learn More": "Mehr erfahren",
+        "Community Discussions": "Diskussionen in der Community",
+        "Search Issues": "Suche auf GitHub",
+        "Latest Releases": "Neueste Veröffentlichungen"
+      }
+    }
+  },
+  "AdminTab": {
+    "Services": "Dienstleistungen",
+    "Diffix Dashboards": "Diffix Dashboards",
+    "Imported Tables": "Importierte Tabellen",
+    "Query Builder": "Abfrage-Editor",
+    "Import Table": "Tabelle importieren",
+    "PostgreSQL database is not yet ready": "PostgreSQL-Datenbank ist noch nicht bereit",
+    "TableList": {
+      "Name": "Name",
+      "Protected entities": "Geschützte Entitäten",
+      "None": "Keine",
+      "Per Row": "Pro Zeile",
+      "Column: {{column}}": "Spalte: {{column}}",
+      "Columns: {{columns}}": "Spalten: {{columns}}",
+      "TableActions": {
+        "New SQL query": "Neue SQL-Abfrage",
+        "Open in Query Builder": "In Abfrage-Editor öffnen",
+        "Example SQL queries": "Beispiele für SQL-Abfragen",
+        "Remove": "Entfernen",
+        "Remove table": "Tabelle entfernen",
+        "Remove table `{{name}}`?": "Tabelle `{{name}}` entfernen?",
+        "Cancel": "Abbrechen",
+        "Click here to analyze in Metabase": "Klicken Sie hier, um in Metabase zu analysieren",
+        "Examples for {{tableName}} under construction...": "Beispiele für {{tableName}} im Aufbau...",
+        "Examples for {{tableName}} ready. Click to view": "Beispiele für {{tableName}} bereit. Zur Ansicht klicken",
+        "Examples for {{tableName}} failed": "Beispiele für {{tableName}} fehlgeschlagen"
+      }
+    }
+  },
+  "QueryTab": {
+    "QueryBuilder": {
+      "TableSelector": {
+        "From table": "Von Tabelle",
+        "Select a table": "Tabelle auswählen"
+      },
+      "ColumnSelector": {
+        "Select columns": "Spalten auswählen",
+        "Add a column": "Spalte hinzufügen",
+        "GeneralizationControls": {
+          "Bin size": "Größe der Behälter",
+          "Substring start": "Anfang des Teilstring",
+          "Substring length": "Länge des Teilstring",
+          "By": "Nach",
+          "Timestamp": {
+            "date_trunc:minute": "Minute",
+            "date_trunc:hour": "Stunde",
+            "date_trunc:day": "Tag",
+            "date_trunc:week": "Woche",
+            "date_trunc:month": "Monat",
+            "date_trunc:quarter": "Quartal",
+            "extract:year": "Jahr",
+            "extract:minute": "Minute der Stunde",
+            "extract:hour": "Stunde des Tages",
+            "extract:dayOfWeek": "Tag der Woche",
+            "extract:dayOfMonth": "Tag des Monats",
+            "extract:dayOfYear": "Tag des Jahres",
+            "extract:weekOfYear": "Woche des Jahres",
+            "extract:monthOfYear": "Monat des Jahres",
+            "extract:quarterOfYear": "Quartal des Jahres"
+          }
+        }
+      },
+      "AggregateSelector": {
+        "Aggregate": "Zusammenfassen",
+        "Add an aggregate": "Zusammenfassung hinzufügen",
+        "Count of rows": "Anzahl der Reihen",
+        "Count of entities": "Anzahl der Entitäten",
+        "Count of column": "Anzahl der Spalte",
+        "Count of distinct": "Anzahl der eindeutigen",
+        "Sum of": "Summe der",
+        "Average of": "Durchschnitt der"
+      },
+      "FilterSelector": {
+        "Filter by": "Filtern nach",
+        "Filter by column": "Filter nach Spalte",
+        "FilterValueEditor": { "true": "wahr", "false": "falsch" }
+      },
+      "AggColumnSelector": { "Select a column": "Spalte auswählen" }
+    },
+    "QueryPreview": {
+      "Query Preview": "Vorschau der Abfrage",
+      "Wrap in subquery": "In Unterabfrage einschließen",
+      "Copy to Clipboard": "In Zwischenablage kopieren",
+      "Open in Metabase": "In Metabase öffnen",
+      "Failed to open Metabase.": "Metabase konnte nicht geöffnet werden."
+    }
+  },
+  "ImportDataTab": {
+    "Sidebar": {
+      "ImportDataNavSteps": {
+        "{{stepNumber}}. Select File": "{{stepNumber}}. Datei auswählen",
+        "Load data from CSV": "Daten aus CSV laden",
+        "{{stepNumber}}. Data Preview": "{{stepNumber}}. Datenvorschau",
+        "Preview contents of the file": "Inhaltsvorschau",
+        "{{stepNumber}}. Protected Entity": "{{stepNumber}}. Geschützte Entität",
+        "Identify the protected entity in the data": "Bestimmen Sie die geschützte Entität in den Daten",
+        "{{stepNumber}}. Table Name": "{{stepNumber}}. Tabelle Name",
+        "Select table name and finalize import": "Tabellenname auswählen und Import abschließen"
+      },
+      "AidSelectionHelp": {
+        "Protected Entity": "Geschützte Entität",
+        "<strong>WARNING:</strong> If this configuration is not done correctly, the data will not be properly anonymized.": "<strong>WARNUNG:</strong> Wenn diese Konfiguration nicht korrekt vorgenommen wird, werden die Daten nicht richtig anonymisiert.",
+        "If the data has one row per person (or other <1>protected entity</1>), then no entity identifier column need be selected. Otherwise, select a column containing a unique ID per protected entity.": "Wenn die Daten eine Zeile pro Person (oder eine andere <1>geschützte Einheit</1>) enthalten, muss keine Spalte mit der Entitätskennung ausgewählt werden. Andernfalls muss eine Spalte ausgewählt werden, die eine eindeutige ID pro geschützter Entität enthält.",
+        "If the data is not associated with any protected entities, it can be imported into a public table. Such data will not be anonymized.": "Wenn die Daten nicht mit geschützten Entitäten verbunden sind, können sie in eine öffentliche Tabelle importiert werden. Solche Daten werden nicht anonymisiert."
+      },
+      "ImportHelp": {
+        "Table Name": "Tabelle Name",
+        "Select a name for the imported table.": "Wählen Sie einen Namen für die importierte Tabelle.",
+        "<strong>Diffix Dashboards</strong> will propose a name based on the CSV file name, adjusting it to match the requirements of the underlying database. You may override the proposed name.": "<strong>Diffix Dashboards</strong> schlägt einen Namen auf der Grundlage des CSV-Dateinamens vor und passt ihn an die Anforderungen der zugrunde liegenden Datenbank an. Sie können den vorgeschlagenen Namen außer Kraft setzen."
+      },
+      "CsvImportHelp": {
+        "Select File": "Datei auswählen",
+        "<strong>Diffix Dashboards</strong> auto-detects the CSV delimiter, as well as the field type (text, numeric and timestamp).": "<strong>Diffix Dashboards</strong> erkennt automatisch das CSV-Trennzeichen sowie den Feldtyp (Text, numerisch und Zeitstempel)."
+      },
+      "DataPreviewHelp": {
+        "Data Preview": "Datenvorschau",
+        "Use the data preview to confirm that the data was loaded correctly.": "Verwenden Sie die Datenvorschau, um zu überprüfen, ob die Daten korrekt importiert wurden."
+      }
+    },
+    "FileLoadStep": {
+      "{{stepNumber}}. Select a CSV file": "{{stepNumber}}. Eine CSV-Datei auswählen",
+      "Click or drag a file to this area": "Klicken oder ziehen Sie eine Datei in diesen Bereich",
+      "English": "Englisch",
+      "German": "Deutsch",
+      "Number format:": "Zahlenformat:",
+      "{{lastCompletedImport}} imported successfully. Click or drag another file to this area": "{{lastCompletedImport}} erfolgreich importiert. Klicken oder ziehen Sie eine andere Datei in diesen Bereich"
+    },
+    "SchemaLoadStep": {
+      "Schema discovery failed": "Schemaerkennung fehlgeschlagen",
+      "Something went wrong while loading the schema.": "Beim Laden des Schemas ist ein Fehler aufgetreten.",
+      "{{stepNumber}}. Data Preview": "{{stepNumber}}. Datenvorschau",
+      "Loading schema": "Schema wird geladen",
+      "Here is what {{fileName}} looks like:": "So sieht {{fileName}} aus:",
+      "(only the first {{count}} rows are shown)": "(nur die ersten 1000 Zeilen werden angezeigt)",
+      "CAUTION:": "VORSICHT:",
+      "Diffix Dashboards is alpha software. We have not tested for datasets this large (> {{thresholdMB}} MB), and so it is possible that certain features may become unresponsive or not work correctly.": "Diffix Dashboards ist eine Vorabversion der Software (alpha). Wir haben keine Tests für so große Datensätze (> {{thresholdMB}} MB) durchgeführt. Daher ist es möglich, dass bestimmte Funktionen nicht mehr reagieren oder nicht korrekt funktionieren."
+    },
+    "AidSelectionStep": {
+      "{{stepNumber}}. Select the protected entity": "{{stepNumber}}. Wählen Sie die geschützte Entität",
+      "None (data is not personal)": "Keine (Daten sind nicht persönlich)",
+      "One row per protected entity": "Eine Zeile pro geschützter Entität",
+      "Multiple rows per protected entity": "Mehrere Zeilen pro geschützter Entität",
+      "Select the protected entity ID column": "Wählen Sie die ID-Spalte aus",
+      "NOTICE:": "ANMERKUNG:",
+      "File will be imported into a public table. Data contained within will not be anonymized.": "Die Datei wird in eine öffentliche Tabelle importiert. Die darin enthaltenen Daten werden nicht anonymisiert.",
+      "CAUTION:": "VORSICHT:",
+      "You must ensure that each individual row from the input file represents a unique protected entity.": "Sie müssen sicherstellen, dass jede einzelne Zeile der Eingabedatei eine eindeutige geschützte Entität darstellt."
+    },
+    "ImportStep": {
+      "{{stepNumber}}. Select a name for the table": "{{stepNumber}}. Wählen Sie einen Namen für die Tabelle",
+      "Import": "Importieren",
+      "Table name": "Tabelle Name",
+      "{{tableName}} already exists, will be overwritten": "{{tableName}} existiert bereits, wird überschrieben",
+      "{{tableName}} will require double-quotes in SQL, try {{fixedTableName}} instead": "{{tableName}} erfordert doppelte Anführungszeichen in SQL, versuchen Sie stattdessen {{fixedTableName}}"
+    }
+  },
+  "MetabaseTab": {
+    "Waiting for Metabase...": "Warten auf Metabase..."
+  },
+  "DocsTab": {
+    "Anonymization": "Anonymisierung",
+    "Documentation": "Dokumentation",
+    "Changelog": "Änderungsübersicht",
+    "License": "Lizenz",
+    "Licenses of Dependencies": "Lizenzen von Abhängigkeiten"
+  },
+  "messages": {
+    "importer": {
+      "Loaded {{fileName}}": "{{fileName}} ist geladen",
+      "Importing {{fileName}}": "Importieren von {{fileName}}",
+      "{{fileName}} imported successfully": "Erfolgreich importiert {{fileName}}",
+      "Data import failed: {{reason}}": "Datenimport fehlgeschlagen: {{reason}}",
+      "Import aborted": "Import abgebrochen"
+    },
+    "tables": {
+      "Removing table {{tableName}}": "Entfernen der Tabelle {{tableName}}",
+      "Table {{tableName}} removed": "Tabelle {{tableName}} entfernt",
+      "Table removal failed": "Entfernung der Tabelle fehlgeschlagen"
+    }
+  },
+  "check-updates": {
+    "Update Available": "Update verfügbar"
+  }
 }
