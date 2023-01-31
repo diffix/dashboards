@@ -1,5 +1,9 @@
 ## Changelog
 
+### Next version
+
+- Added German localization.
+
 ### Version 0.1.1
 
 - Fixed Postgres not starting when Dashboards was run as an administrator.
