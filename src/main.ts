@@ -198,7 +198,14 @@ function registerProtocols() {
 
 // Main window
 
-const ALLOWED_DOMAINS = ['https://open-diffix.org', 'https://github.com', 'https://arxiv.org', 'mailto:'];
+const ALLOWED_DOMAINS = [
+  'https://open-diffix.org',
+  'https://github.com',
+  'https://arxiv.org',
+  'https://www.postgresql.org',
+  'https://www.metabase.com',
+  'mailto:',
+];
 
 function createWindow() {
   const mainWindow = new BrowserWindow({

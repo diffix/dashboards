@@ -110,7 +110,7 @@ under an Open Source License, as stated in this License.
 
 **The PostgreSQL License**
 
-Copyright (c) **2022, Max Planck Gesellschaft (MPG)**
+Copyright (c) **2023, Max Planck Gesellschaft (MPG)**
 
 Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and
 without a written agreement is hereby granted, provided that the above copyright notice and this paragraph and the
