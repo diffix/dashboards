@@ -86,20 +86,14 @@ To start building a query, click on the `Open in Query Builder` button for the d
 
 ![](images/button_query_builder.png)
 
-**Selecting columns and aggregates**
-
-Use the dropdowns on the left side to choose what data and aggregates the query includes.
+The dropdowns on the left side of the page are used to add columns and aggregates to the query.
 
 - **From table**: Table to select data from. Initially set to the table that was clicked when opening the tab.
 - **Select columns**: Which columns to group by in the result. Depending on the column type,
-expanding the chevron near the column name opens generalization options.
+  expanding the chevron near the column name opens generalization options.
 - **Aggregate**: Which summary functions to run on result groups.
 - **Filter by**: Sets pre-anonymization filters in the form of `column = value`.
-  Only rows that match ***all*** filters will be processed further.
-
-To the right of list items, there are up and down arrows to reorder them. The `X` button removes an item from the query.
-
-**Query Preview**
+  Only rows that match **_all_** filters will be processed further.
 
 The right side of the page shows the query preview and buttons to export the query.
 Clicking on `Open in Metabase` will open a new Metabase tab with the query box pre-populated.
