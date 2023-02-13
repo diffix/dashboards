@@ -2,7 +2,7 @@
   "name": "DiffixDashboards",
   "productName": "Diffix Dashboards",
   "author": "Max Planck Gesellschaft (MPG)",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Desktop application for producing anonymized dashboards using `Open Diffix`.",
   "main": ".webpack/main",
   "scripts": {
