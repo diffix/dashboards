@@ -2,10 +2,35 @@
 
 > To report feature requests or problems, please contact us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org).
 
-**Diffix Dashboards'** purpose is to allow anonymized analysis of data using Metabase, an easy to use Business Intelligence (BI) tool.
+**Diffix Dashboards** takes as input CSV files containing _personal data_, and exports _anonymized_ aggregate data as CSV, Excel, or JSON files. The exported files are anonymous by GDPR standards, meaning that they are no longer personal data and can be shared freely. For details on the anonymization procedure itself see [Anonymization](anonymization.md).
 
-With **Diffix Dashboards** you will be able to pick one or more CSV files containing personal data, and transform them into Metabase-driven
-summaries and charts in a way which ensures GDPR-compliant anonymity. For details on the anonymization procedure itself see [Anonymization](anonymization.md).
+To aid the user in this process, **Diffix Dashboards** leverages **Metabase**, an easy-to-use open-source Business Intelligence (BI) tool. Using Metabase, users can visually compare anonymized data with original data to manage data distortion and ensure that the anonymized data is accurate and conveys the right insights.
+
+## System Overview
+
+**Diffix Dashboards** runs entirely on the local machine. Imported and exported files reside only on the local machine and never to the cloud or other machines. It runs two local services:
+
+- [**Metabase:**](https://www.metabase.com/) An open source BI tool that uses SQL as its primary query language. Metabase is used to visualize data, build dashboards, and export anonymized query results.
+- [**PostgreSQL:**](https://www.postgresql.org/)) An open source relational database. Metabase uses PostgreSQL as its backend database. PostgreSQL runs with the **pg-diffix** extension.
+
+**Diffix Dashboards** has three main functions:
+
+- Install and run the two services, which are bundled with **Diffix Dashboards** and do not need to be installed separately.
+- Manage CSV files, including:
+  - Installing them in the PostgreSQL database as SQL tables,
+  - Configuring the privacy parameters required by **pg-diffix**,
+  - Configuring Metabase to recognize the installed SQL tables.
+- Build Diffix-compatible queries, translate them to SQL, and load them into Metabase.
+
+![](images/dashboards-system-overview.png#560)
+
+**Diffix Dashboards** configures Metabase with two databases, called `Direct Access` and `Anonymized Access`. All tables installed by **Diffix Dashboards** are available on both databases.
+
+Queries to the `Anonymized Access` database return anonymized answers via **pg-diffix**. These answers are safe to export and share.
+
+Queries to the `Direct Access` database return exact, non-anonymized answers. These answers can be exported, but they must be regarded as personal data and therefore are still subject to GDPR.
+
+The purpose of the `Direct Access` database is to allow easy comparison of anonymized answers with exact answers so as to better understand the effect of Diffix anonymization. Diffix distorts data by adding noise to answers, and suppressing data that pertains to too few persons. By comparing anonymized answers with exact answers, the user can determine whether a given answer satisfies the analytic goals, and can modify queries to ensure that they do.
 
 ## Running **Diffix Dashboards**
 
@@ -21,8 +46,7 @@ If you experience something different, please refer to the section [Troubleshoot
 
 ## Data Import
 
-In order to anonymize and explore your data in **Diffix Dashboards**, you need to import it first. The process to import a CSV file into
-**Diffix Dashboards** is straightforward. Request a new import on the `Admin Panel` tab and follow instructions in the left-hand side bar.
+Importing a CSV file into **Diffix Dashboards** is straightforward. Request a new import on the `Admin Panel` tab and follow instructions in the left-hand side bar.
 
 ![](images/import.png#560)
 
@@ -56,7 +80,7 @@ browser tab, except for a few notable differences:
 
 **Limitations of automatic data exploration tools** - **Diffix Dashboards** operates using **Diffix Fir** anonymization
 (see [Anonymization](anonymization.md) for more details), and because of that it limits the SQL features available to
-the user. When exploring data via the `Anonymized access` data source, you might stumble upon functions returning errors
+the user. When exploring data via the `Anonymized Access` data source, you might stumble upon functions returning errors
 because **Diffix Fir** treats them as non-privacy preserving and blocks them.
 
 In case you stumble upon a SQL feature blocked by **Diffix Fir**, you should see an error message providing a hint as to
@@ -68,12 +92,12 @@ If you have difficulties writing SQL by hand, the [Query Builder](#query-builder
 If anything else is blocking you, please contact us at [feedback@open-diffix.org](mailto:feedback@open-diffix.org),
 we will be happy to discuss your use case and help.
 
-Use `Direct access` instead of `Anonymized access` data source to bypass anonymization completely. You have this option
+Use `Direct Access` instead of `Anonymized Access` data source to bypass anonymization completely. You have this option
 if you use the `+ New` button within Metabase to start building a SQL query.
 
 ![](images/sql_query.png#560)
 
-**CAUTION**: All the questions, SQL queries and dashboards using `Direct access` as data source will **not be
+**CAUTION**: All the questions, SQL queries and dashboards using `Direct Access` as data source will **not be
 anonymous**.
 
 ## Query Builder
